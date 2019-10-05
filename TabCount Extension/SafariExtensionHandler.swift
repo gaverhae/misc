@@ -65,9 +65,8 @@ class SafariExtensionHandler: SFSafariExtensionHandler {
                     Thread.sleep(forTimeInterval: 0.000001)
                 }
             }
-            NSLog("Count: \(count)")
+            validationHandler(true, "\(count)")
         })
-        validationHandler(true, "")
     }
     
     override func popoverViewController() -> SFSafariExtensionViewController {
