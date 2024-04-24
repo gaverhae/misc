@@ -6,6 +6,7 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     bash
     curl
+    fswatch
     jq
     poetry
   ];
