@@ -1,6 +1,7 @@
 import pickle
 import json
 import csv
+import xml.etree.ElementTree as ET
 
 class Serializable:
     def dump(self, path):
@@ -18,14 +19,21 @@ class JSONMixin:
         with open(path, 'r') as f:
             self.__dict__.update(json.load(f))
 
-# Python's XML story seems way too involved for my tastes, cheating here.
 class XMLMixin:
     def dump(self, path):
-        with open(path, 'w') as f:
-            json.dump(self.__dict__, f)
+        a = ET.Element('attributes')
+        for name, value in vars(self).items():
+            node = ET.SubElement(a, name, value = str(value))
+        tree = ET.ElementTree(a)
+
+        with open(path, 'wb') as f:
+            tree.write(f)
+
     def load(self, path):
-        with open(path, 'r') as f:
-            self.__dict__.update(json.load(f))
+        tree = ET.parse(open(path, 'rb'))
+        for parent in tree.iter():
+            for child in parent:
+                setattr(self, child.tag, child.attrib['value'])
 
 class CSVMixin:
     def dump(self, path):
