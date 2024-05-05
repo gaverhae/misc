@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "day01"
-version = "0.1.0"
+name = "src"
+version = "0.0.0"
 description = ""
 authors = ["Gary Verhaegen <gary.verhaegen@gmail.com>"]
 readme = "README.md"

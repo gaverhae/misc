@@ -4,7 +4,7 @@
 import pytest
 import json
 
-from solution import Serializable, JSONMixin, XMLMixin, CSVMixin
+from src import Serializable, JSONMixin, XMLMixin, CSVMixin
 
 
 def test_no_mixin(tmp_path):
