@@ -27,4 +27,4 @@ def test_remove():
 
 def test_example():
     vowels_to_y = tr('aeiou', 'y')
-    assert vowels_to_y('the quick brown fox jumps over the lazy dog') == "thy qyyck brywn fyx jymps yvyr thy lxzy dyg"
+    assert vowels_to_y('the quick brown fox jumps over the lazy dog') == "thy qyyck brywn fyx jymps yvyr thy lyzy dyg"
