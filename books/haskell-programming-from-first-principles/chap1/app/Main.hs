@@ -218,6 +218,15 @@ evalDeBruijn exp env = (toE 0 . eval . toDB . flattenEnv env) exp
                                        (subst name t2 depth)
                   DBNum i -> DBNum i
 
+{-
+TODO:
+thread names through state monad (?)
+De Bruijn indices (?)
+SKI combinators
+higher-order ast
+environments for lambdas
+-}
+
 alpha :: E -> E -> Bool
 alpha e1 e2 =
   de1 == de2
