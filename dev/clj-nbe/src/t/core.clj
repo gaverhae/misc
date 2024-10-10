@@ -1,13 +1,13 @@
 (ns t.core
-  (:require [hiccup2.core :as h]
-            [t.example :as example]))
+  (:require [criterium.core :refer [bench]]
+            [hiccup2.core :as h]
+            [t.example :as example])
+  (:gen-class))
 
 (defn foo
   "I don't do a whole lot."
   [x]
   (println x "Hello, World!"))
-
-(comment
 
 (def state1
   {:server/ready? true,
@@ -37,7 +37,16 @@
    :games {:loading true, :list {}},
    :server/data nil})
 
-(def html1 (str (h/html (example/ui-root state1))))
-(def html2 (str (h/html (example/ui-root state2))))
+(defn hic1 [] (str (h/html (example/ui-root state1))))
+(defn hic2 [] (str (h/html (example/ui-root state2))))
+
+(defn -main
+  [& args]
+  (println "start")
+  (bench (hic1))
+  (bench (hic2))
+  (println "end"))
+
+(comment
 
 )
