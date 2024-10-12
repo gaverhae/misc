@@ -26,7 +26,9 @@
   [root]
   (->> (Paths/get root (make-array String 0))
        no-sym-file-seq
-       count))
+       (map (fn [^Path p] (-> p .toAbsolutePath .toString)))
+       (map println)
+       doall))
 
 (defn -main
   [& args]
@@ -36,5 +38,4 @@
           (println "list of paths to folders to analyze and track."))
       (->> (string/split env_roots #" ")
            (map count-files)
-           (reduce + 0)
-           prn))))
+           doall))))

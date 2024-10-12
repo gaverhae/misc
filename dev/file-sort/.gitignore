@@ -3,3 +3,4 @@
 /.lein-*
 /.nrepl-port
 /.prepl-port
+_data
