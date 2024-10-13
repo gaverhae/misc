@@ -6,18 +6,42 @@
   [& args]
   (println "Hello, World!"))
 
+(def r (set (range 1 7)))
+
 (comment
 
-
-  (defn t
+  (defn prevt
     []
     (for [x11 (range 1 7) x12 (range 1 7) x13 (range 1 7) x14 (range 1 7) x15 (range 1 7) x16 (range 1 7)
           :when (< x11 x12)
           :when (< x12 x13)
           :when (> x14 x15)
           :when (< x15 x16)
-          :when (= #{1 2 3 4 5 6} (into #{} [x11 x12 x13 x14 x15 x16]))
-          x21 (range 1 7) x22 (range 1 7) x23 (range 1 7) x24 (range 1 7) x25 (range 1 7) x26 (range 1 7)
+          :when (= #{1 2 3 4 5 6} (into #{} [x11 x12 x13 x14 x15 x16]))]
+      [x11 x12 x13 x14 x15 x16]))
+
+
+
+  (defn t
+    []
+    (for [x11 r
+          x12 (range (inc x11) 7)
+          x13 (range (inc x12) 7)
+          x14 (range 1 7)
+          :when (and (not= x11 x14) (not= x12 x14) (not= x13 x14))
+          x15 (range 1 x14)
+          :when (and (not= x15 x11) (not= x15 x12) (not= x15 x13))
+          x16 (range (inc x15) 7)
+          :when (and (not= x16 x11) (not= x16 x12) (not= x16 x13) (not= x16 x14))
+          :when (= 21 (+ x11 x12 x13 x14 x15 x16))
+          :when (= r (into #{} [x11 x12 x13 x14 x15 x16]))]
+      [x11 x12 x13 x14 x15 x16]))
+          x21 (range 1 7)
+          x22 (range 1 7)
+          x23 (range 1 7)
+          x24 (range 1 7)
+          x25 (range 1 7)
+          x26 (range 1 7)
           :when (> x21 x22)
           :when (> x24 x14)
           :when (> x24 x25)
