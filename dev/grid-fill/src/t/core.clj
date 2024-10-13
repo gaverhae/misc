@@ -20,14 +20,21 @@
         :when (> x24 x25)
         :when (> x25 x26)
         :when (= #{1 2 3 4 5 6} (into #{} [x21 x22 x23 x24 x25 x26]))
-        :when (and (not= x11 x21)
-                   (not= x12 x22)
-                   (not= x13 x23)
-                   (not= x14 x24)
-                   (not= x15 x25)
-                   (not= x16 x26))]
+        x31 (range 2 7) x32 (range 1 7) x33 (range 1 7) x34 (range 1 7) x35 (range 1 7) x36 (range 2 7)
+        :when (< x31 x32)
+        :when (< x33 x34)
+        :when (= #{1 2 3 4 5 6} (into #{} [x31 x32 x33 x34 x35 x36]))
+        :when (= 3
+                 (count (set [x11 x21 x31]))
+                 (count (set [x12 x22 x32]))
+                 (count (set [x13 x23 x33]))
+                 (count (set [x14 x24 x34]))
+                 (count (set [x15 x25 x35]))
+                 (count (set [x16 x26 x36])))]
     [[x11 x12 x13 x14 x15 x16]
-     [x21 x22 x23 x24 x25 x26]]))
+     [x21 x22 x23 x24 x25 x26]
+     [x31 x32 x33 x34 x35 x36]
+     ]))
 
 (def r (set (range 1 7)))
 
@@ -53,9 +60,28 @@
         x25 (range 2 x24)
         :when (and (not= x25 x21) (not= x25 x22) (not= x25 x23) (not= x25 x15))
         x26 (range 1 x25)
-        :when (and (not= x26 x21) (not= x26 x22) (not= x26 x23) (not= x26 x16))]
+        :when (and (not= x26 x21) (not= x26 x22) (not= x26 x23) (not= x26 x16))
+        x31 (range 2 6)
+        :when (and (not= x31 x11) (not= x31 x21))
+        x32 (range (inc x31) 7)
+        :when (and (not= x32 x12) (not= x32 x22))
+        x33 (range 1 6)
+        :when (and (not= x33 x13) (not= x33 x23)
+                   (not= x33 x31) (not= x33 x32))
+        x34 (range (inc x33) 7)
+        :when (and (not= x34 x14) (not= x34 x24)
+                   (not= x34 x31) (not= x34 x32))
+        x35 (range 1 7)
+        :when (and (not= x35 x15) (not= x35 x25)
+                   (not= x35 x31) (not= x35 x32) (not= x35 x33) (not= x35 x34))
+        x36 (range 2 7)
+        :when (and (not= x36 x16) (not= x36 x26)
+                   (not= x36 x31) (not= x36 x32) (not= x36 x33) (not= x36 x34) (not= x36 x35))
+        ]
     [[x11 x12 x13 x14 x15 x16]
-     [x21 x22 x23 x24 x25 x26]]))
+     [x21 x22 x23 x24 x25 x26]
+     [x31 x32 x33 x34 x35 x36]
+     ]))
 
 (comment
 
@@ -64,10 +90,6 @@
 
 
 
-          x31 (range 1 7) x32 (range 1 7) x33 (range 1 7) x34 (range 1 7) x35 (range 1 7) x36 (range 1 7)
-          :when (< x31 x32)
-          :when (< x33 x34)
-          :when (= #{1 2 3 4 5 6} (into #{} [x31 x32 x33 x34 x35 x36]))
           x41 (range 1 7) x42 (range 1 7) x43 (range 1 7) x44 (range 1 7) x45 (range 1 7) x46 [4]
           :when (< x41 x31)
           :when (< x42 x43)
