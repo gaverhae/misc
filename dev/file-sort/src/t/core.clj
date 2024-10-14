@@ -10,25 +10,24 @@
   (:gen-class))
 
 (let [a (make-array LinkOption 0)]
-  (defn no-sym-file-seq
-    "Returns a lazy list of all the files under the given path. Unlike file-seq,
-    will not traverse symbolic links."
+  (defn all-files-under
+    "Returns a lazy list of all the files under the given path. Only reports
+    regular files; does not traverse symlinks."
     [path]
-    (tree-seq
-      (fn [^Path p] (and (not (Files/isSymbolicLink p))
-                         (Files/isReadable p)
-                         (Files/isDirectory p a)))
-      (fn [^Path p] (with-open [stream (Files/list p)]
-                      (-> stream Stream/.iterator iterator-seq vec)))
-      path)))
+    (cond (string? path) (all-files-under (Paths/get path (make-array String 0)))
+          ;; do not traverse symbolic links at all
+          (Files/isSymbolicLink path) []
+          ;; silently ignore files we can't read
+          (not (Files/isReadable path)) []
+          (Files/isDirectory path a) (let [children (with-open [stream (Files/list path)]
+                                                      (-> stream Stream/.iterator iterator-seq vec))]
+                                       (lazy-seq (mapcat all-files-under children)))
+          :else [(-> path Path/.toAbsolutePath str)])))
 
 (defn count-files
   [root]
-  (->> (Paths/get root (make-array String 0))
-       no-sym-file-seq
-       (map (fn [^Path p] (-> p .toAbsolutePath .toString)))
-       (map println)
-       doall))
+  (->> (all-files-under root)
+       count))
 
 (defn -main
   [& args]
@@ -38,4 +37,5 @@
           (println "list of paths to folders to analyze and track."))
       (->> (string/split env_roots #" ")
            (map count-files)
-           doall))))
+           (reduce + 0)
+           prn))))
