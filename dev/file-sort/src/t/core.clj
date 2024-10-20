@@ -39,3 +39,29 @@
            (map count-files)
            (reduce + 0)
            prn))))
+
+(comment
+
+  (require '[clojure.set :as set])
+  (import '(java.nio.file CopyOption
+                          attribute.FileAttribute))
+
+  (defn merge-dirs
+    [d1 d2 dest]
+    (let [p (fn [d s] (Paths/get (str d s) (make-array String 0)))
+          files-under-d1 (->> (all-files-under d1) (map (fn [s] (subs s (count d1)))))
+          files-under-d2 (->> (all-files-under d2) (map (fn [s] (subs s (count d2)))))
+          same-files (->> (set/intersection (set files-under-d1)
+                                            (set files-under-d2))
+                          (filter (fn [f]
+                                    (= -1 (Files/mismatch (p d1 f)
+                                                          (p d2 f))))))]
+      (doseq [f same-files]
+        (Files/createDirectories (Path/.getParent (p dest f)) (make-array FileAttribute 0))
+        (Files/move (p d1 f) (p dest f) (make-array CopyOption 0))
+        (Files/delete (p d2 f)))))
+
+  (merge-dirs "/Volumes/to_sort/mbp/Library1" "/Volumes/to_sort/mbp/Library3" "/Volumes/to_sort/mbp/Library")
+
+
+)
