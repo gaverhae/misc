@@ -63,5 +63,25 @@
 
   (merge-dirs "/Volumes/to_sort/mbp/Library1" "/Volumes/to_sort/mbp/Library3" "/Volumes/to_sort/mbp/Library")
 
+  (defn merge-dirs-safe
+    [d1 d2 dest]
+    (let [p (fn [d s] (Paths/get (str d s) (make-array String 0)))
+          files-under-d1 (->> (all-files-under d1) (map (fn [s] (subs s (count d1)))) set)
+          files-under-d2 (->> (all-files-under d2) (map (fn [s] (subs s (count d2)))) set)
+          same-paths (set/intersection files-under-d1 files-under-d2)
+          only-in-d1 (set/difference files-under-d1 files-under-d2)]
+      ; safety check
+      (doseq [f same-paths]
+        (when (not= -1 (Files/mismatch (p d1 f)
+                                       (p d2 f)))
+          (prn [:files-differ p])))
+      (doseq [[d f] (concat (->> only-in-d1 (map (fn [f] [d1 f])))
+                            (->> files-under-d2 (map (fn [f] [d2 f]))))]
+        (Files/createDirectories (Path/.getParent (p dest f)) (make-array FileAttribute 0))
+        (Files/copy (p d f) (p dest f) (make-array CopyOption 0)))))
+
+  (merge-dirs-safe "/Volumes/Macintosh HD - Données" "/Volumes/Macintosh HD 1" "/Volumes/Hama/2024-10-26-backup-jess")
+
+
 
 )
