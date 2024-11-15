@@ -92,6 +92,16 @@ The origin is the point on the top left of the top-left pixel, coordinate $(1,
 
 ### Rectangles
 
+There are two methods for drawing a rectangle, depending on whether we want to
+draw an outline (`drawRect`) or a filled shape (`fillRect`). They both take
+four arguments: the top-left corner of the rectangle, its width, and its
+height.
+
+> See [listing-2-3] and [listing-2-4] for more examples.
+
+[listing-2-3]: http://127.0.0.1:8080/listing-2-3.html
+[listing-2-4]: http://127.0.0.1:8080/listing-2-4.html
+
 ### Paths
 
 ### Subpaths
