@@ -75,6 +75,10 @@ Simple example:
 
 ### The Context
 
+The context is the brush we use to draw on the canvas. There are other types of
+contexts, and a way to get at the underlying bitmap, but we'll focus on `'2d'`
+for now.
+
 ### The Coordinate System
 
 ## Drawing Shapes
