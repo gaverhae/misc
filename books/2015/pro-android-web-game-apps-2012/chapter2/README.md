@@ -25,6 +25,22 @@ coordinating animations is difficult; and generating SVG is hard because XML.
 
 ## The Basic HTML Setup
 
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function init() {
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
+```
+
 ## What Is Canvas?
 
 ### The Context
