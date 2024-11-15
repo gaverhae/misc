@@ -90,6 +90,8 @@ The origin is the point on the top left of the top-left pixel, coordinate $(1,
 
 ## Drawing Shapes
 
+The `2d` context has a separate API for rectangles.
+
 ### Rectangles
 
 ### Paths
