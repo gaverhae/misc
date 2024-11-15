@@ -43,9 +43,6 @@ coordinating animations is difficult; and generating SVG is hard because XML.
 
 ## What Is Canvas?
 
-> If you have the server running (`server start`), this snippet is displayed at
-> [/listing-2-2.html](http://127.0.0.1:8080/listing-2-2.html).
-
 Canvas is a stateful element, like the old Paint app. In order to change the
 display, you have to paint over what's already there.
 
@@ -72,6 +69,9 @@ Simple example:
 </body>
 </html>
 ```
+
+> If you have the server running (`server start`), this snippet is displayed at
+> [/listing-2-2.html](http://127.0.0.1:8080/listing-2-2.html).
 
 ### The Context
 
