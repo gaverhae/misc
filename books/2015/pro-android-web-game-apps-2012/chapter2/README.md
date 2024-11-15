@@ -46,6 +46,33 @@ coordinating animations is difficult; and generating SVG is hard because XML.
 > If you have the server running (`server start`), this snippet is displayed at
 > [/listing-2-2.html](http://127.0.0.1:8080/listing-2-2.html).
 
+Canvas is a stateful element, like the old Paint app. In order to change the
+display, you have to paint over what's already there.
+
+Simple example:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function init() {
+      var canvas = document.getElementById('mainCanvas');
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 300, 300);
+      ctx.fillStyle = "lightgray";
+      ctx.fillRect(10, 10, 50, 50);
+    }
+  </script>
+</head>
+<body onload="init()">
+  <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>
+```
+
 ### The Context
 
 ### The Coordinate System
