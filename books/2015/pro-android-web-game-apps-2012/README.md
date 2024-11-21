@@ -12,3 +12,13 @@ The book focuses on library-free JavaScript, which is obviously not what I'm
 using, so there will be some extra work needed to bring the content of the book
 into "my" world; hopefully this extra work will actually make the learning
 experience better overall.
+
+I have written up a summary of the book, and collected here all of the code
+I've written as part of reading it. Some of it is me just retyping code sample
+from the book, and some is original.
+
+Links to examples in the summary assume you have started the local web server
+with `server start` in a [direnv]-allowed [Nix] shell in this folder.
+
+[direnv]: https://direnv.net
+[Nix]: https://nixos.org/download/

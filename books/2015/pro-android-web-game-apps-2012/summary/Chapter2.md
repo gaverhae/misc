@@ -1,3 +1,7 @@
+[Previous](./Chapter1.md) | [Next](./Chapter3.md)
+
+<hr>
+
 # Chapter 2 - Graphics in the Browser: the Canvas Element
 
 ## The Anatomy of the Game
@@ -71,7 +75,7 @@ Simple example:
 ```
 
 > If you have the server running (`server start`), this snippet is displayed at
-> [/listing-2-2.html](http://127.0.0.1:8080/listing-2-2.html).
+> [/ch2/listing-2-2.html](http://127.0.0.1:8080/ch2/listing-2-2.html).
 
 ### The Context
 
@@ -101,8 +105,8 @@ height.
 
 > See [listing-2-3] and [listing-2-4] for more examples.
 
-[listing-2-3]: http://127.0.0.1:8080/listing-2-3.html
-[listing-2-4]: http://127.0.0.1:8080/listing-2-4.html
+[listing-2-3]: http://127.0.0.1:8080/ch2/listing-2-3.html
+[listing-2-4]: http://127.0.0.1:8080/ch2/listing-2-4.html
 
 ### Paths
 
@@ -131,3 +135,7 @@ height.
 ### Context Transformations in the Sample Project
 
 ## The Sample Game Project Result
+
+<hr>
+
+[Previous](./Chapter1.md) | [Next](./Chapter3.md)
