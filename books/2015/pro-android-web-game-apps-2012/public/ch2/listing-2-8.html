@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function init() {
+      var canvas = document.getElementById('mainCanvas');
+      var ctx = canvas.getContext('2d');
+
+      ctx.beginPath(); // create a new path
+
+      ctx.moveTo(150, 150); // start a subpath
+      ctx.lineTo(200, 200);
+      ctx.lineTo(100, 200);
+      ctx.closePath(); // adds line from current 100, 200 to last moveTo 150, 150
+
+      ctx.moveTo(250, 200); // start a new subpath
+      ctx.lineTo(300, 250);
+      ctx.lineTo(200, 250);
+      ctx.closePath(); // adds line from current 200, 250 to last moveTo 250, 200
+
+      ctx.fill(); // fills both shapes
+      ctx.stroke(); // draws both sub-paths
+    }
+  </script>
+</head>
+<body onload="init()">
+  <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>

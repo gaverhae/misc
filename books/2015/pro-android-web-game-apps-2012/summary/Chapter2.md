@@ -190,6 +190,26 @@ See [listing 2.7] for an example use.
 
 ### Subpaths
 
+Names are a bit misleading here. A path is a set of sub-paths. When `beginPath`
+is called, a new, empty path is created and the previous path is discarded,
+including all of its sub-paths. When `stroke` or `fill` is called, the current
+path draws all of its sub-paths on the screen.
+
+A new sub-path is created by calling `moveTo`. The `closePath` function closes
+the "geometrical" path of the current sub-path, but does not close the current
+path; essentially it draws a line from the current position to the position of
+the last `moveTo`.
+
+[Listing 2.8] illustrates this behaviour: calling `closePath` does not close
+the path, as shown by `stroke` called after the two `closePath` calls still
+drawing both shapes.
+
+[Listing 2.8]: http://127.0.0.1:8080/ch2/listing-2-8.html
+
+Usually, one would create a new path per figure, but when drawing a lot of
+figures with the same stroke and fill style, creating a single path with many
+sub-paths can be faster.
+
 ## Strokes and Fills
 
 ### Solid Colors
