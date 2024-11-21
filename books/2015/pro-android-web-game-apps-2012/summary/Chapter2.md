@@ -200,19 +200,45 @@ See [listing 2.7] for an example use.
 
 ## Context State and Transformations
 
-### Translate
+It is possible to apply transformations to the canvas: translation, rotation,
+and scaling.
 
-### Scale
+They behave as expected: `ctx.translate(dx, dy)` moves the coordinate axes `dx`
+pixels to the right and `dy` pixels down, so the top-left of the canvas is then
+`(-dx, -dy)`; `ctx.scale(mx, my)` multiplies all coordinates, so `mx` above 1
+"stretches" drawings and below one "shinks" them (negative values are allowed
+and work as expected for multiplication); and since we're in `2d`,
+`ctx.rotate(rad)` takes a single argument and rotates everything that many
+radians clockwise around the $z$ axis.
 
-### Rotate
+Transformations stack, so for example to rotate around another point than the
+origin one can chain a translation, a rotation, and another translation.
+Stacked transformations are "free" in terms of performance: the `2d` context
+stores the final transformation matrix, not a chain of individual
+transformations. It is possible to manipulate the transformation matrix
+directly with either `ctx.transform(a, b, c, d, e, f)` or `ctx.setTransform(a,
+b, c, d, e, f)`. The transformation matrix is a 3x3 matrix that can be
+expressed by 6 numbers because the last line is always `[0, 0, 1]` (because we
+cannot rotate around the $x$ or $y$ axes).
 
-### Stacking Transformations
+We'll take a closer look at the transformation matrix in [Chapter
+8](./Chapter8.md).
 
-### Context State
+The _context state_ is a representation of all the properties we have set on
+the context: stroke style, transforms, and so on. It is sometimes useful to
+save it and later restore it. The API for that is `ctx.save()` and
+`ctx.restore()`. Neither takes any argument, but the canvas keeps track of an
+internal stack of saved states, so nested calls would work as expected.
 
-### Context Transformations in the Sample Project
+[Listing 2.20] uses these techniques to clean up the project code we've got so
+far.
 
-## The Sample Game Project Result
+[Listing 2.20]: http://127.0.0.1:8080/ch2/listing-2-20.html
+
+> [/ch2/final.html] is a somewhat cleaned-up version of that, because I know
+> about functions.
+
+[/ch2/final.html]: http://127.0.0.1:8080/ch2/final.html
 
 <hr>
 
