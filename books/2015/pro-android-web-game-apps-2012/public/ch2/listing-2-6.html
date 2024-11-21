@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function init() {
+      var canvas = document.getElementById('mainCanvas');
+      var ctx = canvas.getContext('2d');
+      var cellSize = 40;
+
+      ctx.fillStyle = "#fffbb3";
+      ctx.strokeStyle = "#989681";
+      ctx.lineWidth = 2;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+      ctx.beginPath();
+
+      for (var i = 0; i < 8; i++) {
+        ctx.moveTo(i * cellSize + 0.5, 0);
+        ctx.lineTo(i * cellSize + 0.5, cellSize * 6);
+      }
+
+      for (var j = 0; j < 7; j++) {
+        ctx.moveTo(0, j * cellSize + 0.5);
+        ctx.lineTo(cellSize * 7, j * cellSize + 0.5);
+      }
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#989681";
+      ctx.stroke();
+
+      var data = [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 2, 1, 0, 0],
+        [0, 0, 2, 1, 1, 2, 0]];
+
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 3;
+
+      for (var i = 0; i < data.length; i++) {
+        for (var j = 0; j < data[i].length; j++) {
+          var value = data[i][j];
+          if (! value) {
+            continue;
+          }
+
+          switch (value) {
+            case 1:
+              ctx.fillStyle = "red";
+              break;
+            case 2:
+              ctx.fillStyle = "green";
+              break;
+          }
+
+          ctx.beginPath();
+          ctx.arc((j + 0.5) * cellSize, (i + 0.5) * cellSize, cellSize / 2 - 5, 0, 2 * Math.PI, false);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+    }
+  </script>
+</head>
+<body onload="init()">
+  <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>

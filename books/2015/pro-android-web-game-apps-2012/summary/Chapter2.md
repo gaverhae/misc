@@ -103,12 +103,90 @@ draw an outline (`drawRect`) or a filled shape (`fillRect`). They both take
 four arguments: the top-left corner of the rectangle, its width, and its
 height.
 
-> See [listing-2-3] and [listing-2-4] for more examples.
+> See [listing 2.3] and [listing 2.4] for more examples.
 
-[listing-2-3]: http://127.0.0.1:8080/ch2/listing-2-3.html
-[listing-2-4]: http://127.0.0.1:8080/ch2/listing-2-4.html
+[listing 2.3]: http://127.0.0.1:8080/ch2/listing-2-3.html
+[listing 2.4]: http://127.0.0.1:8080/ch2/listing-2-4.html
 
 ### Paths
+
+For non-rectangular shapes, the process has one more step: one must first
+define a _path_, and then either fill it or stroke it (or both).
+
+There are four ways to define paths: lines, arcs, quadratic curves, or Bézier
+curves.
+
+To illustrate the overall process, here is the code to draw a simple line:
+
+```javascript
+ctx.beginPath();
+ctx.moveTo(50, 50); // moves the cursor; not defining anything yet
+ctx.lineTo(120, 100); // begins tracing a path; we could have more steps here
+ctx.strokeStyle = "#000"; // set color; still not displaying anything
+ctx.stroke(); // this makes the black line from 50, 50 to 120, 100 appear
+```
+
+We use this to draw a grid in [listing 2.5]:
+
+```javascript
+      var cellSize = 40;
+      ctx.beginPath();
+
+      for (var i = 8; i < 8; i++) {
+        ctx.moveTo(i * cellSize + 0.5, 0);
+        ctx.lineTo(i * cellSize + 0.5, cellSize * 6);
+      }
+
+      for (var j = 0; j < 7; j++) {
+        ctx.moveTo(0, j * cellSize + 0.5);
+        ctx.lineTo(cellSize * 7, j * cellSize + 0.5);
+      }
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#989681";
+      ctx.stroke();
+```
+
+[listing 2.5]: http://127.0.0.1:8080/ch2/listing-2-5.html
+
+Note that calling `closePath` is not required; it will draw a line from the
+last point of a subpath to the first, which is not always desired.
+
+Arcs are drawn directly, without having to move the cursor. The `arc` method
+takes six arguments: $x$ and $y$ of the center, the radius, the start and end
+angles in radians, and a Boolean for direction (`false` is horlogic, `true` is
+trigonometric; defaults to false).
+
+For example, drawing a circle could be done with:
+
+```javascript
+var x = 90;
+var y = 70;
+var radius = 50;
+ctx.beginPath();
+ctx.arc(x, y, radius, 0, 2*Math.PI, false);
+ctx.fillStyle = "darkgoldenrod";
+ctx.lineWidth = 5;
+ctx.strokeStyle = "black";
+ctx.fill();
+ctx.stroke();
+```
+
+See [listing 2-6] for a more complete example.
+
+[listing 2.6]: http://127.0.0.1:8080/ch2/listing-2-6.html
+
+The `2d` context supports two types of Bézier curves: quadratic
+(`.quadraticCurveTo(cp_x, cp_y, x, y)`) and cubic (`.bezierCurveTo(cp1_x,
+cp1_y, cp2_x, cp2_y, x, y)`). In both cases, the start point of the curve is
+the current position of the brush (typically defind by a `moveTo` or other
+preceding drawing), the last position (`x, y`) is the end point of the curve,
+and the one or two additional points are "control points" in the mathematical
+sense of Bézier curves.
+
+See [listing 2.7] for an example use.
+
+[listing 2.7]: http://127.0.0.1:8080/bh2/listing-2-7.html
 
 ### Subpaths
 
