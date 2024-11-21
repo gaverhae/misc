@@ -135,6 +135,26 @@ extend(FireTruck, Car);
 
 // Subclass-specific methods:
 FireTruck.prototype.turnCannon = function () {...}
+
+var truck = new FireTruck(); // creates an object, sets prototype to
+                             // FireTruck.prototype, then calls the FireTruck
+                             // function with that object as "this"
+truck.ploup = function() {
+  console.log("ploup");
+}
+
+truck.ploup(); // finds `ploup` on `truck` object itself.
+truck.turnCannon(); // `turnCannon` is not a property of `truck` itself, so
+                    // looks in `truck`'s prototype, which is
+                    // `FireTruck.prototype`, and finds it there.
+truck.move(); // `move` is not a property of `truck`, so looks in `truck`'s
+              // prototype, `FireTruck.prototype`, which also does not have a
+              // property called `move`, so looks in _its_ prototype, which is
+              // `Car.prototype`, where it finds it.
+truck.not_found(); // looks in `truck`, `FireTruck.prototype`, `Car.prototype`,
+                   // and `Object`, but does not find anything, so
+                   // `truck.not_found` returns `undefined`, and then trying to
+                   // call that as a function raises an error.
 ```
 
 Note that changes to `Function.prototype` are reflected in the behaviour of all
