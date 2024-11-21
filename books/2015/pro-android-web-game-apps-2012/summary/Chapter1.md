@@ -1,3 +1,7 @@
+[Previous](./Introduction.md) | [Next](./Chapter2.md)
+
+<hr>
+
 # Chapter 1 - Getting Started
 
 This chapter deals primarimy with setting up an environment and installing all
@@ -38,10 +42,16 @@ We need a web server in order to be able to test our site from external devices
 (including emulators). We'll use nginx because it is small and, relatively to
 Apache, simple.
 
-> I've added `nginx` to the `shell.nix` file, copied the config file over
-> (found using `nginx -t`, which prints the path to the config file), made it
-> writeable (`chmod +w`), then edited it. Then I created `bin/start-server` to
-> serve `public/`. (Also needed to copy `mimes.types` from the same place.)
+> You can check the setup works for you by opening the project folder, running
+> `direnv allow`, then running `server start`. This will start an nginx web
+> server with a simple HTML page at [/ch1/](http://127.0.0.1:8080/ch1/).
+>
+> If you want to follow along, I recommend reading the rest of this summary
+> with that server running.
+>
+> Note that the server listens to `0.0.0.0` and prints a best-effort guess of
+> its local IP address on startup, so if you have other devices on the same
+> local network you may be able to use that address to connect to it. YMMV.
 
 ### The Android SDK and Emulator
 
@@ -137,3 +147,7 @@ object).
 They suck, and there are a lot of them.
 
 > This has gotten a bit better now.
+
+<hr>
+
+[Previous](./Introduction.md) | [Next](./Chapter2.md)
