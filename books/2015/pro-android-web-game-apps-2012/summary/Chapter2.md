@@ -192,11 +192,41 @@ See [listing 2.7] for an example use.
 
 ## Strokes and Fills
 
-### Solid Colors
+Stroke is the border, fill is the interior. `fillStyle` and `strokeStyle`
+accept the same argument, which can be in one of three form:
 
-### Gradients
+- Solid colors: any valid CSS color (name, hex code, rgb or rgba function).
+- Gradients, which are JavaScript objects that mirror the CSS gradient property.
+- Patterns, which repeat a given image.
 
-### Patterns
+Gradients can be linear or radial. We first need to create a gradient object
+with `ctx.createLinearGradient` or `ctx.createRadialGradient`; linear takes two
+points as four coordinates, and radial takes two circles as two times two
+coordinates and a radius.
+
+Once the gradient object is created, we add color stops wth the `addColorStop`
+method, which takes a position (between 0 and 1) and a color (per solid colors
+above). Once all of the stops have been added, the gradient object can be
+assigned to ther `fillStyle` or `strokeStyle`.
+
+[Listing 2.12] uses a radial gradient to add lighting to the pieces. (It is
+otherwise identical to [listing 2.6].)
+
+[Listing 2.12]: http://127.0.0.1:8080/ch2/listing-2-12.html
+
+Finally, patterns allow us to take an image and repeat it. The image needs to
+be fully loaded inside the browser before the canvas drawing calls. A simple
+way to deal with that is with the `onload` method on the `Image` object, but
+a better approach will be discussed in [Chapter 4](./Chapter4.md).
+
+The `ctx.createPattern(img, strat)` call takes two arguments: an `Image`
+object, which must have finished loading, and a "repeat strategy" in the same
+format as the `background-repeat` CSS rule.
+
+[Listing 2.14] shows an example of using a pattern and a simple way to wait for
+the image to be loaded.
+
+The context remembers the stroke and fill settings until they are changed.
 
 ## Context State and Transformations
 
