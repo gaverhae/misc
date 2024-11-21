@@ -132,7 +132,7 @@ We use this to draw a grid in [listing 2.5]:
       var cellSize = 40;
       ctx.beginPath();
 
-      for (var i = 8; i < 8; i++) {
+      for (var i = 0; i < 8; i++) {
         ctx.moveTo(i * cellSize + 0.5, 0);
         ctx.lineTo(i * cellSize + 0.5, cellSize * 6);
       }
