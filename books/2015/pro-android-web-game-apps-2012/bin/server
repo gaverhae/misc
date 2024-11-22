@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
-cd "$DIR/.."
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
+cd "$DIR"
 
 if [ -z "${1:-}" ]; then
   echo "Need an arg: start, stop, reload"
@@ -12,10 +12,19 @@ _go() (
   nginx -p "$(pwd)" -e logs/error.log $@
 )
 
+_compile() (
+  cd "$DIR"/cljs
+  for arg in $@; do
+    npx shadow-cljs release $arg
+  done
+)
+
 case $1 in
   start)
     echo "Probable address:"
     echo "http://$(ifconfig | grep "inet 192" | awk '{print $2}'):8080"
+    echo "Compiling ClojureScript..."
+    _compile ch2
     echo "Starting server..."
     _go
     ;;
