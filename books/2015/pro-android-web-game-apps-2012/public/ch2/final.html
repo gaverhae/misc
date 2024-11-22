@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function draw_background(ctx, w, h) {
+      ctx.save();
+
+      var gradient = ctx.createLinearGradient(0, 0, 0, h);
+      gradient.addColorStop(0, "#fffbb3");
+      gradient.addColorStop(1, "#f6f6b2");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.restore();
+    }
+
+    function draw_bezier_decoration(ctx, w, h) {
+      ctx.save();
+
+      ctx.strokeStyle = "#dad7ac";
+      ctx.fillStyle = "#f6f6b2";
+
+      ctx.beginPath();
+      ctx.moveTo(w/6, h);
+      ctx.bezierCurveTo(1.5 * w, - (h/6), - (w / 2), - (h/6), w * 5/6, h);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(w/6, 0);
+      ctx.bezierCurveTo(1.5 * w, 7/6 * h, - (w/2), 7/6 * h, 5/6 * w, 0);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function draw_border(ctx, w, h) {
+      ctx.save();
+
+      ctx.strokeStyle = "#989681";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, w - 2, h - 2);
+
+      ctx.restore();
+    }
+
+    function center_in(ctx, out_w, out_h, inner) {
+      ctx.save();
+
+      ctx.translate(
+        Math.floor((out_w - inner.width) / 2),
+        Math.floor((out_h - inner.height) / 2));
+      inner.draw(ctx);
+
+      ctx.restore();
+    }
+
+    function draw_circle(ctx, r) {
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, 2 * Math.PI, true);
+      ctx.fill();
+    }
+
+    function draw_grid_lines(ctx, cell_size, h_cells, v_cells) {
+      ctx.save();
+
+      ctx.beginPath();
+
+      for (var i = 0; i < h_cells + 1; i++) {
+        ctx.moveTo(i * cell_size + 0.5, 0);
+        ctx.lineTo(i * cell_size + 0.5, cell_size * v_cells)
+      }
+
+      for (var j = 0; j < v_cells + 1; j++) {
+        ctx.moveTo(0, j * cell_size + 0.5);
+        ctx.lineTo(cell_size * h_cells, j * cell_size + 0.5);
+      }
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#989681";
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function grid(cell_size, data) {
+      var h_cells = data[0].length;
+      var v_cells = data.length;
+      return {
+        width: cell_size * h_cells,
+        height: cell_size * v_cells,
+        draw: (ctx) => {
+          draw_grid_lines(ctx, cell_size, h_cells, v_cells);
+          draw_pieces(ctx, cell_size, data);
+        }};
+    }
+
+    function piece(cs, color) {
+      var d = cs * 0.4 * 1.2 * 2;
+      return {
+        width: d,
+        height: d,
+        draw: (ctx) => {
+          ctx.save();
+
+          var r = cs * 0.4;
+          var gx = cs * 0.1;
+          var gy = - cs * 0.1;
+
+          var gradient = ctx.createRadialGradient(gx, gy, cs * 0.1, gx, gy, r * 1.2);
+          gradient.addColorStop(0, "yellow");
+          gradient.addColorStop(1, color);
+
+          ctx.fillStyle = gradient;
+          draw_circle(ctx, r);
+
+          ctx.restore();
+        }
+      };
+    }
+
+    function draw_pieces(ctx, cell_size, data) {
+      ctx.save();
+
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 3;
+
+      var colors = { 1: "red", 2: "green" };
+
+      for (var i = 0; i < data.length; i++) {
+        for (var j = 0; j < data[i].length; j++) {
+          var color = colors[data[i][j]]
+          if (!color) continue;
+
+          // Center of the token
+          var x = (j + 0.5) * cell_size;
+          var y = (i + 0.5) * cell_size;
+          ctx.save();
+          ctx.translate(x, y);
+          center_in(ctx, cell_size, cell_size, piece(cell_size, color));
+          ctx.restore();
+        }
+      }
+      ctx.restore();
+    }
+
+    function init() {
+      var data = [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 2, 1, 0, 0],
+        [0, 0, 2, 1, 1, 2, 0]
+      ];
+
+      var canvas = document.getElementById("mainCanvas");
+      var ctx = canvas.getContext("2d");
+      var cell_size = 40;
+
+      draw_background(ctx, canvas.width, canvas.height);
+      draw_bezier_decoration(ctx, canvas.width, canvas.height);
+      draw_border(ctx, canvas.width, canvas.height);
+
+      center_in(ctx, canvas.width, canvas.height, grid(cell_size, data));
+    }
+    </script>
+</head>
+<body onload="init()">
+    <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>
