@@ -1,6 +1,7 @@
 let
   pkgs = import ./nix/nixpkgs.nix;
   getFlake = url: (builtins.getFlake url).packages.${pkgs.system}.default;
+  jdk = pkgs.openjdk17_headless;
 in
 pkgs.mkShell {
   SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
@@ -8,8 +9,10 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     bash
     curl
+    jdk
     jq
-    nginx
     nettools
+    nginx
+    nodejs
   ];
 }
