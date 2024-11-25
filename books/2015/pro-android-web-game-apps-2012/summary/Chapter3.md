@@ -73,6 +73,11 @@ We break down this logic in the following classes:
 
 ## Making the Game
 
+We start from [listing 3.6] and add a JS file per class. The final result is
+[here][final-js].
+
+[final-js]: http://127.0.0.1:8080/ch3/js.html
+
 ### Rendering the Board
 
 #### Constructor
