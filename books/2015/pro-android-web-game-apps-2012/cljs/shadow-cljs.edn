@@ -13,4 +13,10 @@
    :asset-path "/ch2/cljs"
    :output-dir "../public/ch2/cljs"
    :devtools {:after-load ch2.main/init}
-   :modules {:main {:init-fn ch2.main/init}}}}}
+   :modules {:main {:init-fn ch2.main/init}}}
+  :ch3
+  {:target :browser
+   :asset-path "/ch3/cljs"
+   :output-dir "../public/ch3/cljs"
+   :devtools {:after-load ch3.main/init}
+   :modules {:main {:init-fn ch3.main/init}}}}}

@@ -21,10 +21,10 @@ _compile() (
 
 case $1 in
   start)
+    _compile ch2 ch3
     echo "Probable address:"
     echo "http://$(ifconfig | grep "inet 192" | awk '{print $2}'):8080"
     echo "Compiling ClojureScript..."
-    _compile ch2
     echo "Starting server..."
     _go
     ;;
