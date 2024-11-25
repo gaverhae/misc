@@ -87,6 +87,7 @@ _p.drawToken = function(cellX, cellY) {
   switch(tokenType) {
     case BoardModel.RED:
       colorCode = "red";
+      break;
     case BoardModel.GREEN:
       colorCode = "green";
       break;
