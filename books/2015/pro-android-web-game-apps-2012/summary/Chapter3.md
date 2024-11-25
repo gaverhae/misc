@@ -96,7 +96,7 @@ We start from [listing 3.6] and add a JS file per class. The final result is
 
 ### Wiring Components Together: The Game Class
 
-### ADding the Game to the HTML Skeleton
+### Adding the Game to the HTML Skeleton
 
 ## Summary
 
