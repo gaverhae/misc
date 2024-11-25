@@ -122,9 +122,26 @@ directly because we also want to be able to reset the board later on.
 
 > So why are we setting `currentPlayer` and `totalTokens`? :thinking:
 
-#### Making Moves
+On input, we need to:
 
-#### Win Condition
+1. Check that the move is valid: the column exists and is not full.
+2. Update the game state: add the piece to the board, change active player.
+3. Check win conditions.
+
+The win condition is that four balls of the same color form a line (horizontal,
+vertical, or diagonal). If we have reached this turn, the piece that just
+dropped must be part of this line, and for the current player, which reduces
+the search space.
+
+Note that we need to add `deltaX` to _columns_ and `deltaY` to _rows_.
+
+> Maybe they should be named `deltaC` and `deltaR`? :thinking:
+>
+> Also worth noting (but not noted in the book) is that `_checkWinDirection`
+> does not compute a "win direction", but counts the number of tokens of the
+> same color in a direction. `_countTokensInDirection` may have been a better
+> name. It also does not count the piece itself, which is important to
+> understanding `_getGameState`.
 
 ### Wiring Components Together: The Game Class
 
