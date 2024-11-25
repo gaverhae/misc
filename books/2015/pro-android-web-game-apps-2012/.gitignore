@@ -1,3 +1,4 @@
 .envrc.private
 logs
 public/ch2/cljs
+public/ch3/cljs
