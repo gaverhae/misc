@@ -1,4 +1,4 @@
-function BoardRenderer(context, model) {
+function BoardRenderer(ctx, model) {
   this._ctx = ctx;
   this._model = model;
 
