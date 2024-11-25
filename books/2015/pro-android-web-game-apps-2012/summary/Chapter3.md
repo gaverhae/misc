@@ -91,7 +91,7 @@ We break down this logic in the following classes:
 
 ### Wiring Components Together: The Game Class
 
-### ADding the Game to the HTML Skeleton
+### Adding the Game to the HTML Skeleton
 
 ## Summary
 
