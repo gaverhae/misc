@@ -80,13 +80,17 @@ We start from [listing 3.6] and add a JS file per class. The final result is
 
 ### Rendering the Board
 
-#### Constructor
+Since we want to support different screen sizes (or window sizes on a desktop),
+we make all sizes relative to the canvas size, as illustrated by the [`setSize`
+function on `BoardRenderer`][setSize]. That function also has an example of
+[JSDoc], which is a standardized commenting format that makes it easy to
+generate nice-looking HTML documentation from JS code, for either full-project
+documentation websites or IDE pop-ups.
 
-#### Working with different Screen Sizes
+[setSize]: ../public/ch3/js/BoardRenderer.js
+[JSDoc]: https://jsdoc.app
 
-#### JSDoc Comments
-
-#### Rendering Board
+> I will not be copying the JSDoc for other functions; one example is enough.
 
 ### Game State and Logic
 
