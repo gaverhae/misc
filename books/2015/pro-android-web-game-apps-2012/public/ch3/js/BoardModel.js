@@ -101,7 +101,7 @@ _p._checkWinDirection = function(column, row, deltaX, deltaY) {
 };
 
 _p._getGameState = function(column, row) {
-  if (this._totalTokens == Game.BOARD_WIDTH * Game.BOARD_HEIGHT) {
+  if (this._totalTokens == this._cols * this._rows ) {
     return BoardModel.DRAW;
   }
   for (var deltaX = -1; deltaX < 2; deltaX++) {
