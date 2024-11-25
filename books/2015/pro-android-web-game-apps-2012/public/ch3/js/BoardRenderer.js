@@ -3,7 +3,7 @@ function BoardRenderer(ctx, model) {
   this._model = model;
 
   this._cols = model.getCols();
-  this._rows = model.getCols();
+  this._rows = model.getRows();
 
   this._x = 0;
   this._y = 0;
@@ -30,12 +30,12 @@ _p.setSize = function(x, y, cellSize) {
   this.height = this._cellSize * this._rows;
 };
 
-_p.drawBackground = function() {
+_p._drawBackground = function() {
   var ctx = this._ctx;
 
   var gradient = ctx.createLinearGradient(0, 0, 0, this._height);
   gradient.addColorStop(0, "#fffbb3");
-  gradient.addColotStop(1, "#f6f6b2");
+  gradient.addColorStop(1, "#f6f6b2");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, this._width, this._height);
 
@@ -58,7 +58,7 @@ _p.drawBackground = function() {
   ctx.fill();
 };
 
-_p.drawGrid = function() {
+_p._drawGrid = function() {
   var ctx = this._ctx;
   ctx.beginPath();
   for (var i = 0; i <= this._cols; i++) {
@@ -70,7 +70,7 @@ _p.drawGrid = function() {
     ctx.lineTo(this._width + 0.5, j * this._cellSize + 0.5);
   }
 
-  ctx.strokeStyle("#CCC");
+  ctx.strokeStyle = "#CCC";
   ctx.stroke();
 };
 
@@ -123,7 +123,7 @@ _p.repaint = function() {
   this._ctx.restore();
 
   for (var i = 0; i < this._cols; i++) {
-    for (var j = 0; i < this._rows; j++) {
+    for (var j = 0; j < this._rows; j++) {
       this.drawToken(i, j);
     }
   }
