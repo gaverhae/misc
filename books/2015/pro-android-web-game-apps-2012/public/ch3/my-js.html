@@ -17,38 +17,11 @@
   <script src="my/GameModel.js"></script>
   <script src="my/ResizeableCanvas.js"></script>
   <script src="my/GameController.js"></script>
+  <!-- Order matters! This one must be last: -->
+  <script src="my/Game.js"></script>
   <script>
-    function isTouchDevice() {
-      return ("ontouchstart" in document.documentElement);
-    }
     function init() {
-      var canvas = ResizeableCanvas.init("mainCanvas", (ctx, width, height) => {
-        data && GameRenderer.render(ctx, width, height, data);
-      });
-      var data = GameModel.init(6, 7);
-      var ctx = canvas.getContext("2d");
-      var moves = [1, 2, 1, 2, 1, 2, 1];
-      for (var move = 0; move < moves.length; move++) {
-        data = GameModel.move(data, moves[move]);
-      }
-      GameRenderer.render(ctx, canvas.width, canvas.height, data);
-      console.log(data.status);
-      //game = new Game(canvas);
-
-      //if (isTouchDevice()) {
-      //  canvas.addEventListener("touchstart", function(e) {
-      //    var touch = event.targetTouches[0];
-      //    game.handleClick(touch.pageX, touch.pageY);
-      //    e.stopPropagation();
-      //    e.preventDefault();
-      //  });
-      //} else {
-      //  canvas.addEventListener("mouseup", function(e) {
-      //    game.handleClick(e.pageX, e.pageY);
-      //    e.stopPropagation();
-      //    e.preventDefault();
-      //  }, false);
-      //}
+      Game.init("mainCanvas");
     }
 </script>
 </head>
