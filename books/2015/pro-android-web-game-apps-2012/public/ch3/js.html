@@ -17,10 +17,11 @@
   <script src="js/BoardModel.js"></script>
   <script src="js/Game.js"></script>
   <script>
+    var game;
     function resizeCanvas(canvas) {
       canvas.width = document.width || document.body.clientWidth;
       canvas.height = document.height || document.body.clientHeight;
-      // explicitly repaint canvas here
+      game && game.handleResize();
     }
     function initFullScreenCanvas(canvasId) {
       var canvas = document.getElementById(canvasId);
@@ -30,8 +31,27 @@
       });
       return canvas;
     }
+    function isTouchDevice() {
+      return ("ontouchstart" in document.documentElement);
+    }
     function init() {
       var canvas = initFullScreenCanvas("mainCanvas");
+      game = new Game(canvas);
+
+      if (isTouchDevice()) {
+        canvas.addEventListener("touchstart", function(e) {
+          var touch = e.targetTouches[0];
+          game.handleClick(touch.pageX, touch.pageY);
+          e.stopPropagation();
+          e.preventDefault();
+        });
+      } else {
+        canvas.addEventListener("mouseup", function(e) {
+          game.handleClick(e.pageX, e.pageY);
+          e.stopPropagation();
+          e.preventDefault();
+        }, false);
+      }
     }
   </script>
 </head>
