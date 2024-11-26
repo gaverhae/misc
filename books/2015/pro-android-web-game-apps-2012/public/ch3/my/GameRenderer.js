@@ -89,12 +89,10 @@ var GameRenderer = function() {
       var x = (col + 0.5) * dims.cell_size;
       for (var line = 0; line < column.length; line++) {
         var color = get_color[column[line]];
-        if (color) {
-          var y = (dims.rows - line - 0.5) * dims.cell_size;
-          translated(ctx, x, y, (ctx) => {
-            draw_token(ctx, dims.cell_size, color);
-          });
-        }
+        var y = (dims.rows - line - 0.5) * dims.cell_size;
+        translated(ctx, x, y, (ctx) => {
+          draw_token(ctx, dims.cell_size, color);
+        });
       }
     }
   }

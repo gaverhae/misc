@@ -17,6 +17,7 @@
   <script src="js/BoardModel.js"></script>
   <script src="js/Game.js"></script>
   <script src="my/GameRenderer.js"></script>
+  <script src="my/GameModel.js"></script>
   <script>
     var game;
     function resizeCanvas(canvas) {
@@ -38,16 +39,7 @@
     function init() {
       var canvas = initFullScreenCanvas("mainCanvas");
       ctx = canvas.getContext("2d");
-      var data = {
-        rows: 6,
-        cols: 7,
-        tokens: [[1, 2, 1, 2],
-                 [],
-                 [2, 1, 2, 2],
-                 [],
-                 [1, 1]],
-        player_color: [null, "red", "green"]
-      };
+      var data = GameModel.init(6, 7);
       GameRenderer.render(ctx, canvas.width, canvas.height, data);
       //game = new Game(canvas);
 
