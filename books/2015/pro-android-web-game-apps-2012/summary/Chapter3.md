@@ -78,6 +78,22 @@ We start from [listing 3.6] and add a JS file per class. The final result is
 
 [final-js]: http://127.0.0.1:8080/ch3/js.html
 
+> This book predates the ability to use proper ECMAScript modules in JavaScript
+> code. That's not a great excuse, though, as ECMAScript has always had the
+> ability to modularize code through simple objects, or a single top-level
+> function for modules that need initialization. Though the code is divided
+> into files, all of these files are loaded at the top level and all of the
+> variables defined in these files are in the top-level scope. This is not
+> generally considered a good practice; each file should instead define its own
+> module. This is, however, beyond the scope of this book (and this margin).
+>
+> See [my own version][my.js] for comparison. I'm also not using objects or
+> inheritance as they don't add anything here. And I strongly disagree with the
+> use of shorthand _top-level_ variables like `_p` for the prototype, as in my
+> opinion it is optimizing for the wrong thing.
+
+[my.js]: http://127.0.0.1:8080/ch3/my-js.html
+
 ### Rendering the Board
 
 Since we want to support different screen sizes (or window sizes on a desktop),
