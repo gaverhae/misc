@@ -40,6 +40,13 @@
       var canvas = initFullScreenCanvas("mainCanvas");
       ctx = canvas.getContext("2d");
       var data = GameModel.init(6, 7);
+      var moves = [1, 1, 1, 4, 4];
+      for (var move = 0; move < moves.length; move++) {
+        var result = GameModel.move(data, moves[move]);
+        if (result[0] == "success") {
+          data = result[1];
+        }
+      }
       GameRenderer.render(ctx, canvas.width, canvas.height, data);
       //game = new Game(canvas);
 
