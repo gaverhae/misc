@@ -44,7 +44,7 @@ var GameModel = function() {
         return ["win", state.current_player];
       }
     }
-    if (num_tokens = state.cols * state.rows) {
+    if (state.num_tokens == state.cols * state.rows) {
       return ["draw"];
     }
     return ["ongoing"];
