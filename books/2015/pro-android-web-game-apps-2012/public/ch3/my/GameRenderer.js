@@ -39,7 +39,7 @@ var GameRenderer = function() {
                       -3/6 * w, h + 1/6 * w,
                        5/6 * w, 0);
     ctx.fill();
-  };
+  }
   function draw_grid(ctx, dims) {
     ctx.beginPath();
     var top = 0.5;
@@ -59,24 +59,50 @@ var GameRenderer = function() {
 
     ctx.strokeStyle = "#CCC";
     ctx.stroke();
-  };
-  function draw_token(ctx, x, y, size) {
+  }
+  function draw_token(ctx, size, color) {
+    var radius = size * 0.4;
+    var gx = size * 0.1;
+    var gy = -size * 0.1;
+
+    var gradient = ctx.createRadialGradient(
+      gx, gy, size * 0.1,
+      gx, gy, radius * 1.2);
+
+    gradient.addColorStop(0, "yellow");
+    gradient.addColorStop(1, color);
+    ctx.fillStyle = gradient;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, 2 * Math.PI, true);
+    ctx.fill();
+  }
+  function draw_tokens(ctx, dims, tokens, get_color) {
+    for (var col = 0; col < tokens.length; col++) {
+      var column = tokens[col];
+      var x = (col + 0.5) * dims.cell_size;
+      for (var line = 0; line < column.length; line++) {
+        var color = get_color[column[line]];
+        if (color) {
+          var y = (dims.rows - line - 0.5) * dims.cell_size;
+          ctx.save();
+          ctx.translate(x, y);
+          draw_token(ctx, dims.cell_size, color);
+          ctx.restore();
+        }
+      }
+    }
   }
   function render(ctx, width, height, game_data) {
+    var dims = dimensions(width, height, game_data.rows, game_data.cols);
+
     ctx.save();
-    var rows = game_data.length;
-    var cols = game_data[0].length;
-    var dims = dimensions(width, height, rows, cols);
     ctx.translate(dims.left_offset, dims.top_offset);
 
     draw_background(ctx, dims);
     draw_grid(ctx, dims);
+    draw_tokens(ctx, dims, game_data.tokens, game_data.player_color);
 
-    for (var i = 0; i < cols; i++) {
-      for (var j = 0; j < rows; j++) {
-        draw_token(ctx, i, j, dims.cs);
-      }
-    }
     ctx.restore();
   }
   return {
