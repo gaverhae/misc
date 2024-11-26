@@ -40,7 +40,7 @@
 
       if (isTouchDevice()) {
         canvas.addEventListener("touchstart", function(e) {
-          var touch = event.targetTouches[0];
+          var touch = e.targetTouches[0];
           game.handleClick(touch.pageX, touch.pageY);
           e.stopPropagation();
           e.preventDefault();
