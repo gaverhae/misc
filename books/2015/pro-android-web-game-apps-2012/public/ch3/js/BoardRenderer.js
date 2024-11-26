@@ -27,7 +27,7 @@ _p.setSize = function(x, y, cellSize) {
   this._y = y;
   this._cellSize = cellSize;
   this._width = this._cellSize * this._cols;
-  this.height = this._cellSize * this._rows;
+  this._height = this._cellSize * this._rows;
 };
 
 _p._drawBackground = function() {
