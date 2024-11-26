@@ -12,11 +12,11 @@ _p = Game.prototype;
 _p.handleResize = function() {
   this._clearCanvas();
   this._boardRect = this._getBoardRect();
-  this._boardRenderer.setSize(this._boardRect.x, this._boardRect.y, this.boardRect.cellSize);
+  this._boardRenderer.setSize(this._boardRect.x, this._boardRect.y, this._boardRect.cellSize);
   this._boardRenderer.repaint();
 };
 
-_p.getBoardRect = function() {
+_p._getBoardRect = function() {
   var cols = this._boardModel.getCols();
   var rows = this._boardModel.getRows();
   var cellSize = Math.floor(Math.min(this._canvas.width / cols, this._canvas.height / rows));
@@ -33,7 +33,7 @@ _p.handleClick = function(x, y) {
   var column = Math.floor((x - this._boardRect.x) / this._boardRect.cellSize);
   var turn = this._boardModel.makeTurn(column);
   if (turn.status != BoardModel.ILLEGAL_TURN) {
-    this._boardRenderer.draw(turn.x, turn.y);
+    this._boardRenderer.drawToken(turn.x, turn.y);
   }
 
   if (turn.status == BoardModel.WIN) {
@@ -53,7 +53,7 @@ _p._reset = function() {
   this._boardRenderer.repaint();
 }
 
-_p.clearCanvas = function() {
+_p._clearCanvas = function() {
   this._ctx.fillStyle = "white";
   this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
 }
