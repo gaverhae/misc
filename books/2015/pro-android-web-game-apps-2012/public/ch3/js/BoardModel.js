@@ -40,7 +40,7 @@ _p.getRows = function() {
 
 _p.makeTurn = function(column) {
   var piece = this._currentPlayer;
-  if (column < 0 || column > this._cols) {
+  if (column < 0 || column >= this._cols) {
     return {
       status: BoardModel.ILLEGAL_TURN
     };
