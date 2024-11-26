@@ -145,6 +145,9 @@ Note that we need to add `deltaX` to _columns_ and `deltaY` to _rows_.
 
 ### Wiring Components Together: The Game Class
 
+The `Game` class wires the other two together, and deals with the outside
+world: getting user input and setting the cell size based on the window size.
+
 ### Adding the Game to the HTML Skeleton
 
 ## Summary
