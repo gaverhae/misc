@@ -106,6 +106,6 @@ var GameRenderer = function() {
     });
   }
   return {
-    render: render
+    render
   };
 }();
