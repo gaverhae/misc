@@ -38,7 +38,17 @@
     function init() {
       var canvas = initFullScreenCanvas("mainCanvas");
       ctx = canvas.getContext("2d");
-      GameRenderer.render(ctx, canvas.width, canvas.height, [[0, 0, 0, 0], [], [], []]);
+      var data = {
+        rows: 6,
+        cols: 7,
+        tokens: [[1, 2, 1, 2],
+                 [],
+                 [2, 1, 2, 2],
+                 [],
+                 [1, 1]],
+        player_color: [null, "red", "green"]
+      };
+      GameRenderer.render(ctx, canvas.width, canvas.height, data);
       //game = new Game(canvas);
 
       //if (isTouchDevice()) {
