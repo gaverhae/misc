@@ -11,17 +11,11 @@ var GameModel = function() {
     };
   }
   function move(state, column) {
-    if (column < 0 || column >= state.cols) {
-      return ["failure", "invalid column"];
-    }
-    if (state.tokens[column].length == state.cols) {
-      return ["failure", "column full"];
-    }
     state.tokens[column].push(state.current_player);
     state.num_tokens = state.num_tokens + 1;
     state.status = update_status(state, column);
     state.current_player = 1 - state.current_player;
-    return ["success", state];
+    return state;
   }
   function check_line(tokens, dir, col, row) {
     var p = tokens[col][row];
@@ -56,7 +50,6 @@ var GameModel = function() {
     return ["ongoing"];
   }
   return {
-    init: init,
-    move: move
+    init, move
   };
 }();

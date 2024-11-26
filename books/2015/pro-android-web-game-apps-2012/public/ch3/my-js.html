@@ -16,6 +16,7 @@
   <script src="my/GameRenderer.js"></script>
   <script src="my/GameModel.js"></script>
   <script src="my/ResizeableCanvas.js"></script>
+  <script src="my/GameController.js"></script>
   <script>
     function isTouchDevice() {
       return ("ontouchstart" in document.documentElement);
@@ -28,10 +29,7 @@
       var ctx = canvas.getContext("2d");
       var moves = [1, 2, 1, 2, 1, 2, 1];
       for (var move = 0; move < moves.length; move++) {
-        var result = GameModel.move(data, moves[move]);
-        if (result[0] == "success") {
-          data = result[1];
-        }
+        data = GameModel.move(data, moves[move]);
       }
       GameRenderer.render(ctx, canvas.width, canvas.height, data);
       console.log(data.status);

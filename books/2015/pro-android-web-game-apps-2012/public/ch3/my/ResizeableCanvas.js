@@ -14,6 +14,6 @@ var ResizeableCanvas = function() {
     return canvas;
   }
   return {
-    init: init
+    init
   };
 }();
