@@ -40,7 +40,7 @@
       var canvas = initFullScreenCanvas("mainCanvas");
       ctx = canvas.getContext("2d");
       var data = GameModel.init(6, 7);
-      var moves = [1, 1, 1, 4, 4];
+      var moves = [1, 2, 1, 2, 1, 2, 1];
       for (var move = 0; move < moves.length; move++) {
         var result = GameModel.move(data, moves[move]);
         if (result[0] == "success") {
@@ -48,6 +48,7 @@
         }
       }
       GameRenderer.render(ctx, canvas.width, canvas.height, data);
+      console.log(data.status);
       //game = new Game(canvas);
 
       //if (isTouchDevice()) {
