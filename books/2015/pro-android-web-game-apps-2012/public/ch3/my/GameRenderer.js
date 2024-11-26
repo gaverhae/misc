@@ -96,9 +96,7 @@ var GameRenderer = function() {
       }
     }
   }
-  function render(ctx, width, height, game_data) {
-    var dims = dimensions(width, height, game_data.rows, game_data.cols);
-
+  function render(ctx, dims, game_data) {
     translated(ctx, dims.left_offset, dims.top_offset, (ctx) => {
       draw_background(ctx, dims);
       draw_grid(ctx, dims);
@@ -106,6 +104,6 @@ var GameRenderer = function() {
     });
   }
   return {
-    render
+    render, dimensions
   };
 }();
