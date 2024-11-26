@@ -13,33 +13,19 @@
       border: 0;
     }
   </style>
-  <script src="js/BoardRenderer.js"></script>
-  <script src="js/BoardModel.js"></script>
-  <script src="js/Game.js"></script>
   <script src="my/GameRenderer.js"></script>
   <script src="my/GameModel.js"></script>
+  <script src="my/ResizeableCanvas.js"></script>
   <script>
-    var game;
-    function resizeCanvas(canvas) {
-      canvas.width = document.width || document.body.clientWidth;
-      canvas.height = document.height || document.body.clientHeight;
-      game && game.handleResize();
-    }
-    function initFullScreenCanvas(canvasId) {
-      var canvas = document.getElementById(canvasId);
-      resizeCanvas(canvas);
-      window.addEventListener("resize", function() {
-        resizeCanvas(canvas);
-      });
-      return canvas;
-    }
     function isTouchDevice() {
       return ("ontouchstart" in document.documentElement);
     }
     function init() {
-      var canvas = initFullScreenCanvas("mainCanvas");
-      ctx = canvas.getContext("2d");
+      var canvas = ResizeableCanvas.init("mainCanvas", (ctx, width, height) => {
+        data && GameRenderer.render(ctx, width, height, data);
+      });
       var data = GameModel.init(6, 7);
+      var ctx = canvas.getContext("2d");
       var moves = [1, 2, 1, 2, 1, 2, 1];
       for (var move = 0; move < moves.length; move++) {
         var result = GameModel.move(data, moves[move]);
