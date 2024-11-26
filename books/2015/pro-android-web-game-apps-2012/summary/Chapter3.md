@@ -94,6 +94,34 @@ documentation websites or IDE pop-ups.
 
 ### Game State and Logic
 
+We define constants instead of using "magic" literals because
+
+```javascript
+if (this._data[i][j] == BoardModel.GREEN) {
+```
+
+is easier to read than
+
+```javascript
+if (this._data[i][j] == 2) {
+```
+
+> I'm not convinced. We could define `data` as an array of strings:
+> ```javascript
+> if (this._data[i][j] == "green") {
+> ```
+> which is just as readable and saves us the trouble (and the noise) of
+> defining these constants. If we do want to define `data` properly, we should
+> define it in terms of which player the tokens belong to, not which color they
+> are.
+>
+> There is no fundamental reason for the colors to be constants, either.
+
+The constructor calls `reset` instead of initializing the `data` property
+directly because we also want to be able to reset the board later on.
+
+> So why are we setting `currentPlayer` and `totalTokens`? :thinking:
+
 #### Making Moves
 
 #### Win Condition
