@@ -1,4 +1,10 @@
 var GameRenderer = function() {
+  function translated(ctx, left, top, op) {
+    ctx.save();
+    ctx.translate(left, top);
+    op(ctx);
+    ctx.restore();
+  }
   function dimensions(width, height, rows, cols) {
     var cs = Math.floor(Math.min(width / cols, height / rows));
     var bw = cs * cols;
@@ -85,10 +91,9 @@ var GameRenderer = function() {
         var color = get_color[column[line]];
         if (color) {
           var y = (dims.rows - line - 0.5) * dims.cell_size;
-          ctx.save();
-          ctx.translate(x, y);
-          draw_token(ctx, dims.cell_size, color);
-          ctx.restore();
+          translated(ctx, x, y, (ctx) => {
+            draw_token(ctx, dims.cell_size, color);
+          });
         }
       }
     }
@@ -96,14 +101,11 @@ var GameRenderer = function() {
   function render(ctx, width, height, game_data) {
     var dims = dimensions(width, height, game_data.rows, game_data.cols);
 
-    ctx.save();
-    ctx.translate(dims.left_offset, dims.top_offset);
-
-    draw_background(ctx, dims);
-    draw_grid(ctx, dims);
-    draw_tokens(ctx, dims, game_data.tokens, game_data.player_color);
-
-    ctx.restore();
+    translated(ctx, dims.left_offset, dims.top_offset, (ctx) => {
+      draw_background(ctx, dims);
+      draw_grid(ctx, dims);
+      draw_tokens(ctx, dims, game_data.tokens, game_data.player_color);
+    });
   }
   return {
     render: render
