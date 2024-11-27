@@ -54,4 +54,10 @@
         (async/>! >bus [:model model])
         (let [msg (async/<! <rec)]
           (match msg
-            [:move col] (recur (move model col))))))))
+            [:move col] (let [model (move model col)]
+                          (match (:status model)
+                            [:ongoing] (recur model)
+                            [:draw] (do (js/alert "It's a draw!")
+                                        (recur (init 6 7)))
+                            [:win p] (do (js/alert (str "Player " (inc p) " wins!"))
+                                         (recur (init 6 7)))))))))))
