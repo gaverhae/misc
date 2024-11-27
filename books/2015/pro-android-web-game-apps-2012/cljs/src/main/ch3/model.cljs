@@ -53,6 +53,5 @@
       (loop [model (init 6 7)]
         (async/>! >bus [:model model])
         (let [msg (async/<! <rec)]
-          (prn [:model msg])
           (match msg
             [:move col] (recur (move model col))))))))

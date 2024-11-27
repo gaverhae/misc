@@ -13,7 +13,6 @@
     (js/document.getElementById canvas-id)
     "click"
     (fn [e]
-      (prn [:click])
       (async/put! >bus [:click (.-x e) (.-y e)])
       (.stopPropagation e)
       (.preventDefault e))))
