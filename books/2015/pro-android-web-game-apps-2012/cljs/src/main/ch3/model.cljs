@@ -1,4 +1,6 @@
-(ns ch3.model)
+(ns ch3.model
+  (:require [clojure.core.async :as async]
+            [clojure.core.match :refer [match]]))
 
 (defn init
   [rows cols]
@@ -42,3 +44,15 @@
       (update :num-tokens inc)
       (update-status col)
       (update :current-player #(- 1 %))))
+
+(defn start-model-loop!
+  [<bus >bus]
+  (let [<rec (async/chan)]
+    (async/sub <bus :move <rec)
+    (async/go
+      (loop [model (init 6 7)]
+        (async/>! >bus [:model model])
+        (let [msg (async/<! <rec)]
+          (prn [:model msg])
+          (match msg
+            [:move col] (recur (move model col))))))))

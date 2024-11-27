@@ -120,6 +120,7 @@
     (async/go
       (loop [model nil]
         (let [msg (async/<! <rec)]
+          (prn [:render msg])
           (match msg
             [:model m] (let [dims (dimensions canvas m)]
                          (render ctx dims m)
