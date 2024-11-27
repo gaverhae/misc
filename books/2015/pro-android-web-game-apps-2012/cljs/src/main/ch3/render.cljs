@@ -11,8 +11,12 @@
     (.restore)))
 
 (defn dimensions
-  [width height rows cols]
-  (let [cs (js/Math.floor (min (/ width cols) (/ height rows)))
+  [canvas model]
+  (let [width (.-width canvas)
+        height (.-height canvas)
+        cols (:cols model)
+        rows (:rows model)
+        cs (js/Math.floor (min (/ width cols) (/ height rows)))
         bw (* cs cols)
         bh (* cs rows)]
     {:left-offset (js/Math.floor (/ (- width bw) 2))
@@ -112,11 +116,17 @@
         ctx (.getContext canvas "2d")
         <rec (async/chan)]
     (async/sub <bus :model <rec)
+    (async/sub <bus :resize <rec)
     (async/go
-      (loop []
+      (loop [model nil]
         (let [msg (async/<! <rec)]
-          (prn [msg])
           (match msg
-            [:model m] (let [dims (dimensions (.-width canvas) (.-height canvas) (:rows m) (:cols m))]
+            [:model m] (let [dims (dimensions canvas m)]
                          (render ctx dims m)
-                         (recur))))))))
+                         (recur m))
+            [:resize w h] (do (set! (.-width canvas) w)
+                              (set! (.-height canvas) h)
+                              (when model
+                                (let [dims (dimensions canvas model)]
+                                  (render ctx dims model)))
+                              (recur model))))))))
