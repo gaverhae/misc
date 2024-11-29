@@ -107,12 +107,15 @@
       (draw-tokens ctx dims (:tokens data) (:player-color data)))))
 
 (defn start-render-loop!
-  [ch canvas-id]
+  [<bus canvas-id]
   (let [canvas (js/document.getElementById canvas-id)
-        ctx (.getContext canvas "2d")]
+        ctx (.getContext canvas "2d")
+        <rec (async/chan)]
+    (async/sub <bus :model <rec)
     (async/go
       (loop []
-        (let [msg (async/<! ch)]
+        (let [msg (async/<! <rec)]
+          (prn [msg])
           (match msg
             [:model m] (let [dims (dimensions (.-width canvas) (.-height canvas) (:rows m) (:cols m))]
                          (render ctx dims m)

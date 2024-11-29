@@ -5,12 +5,14 @@
 
 (defn init
   []
-  (let [event-bus (async/chan)]
-    (r/start-render-loop! event-bus "mainCanvas")
+  (let [>bus (async/chan)
+        <bus (async/pub >bus first)]
+    (r/start-render-loop! <bus "mainCanvas")
     (async/go
       (loop [model (m/init 6 7)
              moves [2 2 3 6 6 5 4 5 4 5 4 5]]
-        (async/>! event-bus [:model model])
+        (async/>! >bus [:model model])
+        (async/>! >bus [:ignored {:data 1}])
         (async/<! (async/timeout 1000))
         (when (seq moves)
           (recur (m/move model (first moves))
