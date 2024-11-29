@@ -10,14 +10,10 @@
         <bus (async/pub >bus first)]
     (r/start-render-loop! <bus "mainCanvas")
     (i/start-input-loop! >bus "mainCanvas")
-    (async/go (loop [] (prn [:bus (async/<! >bus)])
-                 (recur)))
+    (m/start-model-loop! <bus >bus)
     (async/go
-      (loop [model (m/init 6 7)
-             moves [2 2 3 6 6 5 4 5 4 5 4 5]]
-        (async/>! >bus [:model model])
-        (async/>! >bus [:ignored {:data 1}])
+      (loop [moves [2 2 3 6 6 5 4 5 4 5 4 5]]
         (async/<! (async/timeout 1000))
         (when (seq moves)
-          (recur (m/move model (first moves))
-                 (rest moves)))))))
+          (async/>! >bus [:move (first moves)])
+          (recur (rest moves)))))))
