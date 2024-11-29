@@ -1,4 +1,6 @@
-(ns ch3.render)
+(ns ch3.render
+  (:require [clojure.core.async :as async]
+            [clojure.core.match :refer [match]]))
 
 (defn translated
   [ctx x y cb]
@@ -104,3 +106,14 @@
       (draw-grid ctx dims)
       (draw-tokens ctx dims (:tokens data) (:player-color data)))))
 
+(defn start-render-loop!
+  [ch canvas-id]
+  (let [canvas (js/document.getElementById canvas-id)
+        ctx (.getContext canvas "2d")]
+    (async/go
+      (loop []
+        (let [msg (async/<! ch)]
+          (match msg
+            [:model m] (let [dims (dimensions (.-width canvas) (.-height canvas) (:rows m) (:cols m))]
+                         (render ctx dims m)
+                         (recur))))))))
