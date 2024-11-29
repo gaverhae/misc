@@ -111,16 +111,15 @@
       (draw-tokens ctx dims (:tokens data) (:player-color data)))))
 
 (defn start-render-loop!
-  [<bus canvas-id]
+  [<bus >bus canvas-id]
   (let [canvas (js/document.getElementById canvas-id)
         ctx (.getContext canvas "2d")
         <rec (async/chan)]
-    (async/sub <bus :model <rec)
-    (async/sub <bus :resize <rec)
+    (doseq [signal [:model :resize :click]]
+      (async/sub <bus signal <rec))
     (async/go
       (loop [model nil]
         (let [msg (async/<! <rec)]
-          (prn [:render msg])
           (match msg
             [:model m] (let [dims (dimensions canvas m)]
                          (render ctx dims m)
@@ -130,4 +129,11 @@
                               (when model
                                 (let [dims (dimensions canvas model)]
                                   (render ctx dims model)))
-                              (recur model))))))))
+                              (recur model))
+            [:click x y] (do (when model
+                               (let [dims (dimensions canvas model)]
+                                 (when (and (<= (:left-offset dims) x (+ (:board-width dims)  (:left-offset dims)))
+                                            (<= (:top-offset dims)  y (+ (:board-height dims) (:top-offset dims))))
+                                   (async/>! >bus [:move (js/Math.floor (/ (- x (:left-offset dims))
+                                                                           (:cell-size dims)))]))))
+                             (recur model))))))))
