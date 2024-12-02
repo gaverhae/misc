@@ -12,6 +12,12 @@ include several "sprites", like this:
 
 ## Sprites
 
+A raster image is called a _sprite_, and when multiple sprites are in the same
+image, as in the example above, we call that image a _sprite sheet_.
+
+Raster images are somewhat simpler than vector graphics, but they don't scale
+very well in either appearance or performance.
+
 ### Loading Images
 
 #### Loading Images from Files
