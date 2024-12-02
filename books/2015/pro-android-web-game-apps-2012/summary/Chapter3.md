@@ -2,7 +2,7 @@
 
 <hr>
 
-# Chapter 3
+# Chapter 3 - Creating the First Game
 
 In this chapter, we make a "Connect Four" implementation.
 
