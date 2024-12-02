@@ -4,6 +4,12 @@
 
 # Chapter 4 - Animation and Sprites
 
+Lines and rectangles only get you so far. At some point, you'll want real
+images in your game, and they will likely come in the form of PNG files that
+include several "sprites", like this:
+
+![knight](../public/img/spritesheet.png)
+
 ## Sprites
 
 ### Loading Images
