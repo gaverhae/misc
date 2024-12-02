@@ -169,8 +169,6 @@ world: getting user input and setting the cell size based on the window size.
 Finally, we wire the `Game` class with our HTML: the browser needs to call it
 with the canvas, and then forward all of the relevant events to it.
 
-## Summary
-
 <hr>
 
 [Previous](./Chapter2.md) | [Next](./Chapter4.md)
