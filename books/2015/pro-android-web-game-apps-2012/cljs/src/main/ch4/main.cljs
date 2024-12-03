@@ -40,6 +40,10 @@
 
 (defn render
   [ctx model]
+  (.save ctx)
+  (set! (.-fillStyle ctx) "white")
+  (.fillRect ctx 0 0 300 300)
+  (.restore ctx)
   (doseq [m model]
     (match m
       [:sprite x y i] (let [img (:image i)
