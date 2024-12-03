@@ -34,18 +34,39 @@
     (async/go
       (loop []
         (when-let [msg (async/<! <evt)]
-          (js/console.log (pr-str msg))
-          (js/console.log (:image (second msg)))
-          (async/>! >bus [:image (:image (second msg))]))))))
+          (match msg
+            [:loaded img] (async/>! >bus [:image img]))
+          (recur))))))
+
+(defn render
+  [ctx model]
+  (doseq [m model]
+    (match m
+      [:sprite x y i] (let [img (:image i)
+                            s (first (:sprites i))
+                            [tx ty w h] (:rectangle s)
+                            [dx dy] (:anchor s)]
+                        (.drawImage ctx img tx ty w h x y w h)))))
 
 (defn start-render-loop!
   [<bus]
-  (async/go
-    (loop []
-      (when-let [msg (async/<! <bus)]
-        (match msg
-          [:image img] (let [ctx (.getContext (js/document.getElementById "canvas") "2d")]
-                         (.drawImage ctx img 0 0 40 40 0 0 40 40)))))))
+  (let [model (atom nil)
+        raf js/window.requestAnimationFrame
+        ctx (.getContext (js/document.getElementById "canvas") "2d")
+        raf-loop (fn ! [t]
+                   (when-let [m @model]
+                     (render ctx (m t)))
+                   (raf !))]
+    (raf-loop 0)
+    (async/go
+      (loop []
+        (when-let [msg (async/<! <bus)]
+          (match msg
+            [:image img] (do (reset! model (fn [t]
+                                             (let [x (mod t 100)
+                                                   y (mod (* 2 t) 100)]
+                                               [[:sprite x y img]])))
+                             (recur))))))))
 
 (defn init
   []
