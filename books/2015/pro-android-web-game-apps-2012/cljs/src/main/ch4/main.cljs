@@ -30,13 +30,15 @@
     (doseq [img images]
       (let [i (js/Image.)]
         (set! (.-onload i) (fn [] (async/put! <evt [:loaded (assoc img :image i)])))
+        (set! (.-onerror i) (fn [error] (async/put! <evt [:error (assoc img :error error)])))
         (set! (.-src i) (:path img))))
     (async/go
       (loop []
-        (when-let [msg (async/<! <evt)]
+        (let [msg (async/<! <evt)]
           (match msg
-            [:loaded img] (async/>! >bus [:image img]))
-          (recur))))))
+            [:loaded img] (async/>! >bus [:image img])
+            [:error img] (js/console.log (clj->js img))))
+        (recur)))))
 
 (defn render
   [ctx model]
