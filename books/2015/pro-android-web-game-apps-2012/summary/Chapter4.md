@@ -28,19 +28,19 @@ very well in either appearance or performance.
 
 #### Tips on Loading Images
 
-#### Drawing an Image
+### Drawing an Image
 
-#### Sprite Sheets
+### Sprite Sheets
 
-### Basics of Animation
+## Basics of Animation
 
-#### The Simplest Animation
+### The Simplest Animation
 
-#### JavaScript Threading Model
+### JavaScript Threading Model
 
-#### Timers
+### Timers
 
-#### Improving Animation
+### Improving Animation
 
 <hr>
 
