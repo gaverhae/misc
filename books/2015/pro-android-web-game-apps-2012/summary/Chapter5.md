@@ -49,6 +49,28 @@ will execute `init()` when the `load` event happens.
 
 #### Registering for Events: Event Listeners
 
+We can also register events through JavaScript:
+
+```javascript
+var el = document.getElementById("canvas");
+var my_event_listener = (ev) => { console.log(ev); };
+el.addEventListener("touchstart", my_event_listener);
+```
+
+Outside of code organization (mixing JS and HTML is sometimes frowned upon),
+the main advantage of this approach is that we can register multiple listeners
+for the same event.
+
+> #### Event Propagation
+
+After all of the listeners for an event on an element have ran, the same event
+is sent to the parent node, which also fires all of its listeners for that
+event, and so on. There are two ways to change that:
+
+- `e.stopPropagation()` will stop the event from bubbling up to the parents of
+  the current element.
+- `e.preventDefault()` will prevent the default event handlers from running.
+
 ### Getting More from Events
 
 ### Handling the Differences Between Touch and Mouse Interfaces
