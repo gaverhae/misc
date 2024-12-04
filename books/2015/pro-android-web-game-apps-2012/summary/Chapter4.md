@@ -36,7 +36,7 @@ very well in either appearance or performance.
 
 ### The Simplest Animation
 
-Animation works by drawing frames over time. The broser is in charge of screen
+Animation works by drawing frames over time. The browser is in charge of screen
 refreshes, so in that context it amounts to asking the browser to call a
 function right after each screen refresh. That function must render the next
 state of the game on the canvas, which the browser will then render on the
