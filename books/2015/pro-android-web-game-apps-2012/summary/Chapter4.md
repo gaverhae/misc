@@ -76,6 +76,26 @@ images may wait for the player to reach that level), and how to package them
 
 ### Drawing an Image
 
+The `"2d"` canvas has [a `drawImage` method][2], which takes 9 arguments: an
+image, a "source" rectangle from that image, and a target rectangle on the
+canvas.
+
+[2]: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+
+Image drawing performance varies based on images, browsers, and hardware. Test
+for your own game. Observations based on 2012 data:
+
+- Drawing one big image is faster than multiple small images covering the same area.
+- Scaling is slow.
+- Drawing from a sprite sheet is slower than drawing from a single image; it
+  may be worth to recreate in-memory copies of individual images after loading
+  a sprite sheet from the network. Note that even in 2012 this is about a 10%
+  difference.
+- Decimal pixels kill performance; images should be drawn aligned with pixels.
+  It also looks bad. Round coordinates.
+
+If performance is a concern, prototype your game on real hardware.
+
 ### Sprite Sheets
 
 ## Basics of Animation
