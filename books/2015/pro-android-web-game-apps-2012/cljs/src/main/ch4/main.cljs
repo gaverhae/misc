@@ -25,19 +25,31 @@
                          :anchor [ax ay]})))})
 
 (defn start-image-loader!
-  [images]
-  (let [evt-src (async/chan)]
+  [images >bus]
+  (let [<evt (async/chan)]
     (doseq [img images]
       (let [i (js/Image.)]
-        (set! (.-onload i) (fn [] (async/put! evt-src [:loaded (assoc img :image i)])))
+        (set! (.-onload i) (fn [] (async/put! <evt [:loaded (assoc img :image i)])))
         (set! (.-src i) (:path img))))
     (async/go
       (loop []
-        (when-let [msg (async/<! evt-src)]
+        (when-let [msg (async/<! <evt)]
           (js/console.log (pr-str msg))
-          (js/console.log (:image (second msg))))))))
+          (js/console.log (:image (second msg)))
+          (async/>! >bus [:image (:image (second msg))]))))))
+
+(defn start-render-loop!
+  [<bus]
+  (async/go
+    (loop []
+      (when-let [msg (async/<! <bus)]
+        (match msg
+          [:image img] (let [ctx (.getContext (js/document.getElementById "canvas") "2d")]
+                         (.drawImage ctx img 0 0 40 40 0 0 40 40)))))))
 
 (defn init
   []
-  (start-image-loader! [knight-sheet])
-  (js/console.log "hello"))
+  (let [bus (async/chan)]
+    (start-image-loader! [knight-sheet] bus)
+    (start-render-loop! bus)
+    (js/console.log "hello")))
