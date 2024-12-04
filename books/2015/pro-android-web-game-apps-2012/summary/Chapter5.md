@@ -20,6 +20,14 @@
 
 ### Handling the Differences Between Touch and Mouse Interfaces
 
+We can detect touch devices with:
+
+```javascript
+'ontouchstart' in document.documentElement
+```
+
+On desktop, we can use the `mousedown` event as an alternative.
+
 ## Custom Events
 
 ## Custom Event Listeners and Emitters
