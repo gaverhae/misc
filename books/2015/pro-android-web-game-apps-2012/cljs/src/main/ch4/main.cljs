@@ -40,12 +40,16 @@
             [:error img] (js/console.log (clj->js img))))
         (recur)))))
 
-(defn render
-  [ctx model]
+(defn clear
+  [ctx]
   (.save ctx)
   (set! (.-fillStyle ctx) "white")
   (.fillRect ctx 0 0 300 300)
-  (.restore ctx)
+  (.restore ctx))
+
+(defn render
+  [ctx model]
+  (clear ctx)
   (doseq [m model]
     (match m
       [:sprite x y i] (let [img (:image i)
