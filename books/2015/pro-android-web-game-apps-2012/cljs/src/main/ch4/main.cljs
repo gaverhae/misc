@@ -57,6 +57,13 @@
             s (first (:sprites img))
             [tx ty w h] (:rectangle s)
             [dx dy] (:anchor s)]
+        (.drawImage ctx i tx ty w h (- x dx) (- y dy) w h))
+      [:knight x y :walking :right frame]
+      (let [i (:image img)
+            sprites (:sprites img)
+            s (nth sprites (mod frame (count sprites)))
+            [tx ty w h] (:rectangle s)
+            [dx dy] (:anchor s)]
         (.drawImage ctx i tx ty w h (- x dx) (- y dy) w h)))))
 
 (defn start-render-loop!
@@ -91,8 +98,8 @@
           t1 (js/performance.now)
           _ (async/>! >bus [:anim (fn [t]
                                     (let [t (- t t1)]
-                                      [[:knight (quot t 100) 200 :walking :right]]))])
-          _ (async/<! (async/timeout 1000))
+                                      [[:knight (quot t 100) 200 :walking :right (quot t 50)]]))])
+          _ (async/<! (async/timeout 4000))
           t2 (js/performance.now)
           x (quot (- t2 t1) 100)
           _ (async/>! >bus [:anim (fn [t] [[:knight x 200 :standing :right]])])])))
