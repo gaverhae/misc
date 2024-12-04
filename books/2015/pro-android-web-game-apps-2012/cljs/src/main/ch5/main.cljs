@@ -67,12 +67,12 @@
         (.drawImage ctx i tx ty w h (- x dx) (- y dy) w h)))))
 
 (defn start-render-loop!
-  [<bus]
+  [canvas-id <bus]
   (let [<rcv (async/chan)
         model (atom nil)
         image (atom nil)
         raf js/window.requestAnimationFrame
-        ctx (.getContext (js/document.getElementById "canvas") "2d")
+        ctx (.getContext (js/document.getElementById canvas-id) "2d")
         raf-loop (fn ! [t]
                    (when-let [m @model]
                      (when-let [i @image]
@@ -106,8 +106,9 @@
 
 (defn init
   []
-  (let [>bus (async/chan)
+  (let [canvas-id "canvas"
+        >bus (async/chan)
         <bus (async/pub >bus first)]
     (start-image-loader! [knight-sheet] >bus)
-    (start-render-loop! <bus)
+    (start-render-loop! canvas-id <bus)
     (start-model-loop! >bus)))
