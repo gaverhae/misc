@@ -10,6 +10,8 @@
 
 ### Using Events to Catch User Input
 
+Events are used to decouple components.
+
 #### Event Object
 
 #### Registering for Events: DOM Attributes
