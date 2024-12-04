@@ -77,6 +77,20 @@
                                                [[:sprite x y img]])))
                              (recur))))))))
 
+(defn start-model-loop!
+  [>bus]
+  (async/go
+    (let [_ (async/>! >bus [:anim (fn [t] [[:knight 0 200 :standing :right]])])
+          _ (async/<! (async/timeout 1000))
+          t1 (js/performance.now)
+          _ (async/>! >bus [:anim (fn [t]
+                                    (let [t (- t t1)]
+                                      [[:knight (quot t 100) 200 :walking :right]]))])
+          _ (async/<! (async/timeout 1000))
+          t2 (js/performance.now)
+          x (quot (- t2 t1) 100)
+          _ (async/>! >bus [:anim (fn [t] [[:knight x 200 :standing :right]])])])))
+
 (defn init
   []
   (let [>bus (async/chan)
