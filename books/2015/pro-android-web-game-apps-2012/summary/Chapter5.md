@@ -439,7 +439,12 @@ drop.
 
 ## Simulating Joystick
 
-## Summary
+Simulating a joystick is a common way to implement controls on a touch screen.
+It's not that great on a desktop, however.
+
+The code is straightforward and an example can be seen with [the book code][4].
+
+[4]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/9781430238195_sourcecode_chp05/code/07.joystick.html
 
 <hr>
 
