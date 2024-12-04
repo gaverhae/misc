@@ -243,6 +243,40 @@ _p._onUpDomEvent = (e) => {
 
 ### Creating MouseInputHandler
 
+```javascript
+function MouseInputHandler(el) {
+  InputHandlerBase.call(this, el);
+  this._mouseDown = false;
+  this._attachDomListeners();
+}
+extend(MouseInputHandler, InputHandlerBase);
+_p = MouseInputHandler.prototype;
+_p._attachDomListeners = () => {
+  var el = this._element;
+  el.addEventListener('mousedown', this._onDownDomEvent.bind(this));
+  el.addEventListener('mouseup', this._onUpDomEvent.bind(this));
+  el.addEventListener('mousemove', this._onMoveDomEvent.bind(this));
+  // in case user releases button outside of canvas
+  el.addEventListener('mouseout', this._onMouseOut.bind(this));
+};
+_p._onDownDomEvent = (e) => {
+  this._mouseDown = true;
+  InputHandlerBase.prototype._onDownDomEvent.call(this, e);
+};
+_p._onUpDomEvent = (e) => {
+  this._mouseDown = false;
+  InputHandlerBase.prototype._onUpDomEvent.call(this, e);
+};
+_p._onMoveDomEvent = (e) => {
+  if (this._mouseDown) {
+    InputHandlerBase.prototype._onMoveDomEvent.call(this, e);
+  }
+}
+_p._onMouseOut = (e) => {
+  this._mouseDown = false;
+};
+```
+
 ### Creating TouchInputHandler
 
 ## Advanced Input
