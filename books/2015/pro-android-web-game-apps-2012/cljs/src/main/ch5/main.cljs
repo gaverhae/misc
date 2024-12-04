@@ -52,7 +52,7 @@
   (clear ctx)
   (doseq [m model]
     (match m
-      [:knight x y :standing :right]
+      [:knight x y :standing :right _]
       (let [i (:image img)
             s (first (:sprites img))
             [tx ty w h] (:rectangle s)
@@ -90,19 +90,37 @@
             [:anim a] (do (reset! model a)
                           (recur))))))))
 
+(defn model->anim
+  [{:keys [x0 dx t0 orientation]}]
+  (fn [t]
+    (let [x (+ x0 (* dx (- t t0)))
+          stance (if (zero? dx) :standing :walking)]
+      [[:knight x 200 stance orientation (quot t 50)]])))
+
 (defn start-model-loop!
-  [>bus]
-  (async/go
-    (let [_ (async/>! >bus [:anim (fn [t] [[:knight 0 200 :standing :right]])])
-          _ (async/<! (async/timeout 1000))
-          t1 (js/performance.now)
-          _ (async/>! >bus [:anim (fn [t]
-                                    (let [t (- t t1)]
-                                      [[:knight (quot t 100) 200 :walking :right (quot t 50)]]))])
-          _ (async/<! (async/timeout 4000))
-          t2 (js/performance.now)
-          x (quot (- t2 t1) 100)
-          _ (async/>! >bus [:anim (fn [t] [[:knight x 200 :standing :right]])])])))
+  [>bus <bus]
+  (let [<rcv (async/chan)
+        speed 0.05]
+    (async/sub <bus :input <rcv)
+    (async/go
+      (loop [m {:x0 0, :dx 0, :t0 (js/performance.now), :orientation :right}]
+        (async/>! >bus [:anim (model->anim m)])
+        (match (async/<! <rcv)
+          [:input [:up _]] (recur (let [t (js/performance.now)
+                                        dt (- t (:t0 m))
+                                        dx (* dt (:dx m))]
+                                    (-> m
+                                        (update :x0 + dx)
+                                        (assoc :dx 0)
+                                        (assoc :t0 t))))
+          [:input [:down :left]] (recur (let [t (js/performance.now)]
+                                          (-> m
+                                              (assoc :dx (- speed))
+                                              (assoc :t0 t))))
+          [:input [:down :right]] (recur (let [t (js/performance.now)]
+                                          (-> m
+                                              (assoc :dx speed)
+                                              (assoc :t0 t)))))))))
 
 (defn start-input-loop!
   [>bus]
@@ -122,13 +140,7 @@
   (let [canvas-id "canvas"
         >bus (async/chan)
         <bus (async/pub >bus first)]
-    (let [<rcv (async/chan)]
-      (async/sub <bus :input <rcv)
-      (async/go
-        (loop []
-          (js/console.log (pr-str (async/<! <rcv)))
-          (recur))))
     (start-image-loader! [knight-sheet] >bus)
     (start-render-loop! canvas-id <bus)
-    (start-model-loop! >bus)
+    (start-model-loop! >bus <bus)
     (start-input-loop! >bus)))
