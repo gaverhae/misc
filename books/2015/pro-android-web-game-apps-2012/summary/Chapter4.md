@@ -128,6 +128,21 @@ The book creates [a class for that][4] and shows [example usage][5].
 
 ### The Simplest Animation
 
+Animation works by drawing frames over time. The browser is in charge of screen
+refreshes, so in that context it amounts to asking the browser to call a
+function right after each screen refresh. That function must render the next
+state of the game on the canvas, which the browser will then render on the
+screen.
+
+The way we ask the browser to run a function in-between two screen refreshes is
+by calling [the `requestAnimationFrame` method][6].
+
+[6]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
+
+Note that `requestAnimationFrame` only schedules a single call; for prolonged
+animations, one must make sure to call it again from within the scheduled
+function.
+
 ### JavaScript Threading Model
 
 ### Timers
