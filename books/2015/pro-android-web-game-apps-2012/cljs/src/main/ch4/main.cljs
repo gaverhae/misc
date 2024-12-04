@@ -56,17 +56,20 @@
 
 (defn start-render-loop!
   [<bus]
-  (let [model (atom nil)
+  (let [<rcv (async/chan)
+        model (atom nil)
         raf js/window.requestAnimationFrame
         ctx (.getContext (js/document.getElementById "canvas") "2d")
         raf-loop (fn ! [t]
                    (when-let [m @model]
                      (render ctx (m t)))
                    (raf !))]
+    (doseq [signal [:image]]
+      (async/sub <bus signal <rcv))
     (raf-loop 0)
     (async/go
       (loop []
-        (when-let [msg (async/<! <bus)]
+        (when-let [msg (async/<! <rcv)]
           (match msg
             [:image img] (do (reset! model (fn [t]
                                              (let [x (mod (/ t 100) 100)
@@ -76,7 +79,7 @@
 
 (defn init
   []
-  (let [bus (async/chan)]
-    (start-image-loader! [knight-sheet] bus)
-    (start-render-loop! bus)
-    (js/console.log "hello")))
+  (let [>bus (async/chan)
+        <bus (async/pub >bus first)]
+    (start-image-loader! [knight-sheet] >bus)
+    (start-render-loop! <bus)))
