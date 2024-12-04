@@ -322,6 +322,77 @@ With all of that, we still need an entrypoint:
 var InputHandler = 'ontouchstart' in document.documentElement ? TouchInputHandler : MouseInputHandler;
 ```
 
+> I am not impressed by the expressive power of inheritance here. I'm still a
+> sucker for good old composition.
+>
+> Here's what it could look like:
+>
+> ```javascript
+> const makeInput = (el) => {
+>   const emitter = new EventEmitter();
+>   let last_pos = null;
+>   let moving = false;
+>   let mouse_down = false;
+>   const threshold = 10;
+>   const event_to_position = (domEvent) => {
+>     let e = domEvent.targetTouches ? domEvent.targetTouches[0] : domEvent;
+>     return {x: e.pageX || last_pos.x, y: e.pageY || last_pos.y};
+>   };
+>   const on_down = (domEvent) => {
+>     mouse_down = true;
+>     last_pos = event_to_position(domEvent);
+>     emitter.emit('down', {x: last_pos.x, y: last_pos.y, domEvent});
+>   };
+>   const on_move = (domEvent) => {
+>     if (!mouse_down) return;
+>     let c = event_to_position(domEvent);
+>     let dx = c.x - last_pos.x;
+>     let dy = c.y - last_pos.y;
+>     if (Math.sqrt(dx * dx + dy * dy) > threshold) {
+>       moving = true;
+>     }
+>     if (moving) {
+>       emitter.emit('move', {x: c.x, y: c.y, dx, dy, domEvent});
+>       last_pos = c;
+>     }
+>   };
+>   const on_up = (domEvent) => {
+>     mouse_down = false;
+>     let c = event_to_position(domEvent);
+>     emitter.emit('up', {x: c.x, y: c.y, moved: moving, domEvent});
+>     moving = false;
+>   };
+>   const attach = (t, f) => {
+>     el.addEventListener(t, (e) => {
+>       f(e);
+>       e.stopPropagation();
+>       e.preventDefault();
+>     });
+>   };
+>   if ('ontouchstart' in document.documentElement) {
+>     attach('touchstart', on_down);
+>     attach('touchmove', on_move);
+>     attach('touchend', on_up);
+>   } else {
+>     attach('mousedown', on_down);
+>     attach('mousemove', on_move);
+>     attach('mouseup', on_up);
+>     attach('mouseout', () => { mouse_down = false; });
+>   }
+>   return {
+>     on: (t, f) => emitter.addListener(t, f),
+>     off: (t, f) => emitter.removeListener(t, f),
+>     removeAllListeners: (t) => emitter.removeAllListeners(t)
+>   };
+> }
+> ```
+>
+> I believe this is much easier to follow, and it's also a little bit shorter.
+>
+> See [my_input.html] for a complete example.
+
+[my_input.html]: http://127.0.0.1:8080/ch5/my_input.html
+
 ## Advanced Input
 
 ### Drag-and-Drop

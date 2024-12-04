@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+  </style>
+  <script>
+const eventEmitter = () => {
+  const listeners = {};
+  const addListener = (type, listener) => {
+		if (typeof listener !== "function")
+			throw "Listener must be a function";
+		if (!listeners[type])
+			listeners[type] = [];
+		listeners[type].push(listener);
+	};
+  const removeListener = (type, listener) => {
+		if (typeof listener !== "function")
+			throw "Listener must be a function";
+		if (!listeners[type])
+			return;
+		const position = listeners[type].indexOf(listener);
+		if (position != -1)
+			listeners[type].splice(position, 1);
+	};
+	const removeAllListeners = (type) => {
+		if (type) {
+			listeners[type] = [];
+		} else {
+			listeners = {};
+    }
+	};
+  const emit = (t, e) => {
+		for (const f of listeners[t]) {
+			f(e);
+		}
+	};
+  return { addListener, removeListener, removeAllListeners, emit };
+};
+
+const makeInput = (el) => {
+  const emitter = eventEmitter();
+  let last_pos = null;
+  let moving = false;
+  let mouse_down = false;
+  const threshold = 10;
+  const event_to_position = (domEvent) => {
+    let e = domEvent.targetTouches ? domEvent.targetTouches[0] : domEvent;
+    return {x: e.pageX || last_pos.x, y: e.pageY || last_pos.y};
+  };
+  const on_down = (domEvent) => {
+    mouse_down = true;
+    last_pos = event_to_position(domEvent);
+    emitter.emit('down', {x: last_pos.x, y: last_pos.y, domEvent});
+  };
+  const on_move = (domEvent) => {
+    if (!mouse_down) return;
+    let c = event_to_position(domEvent);
+    let dx = c.x - last_pos.x;
+    let dy = c.y - last_pos.y;
+    if (Math.sqrt(dx * dx + dy * dy) > threshold) {
+      moving = true;
+    }
+    if (moving) {
+      emitter.emit('move', {x: c.x, y: c.y, dx, dy, domEvent});
+      last_pos = c;
+    }
+  };
+  const on_up = (domEvent) => {
+    mouse_down = false;
+    let c = event_to_position(domEvent);
+    emitter.emit('up', {x: c.x, y: c.y, moved: moving, domEvent});
+    moving = false;
+  };
+  const attach = (t, f) => {
+    el.addEventListener(t, (e) => {
+      f(e);
+      e.stopPropagation();
+      e.preventDefault();
+    });
+  };
+  if ('ontouchstart' in document.documentElement) {
+    attach('touchstart', on_down);
+    attach('touchmove', on_move);
+    attach('touchend', on_up);
+  } else {
+    attach('mousedown', on_down);
+    attach('mousemove', on_move);
+    attach('mouseup', on_up);
+    attach('mouseout', () => { mouse_down = false; });
+  }
+  return {
+    on: (t, f) => emitter.addListener(t, f),
+    off: (t, f) => emitter.removeListener(t, f),
+    removeAllListeners: (t) => emitter.removeAllListeners(t)
+  };
+}
+
+const init = () => {
+  const c = document.getElementById("canvas");
+  c.width = document.documentElement.clientWidth;
+  c.height = document.documentElement.clientHeight;
+  let input = makeInput(c);
+  input.on('down', (e) => { console.log(e); });
+  input.on('move', (e) => { console.log(e); });
+  input.on('up', (e) => { console.log(e); });
+};
+  </script>
+</head>
+<body onload=init()>
+  <canvas id="canvas" width=300 height=300></canvas>
+</body>
+</html>
