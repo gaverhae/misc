@@ -40,6 +40,16 @@
 
 ### Drag-and-Drop
 
+It's easy:
+
+1. Pick: if the `down` event happens on a draggable object, start a drag.
+2. Move: move the object along with `move` events.
+3. Release: on `up`, release the object.
+
+See [book code][2] for a full example.
+
+[2]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/9781430238195_sourcecode_chp05/code/04.drag_and_drop.html
+
 ### Pixel-Perfect Picking and Image Masks
 
 ### Composite Operations
