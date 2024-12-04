@@ -67,8 +67,8 @@
         (when-let [msg (async/<! <bus)]
           (match msg
             [:image img] (do (reset! model (fn [t]
-                                             (let [x (mod t 100)
-                                                   y (mod (* 2 t) 100)]
+                                             (let [x (mod (/ t 100) 100)
+                                                   y (mod (/ (* 3 t) 100) 100)]
                                                [[:sprite x y img]])))
                              (recur))))))))
 
