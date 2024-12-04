@@ -24,6 +24,8 @@
 
 ## Custom Event Listeners and Emitters
 
+Building an event system is easy.
+
 ### EventEmitter: The Base Class
 
 ### Events vs. Callbacks
