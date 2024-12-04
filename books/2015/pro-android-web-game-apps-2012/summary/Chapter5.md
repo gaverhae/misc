@@ -12,6 +12,9 @@
 
 #### Event Object
 
+When an event happens, event listeners are called with an event object as their
+first parameter to provide more details than just "the event happened".
+
 #### Registering for Events: DOM Attributes
 
 #### Registering for Events: Event Listeners
