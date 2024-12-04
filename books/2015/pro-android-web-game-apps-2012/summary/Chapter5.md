@@ -153,6 +153,28 @@ _p.emit = (type, event) => {
 
 ### Events vs. Callbacks
 
+In Chapter 4, we designed the `ImageLoader` class with a callback API:
+
+```javascript
+imageManager.load({
+  house: "img/house.png",
+  knight: "img/knight.png"
+}, () => {
+  /* runs when loading is done */
+});
+```
+
+We could instead have gone for an event API:
+
+```javascript
+imageManager.on('done', (e) => { /* ... */ });
+imageManager.addImage('house', 'img/house.png');
+imageManager.loadImages();
+```
+
+It's mostly a matter of style, but the event approach allows for multiple
+callbacks on the same event.
+
 ## Custom Events
 
 ### Implementing InputHandlerBase
