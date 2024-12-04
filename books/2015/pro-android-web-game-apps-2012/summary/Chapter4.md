@@ -98,6 +98,32 @@ If performance is a concern, prototype your game on real hardware.
 
 ### Sprite Sheets
 
+Along with a sprite sheet, an artist should provide, for each sprite, its size
+and anchor point. The anchor point is the position of the sprite in the game
+world. For example, if a character bows, their feet should stay in place even
+though the image will be smaller in height; if they raise their armes, their
+feet should still not move even though the sprite will be bigger in height.
+
+We therefore need 6 numbers for each sprite: its top-left corner within the
+sprite sheet, its dimensions, and the position of the anchor point (relative to
+the top-left corner of the sprite).
+
+Given those, we can draw the sprite at `x, y` in the game world with:
+
+```javascript
+ctx.drawImage(
+  sprite.sheet,
+  // "source" rectangle in the sprite sheet
+  sprite.frame_x, sprite.frame_y, sprite.frame_width, sprite.frame_height,
+  // "destination" rectangle in the canvas
+  x - sprite.anchor_x, y - sprite.anchor_y, sprite.frame_width, sprite.frame_height);
+```
+
+The book creates [a class for that][4] and shows [example usage][5].
+
+[4]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/js/SpriteSheet.js
+[5]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/04.sprite_sheet.html
+
 ## Basics of Animation
 
 ### The Simplest Animation
