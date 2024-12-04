@@ -48,38 +48,40 @@
   (.restore ctx))
 
 (defn render
-  [ctx model]
+  [ctx model img]
   (clear ctx)
   (doseq [m model]
     (match m
-      [:sprite x y i] (let [img (:image i)
-                            s (first (:sprites i))
-                            [tx ty w h] (:rectangle s)
-                            [dx dy] (:anchor s)]
-                        (.drawImage ctx img tx ty w h x y w h)))))
+      [:knight x y :standing :right]
+      (let [i (:image img)
+            s (first (:sprites img))
+            [tx ty w h] (:rectangle s)
+            [dx dy] (:anchor s)]
+        (.drawImage ctx i tx ty w h (- x dx) (- y dy) w h)))))
 
 (defn start-render-loop!
   [<bus]
   (let [<rcv (async/chan)
         model (atom nil)
+        image (atom nil)
         raf js/window.requestAnimationFrame
         ctx (.getContext (js/document.getElementById "canvas") "2d")
         raf-loop (fn ! [t]
                    (when-let [m @model]
-                     (render ctx (m t)))
+                     (when-let [i @image]
+                       (render ctx (m t) i)))
                    (raf !))]
-    (doseq [signal [:image]]
+    (doseq [signal [:image :anim]]
       (async/sub <bus signal <rcv))
     (raf-loop 0)
     (async/go
       (loop []
         (when-let [msg (async/<! <rcv)]
           (match msg
-            [:image img] (do (reset! model (fn [t]
-                                             (let [x (mod (/ t 100) 100)
-                                                   y (mod (/ (* 3 t) 100) 100)]
-                                               [[:sprite x y img]])))
-                             (recur))))))))
+            [:image i] (do (reset! image i)
+                           (recur))
+            [:anim a] (do (reset! model a)
+                          (recur))))))))
 
 (defn start-model-loop!
   [>bus]
@@ -100,4 +102,5 @@
   (let [>bus (async/chan)
         <bus (async/pub >bus first)]
     (start-image-loader! [knight-sheet] >bus)
-    (start-render-loop! <bus)))
+    (start-render-loop! <bus)
+    (start-model-loop! >bus)))
