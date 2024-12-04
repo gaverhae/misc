@@ -145,7 +145,19 @@ function.
 
 ### JavaScript Threading Model
 
-### Timers
+The browser presents a single-threaded environment. This means that only one
+piece of JavaScript code can run at any time, and it runs without interruption
+until it reaches its own, natural end. While it runs, the entire browser (well,
+that one page) is frozen.
+
+Therefore, JavaScript code should terminate quickly.
+
+The browser model lets the programmer register callbacks for various events
+directly in JavaScript (e.g. `onload`, `onclick`), and JavaScript code can
+register its own callbacks based on future events (`onload` on `Image`), or
+just time passing (see [the `setTimeout` method][setTimeout]).
+
+[setTimeout]: https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout
 
 ### Improving Animation
 
