@@ -73,6 +73,8 @@ event, and so on. There are two ways to change that:
 
 ### Getting More from Events
 
+The `event` object passed to DOM event listeners have a lot of information.
+
 ### Handling the Differences Between Touch and Mouse Interfaces
 
 ## Custom Events
