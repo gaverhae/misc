@@ -1,13 +1,4 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd)"
-cd "$DIR"
-
-DAY=$(printf "%02d" $1)
-
-cat <<EOF > src/t/day$DAY.clj
-(ns t.day$DAY
+(ns t.day03
   (:require [clojure.string :as string]
             [t.lib :as lib :refer [->long]]))
 
@@ -32,7 +23,3 @@ cat <<EOF > src/t/day$DAY.clj
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
-EOF
-
-touch data/sample/day$DAY
-vim -O src/t/day03.clj data/sample/day03
