@@ -133,7 +133,8 @@
                        "ArrowRight" [k :right]
                        "ArrowLeft" [k :left]
                        nil)]
-          (async/put! >bus [:input m]))))))
+          (when (not (.-repeat e))
+            (async/put! >bus [:input m])))))))
 
 (defn init
   []
