@@ -1,3 +1,4 @@
 .envrc.private
 logs
 public/ch*/cljs
+.heroku

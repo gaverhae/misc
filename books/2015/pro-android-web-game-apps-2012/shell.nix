@@ -9,6 +9,7 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     bash
     curl
+    heroku
     jdk
     jq
     nettools
