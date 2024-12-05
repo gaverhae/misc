@@ -8,7 +8,8 @@ DAY=$(printf "%02d" $1)
 
 cat <<EOF > src/t/day$DAY.clj
 (ns t.day$DAY
-  (:require [t.lib :as lib :refer [->long]]))
+  (:require [clojure.string :as string]
+            [t.lib :as lib :refer [->long]]))
 
 (defn parse
   [lines]
@@ -16,7 +17,7 @@ cat <<EOF > src/t/day$DAY.clj
 
 (defn solve
   [lines]
-  0)
+  lines)
 
 (defn part1
   [input]
@@ -27,8 +28,8 @@ cat <<EOF > src/t/day$DAY.clj
   (solve input))
 
 (lib/check
-  [part1 sample] 1
-  [part1 puzzle] 1
-  [part2 sample] 1
-  [part2 puzzle] 1)
+  [part1 sample] 0
+  #_#_[part1 puzzle] 0
+  #_#_[part2 sample] 0
+  #_#_[part2 puzzle] 0)
 EOF
