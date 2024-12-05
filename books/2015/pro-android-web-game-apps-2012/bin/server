@@ -5,8 +5,10 @@ DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
 cd "$DIR"
 
 if [ -z "${1:-}" ]; then
-  echo "Need an arg: start, stop, reload"
+  echo "Need an arg: start, stop, reload, deploy"
 fi
+
+ALL_CHAPTERS="ch2 ch3 ch4 ch5"
 
 _go() (
   nginx -p "$(pwd)" -e logs/error.log $@
@@ -19,9 +21,61 @@ _compile() (
   done
 )
 
+_deploy() (
+  if ! [ -d .heroku ]; then
+    mkdir .heroku
+    app_name=$(tr -dc a-z </dev/urandom | head -c 13 || true)
+    echo $app_name > .heroku/app_name
+    heroku apps:create --no-remote $app_name
+  fi
+  rm -rf public .heroku/app .heroku/slug.tgz
+  git checkout public
+  _compile $ALL_CHAPTERS
+  cp -r public .heroku/app
+  cd .heroku
+  cat <<EOF > app/package.json
+{"scripts": {"start":"serve"},
+ "dependencies": {"serve":"14.2.4"}}
+EOF
+  node_version=v22.12.0
+  if ! [ -d node ]; then
+    t=$(mktemp)
+    curl https://nodejs.org/dist/$node_version/node-$node_version-linux-x64.tar.xz > $t
+    tar xJf $t
+    rm $t
+    mv node-$node_version-linux-x64 node
+  fi
+  cp -r node app/node
+  (cd app; node/bin/npm install)
+  tar -I 'gzip -9' -cf slug.tgz app
+  app=$(cat app_name)
+  slug_data=$(curl -X POST \
+                   --fail \
+                   -H 'Content-Type: application/json' \
+                   -H 'Accept: application/vnd.heroku+json; version=3' \
+                   -d '{"process_types":{"web":"ls -alR ; node/bin/npm start"}}' \
+                   -n https://api.heroku.com/apps/$app/slugs)
+  echo slug_data: $slug_data
+  push_url=$(echo "$slug_data" | jq -r .blob.url)
+  slug_id=$(echo "$slug_data" | jq -r .id)
+  echo push_url: $push_url
+  echo slug_id: $slug_id
+  curl -X PUT \
+       --fail \
+       -H 'Content-Type:' \
+       --data-binary @slug.tgz \
+       $push_url
+  curl -X POST \
+       --fail \
+       -H 'Accept: application/vnd.heroku+json; version=3' \
+       -H 'Content-Type: application/json' \
+       -d '{"slug": "'$slug_id'"}' \
+       -n https://api.heroku.com/apps/$app/releases
+)
+
 case $1 in
   start)
-    _compile ch2 ch3 ch4 ch5
+    _compile $ALL_CHAPTERS
     echo "Probable address:"
     echo "http://$(ifconfig | grep "inet 192" | awk '{print $2}'):8080"
     echo "Compiling ClojureScript..."
@@ -33,6 +87,9 @@ case $1 in
     ;;
   reload)
     _go -s reload
+    ;;
+  deploy)
+    _deploy
     ;;
   *)
     echo "ERROR"
