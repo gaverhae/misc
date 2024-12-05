@@ -10,7 +10,7 @@
        (partition 2 2)
        lib/transpose))
 
-(defn solve
+(defn part1
   [cols]
   (->> cols
        (map sort)
@@ -19,16 +19,15 @@
               (abs (- a b))))
        (reduce + 0)))
 
-(defn part1
-  [input]
-  (solve input))
-
 (defn part2
-  [input]
-  (solve input))
+  [[left right]]
+  (let [freqs (frequencies right)]
+    (->> left
+         (map (fn [n] (* n (freqs n 0))))
+         (reduce + 0))))
 
 (lib/check
   [part1 sample] 11
   [part1 puzzle] 2375403
-  #_#_[part2 sample] 1
-  #_#_[part2 puzzle] 1)
+  [part2 sample] 31
+  [part2 puzzle] 1)
