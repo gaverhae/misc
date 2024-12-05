@@ -52,9 +52,9 @@ will execute `init()` when the `load` event happens.
 We can also register events through JavaScript:
 
 ```javascript
-var el = document.getElementById("canvas");
+var el = document.getElementById('canvas');
 var my_event_listener = (ev) => { console.log(ev); };
-el.addEventListener("touchstart", my_event_listener);
+el.addEventListener('touchstart', my_event_listener);
 ```
 
 Outside of code organization (mixing JS and HTML is sometimes frowned upon),
@@ -98,7 +98,7 @@ explain de concepts we'll build our own here.
 Say we want to write:
 
 ```javascript
-levelManager.on("loaded", (e) => {
+levelManager.on('loaded', (e) => {
   /* ... */
 });
 ```
@@ -290,9 +290,9 @@ _p = TouchInputHandler.prototype;
 
 _p._attachDomListeners = () => {
   var el = this._element;
-  el.addEventListener("touchstart", this._onDownDomEvent.bind(this));
-  el.addEventListener("touchend", this._onUpDomEvent.bind(this));
-  el.addEventListener("touchmove", this._onMoveDomEvent.bind(this));
+  el.addEventListener('touchstart', this._onDownDomEvent.bind(this));
+  el.addEventListener('touchend', this._onUpDomEvent.bind(this));
+  el.addEventListener('touchmove', this._onMoveDomEvent.bind(this));
 };
 _p._onDownDomEvent = (e) => {
   this._lastInteractionCoordinates = this._getInputCoordinates(e);
@@ -359,7 +359,7 @@ element should be picked.
 >
 > This is in all respects a "real" canvas that just happens not to be drawn on
 > the screen. We can set its size with `virtual_canvas.height = 5` and get its
-> context with `virtual_canvas.getContext("2d")` etc.
+> context with `virtual_canvas.getContext('2d')` etc.
 
 ### Composite Operations
 
