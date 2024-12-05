@@ -104,11 +104,31 @@
           x (quot (- t2 t1) 100)
           _ (async/>! >bus [:anim (fn [t] [[:knight x 200 :standing :right]])])])))
 
+(defn start-input-loop!
+  [>bus]
+  (doseq [[t k] [["keydown" :down]
+                 ["keyup" :up]]]
+    (js/document.addEventListener
+      t
+      (fn [e]
+        (when-let [m (case (.-key e)
+                       "ArrowRight" [k :right]
+                       "ArrowLeft" [k :left]
+                       nil)]
+          (async/put! >bus [:input m]))))))
+
 (defn init
   []
   (let [canvas-id "canvas"
         >bus (async/chan)
         <bus (async/pub >bus first)]
+    (let [<rcv (async/chan)]
+      (async/sub <bus :input <rcv)
+      (async/go
+        (loop []
+          (js/console.log (pr-str (async/<! <rcv)))
+          (recur))))
     (start-image-loader! [knight-sheet] >bus)
     (start-render-loop! canvas-id <bus)
-    (start-model-loop! >bus)))
+    (start-model-loop! >bus)
+    (start-input-loop! >bus)))
