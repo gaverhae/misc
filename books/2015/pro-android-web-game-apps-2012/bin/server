@@ -24,53 +24,25 @@ _compile() (
 _deploy() (
   if ! [ -d .heroku ]; then
     mkdir .heroku
-    app_name=$(tr -dc a-z </dev/urandom | head -c 13 || true)
+    app_name=pawga-$(tr -dc a-z </dev/urandom | head -c 8 || true)
     echo $app_name > .heroku/app_name
     heroku apps:create --no-remote $app_name
   fi
-  rm -rf public .heroku/app .heroku/slug.tgz
+  app_name=$(cat .heroku/app_name)
+  rm -rf public .heroku/git
   git checkout public
   _compile $ALL_CHAPTERS
-  cp -r public .heroku/app
-  cd .heroku
-  cat <<EOF > app/package.json
+  cp -r public .heroku/git
+  cd .heroku/git
+  cat <<EOF > package.json
 {"scripts": {"start":"serve"},
  "dependencies": {"serve":"14.2.4"}}
 EOF
-  node_version=v22.12.0
-  if ! [ -d node ]; then
-    t=$(mktemp)
-    curl https://nodejs.org/dist/$node_version/node-$node_version-linux-x64.tar.xz > $t
-    tar xJf $t
-    rm $t
-    mv node-$node_version-linux-x64 node
-  fi
-  cp -r node app/node
-  (cd app; node/bin/npm install)
-  tar -I 'gzip -9' -cf slug.tgz app
-  app=$(cat app_name)
-  slug_data=$(curl -X POST \
-                   --fail \
-                   -H 'Content-Type: application/json' \
-                   -H 'Accept: application/vnd.heroku+json; version=3' \
-                   -d '{"process_types":{"web":"ls -alR ; node/bin/npm start"}}' \
-                   -n https://api.heroku.com/apps/$app/slugs)
-  echo slug_data: $slug_data
-  push_url=$(echo "$slug_data" | jq -r .blob.url)
-  slug_id=$(echo "$slug_data" | jq -r .id)
-  echo push_url: $push_url
-  echo slug_id: $slug_id
-  curl -X PUT \
-       --fail \
-       -H 'Content-Type:' \
-       --data-binary @slug.tgz \
-       $push_url
-  curl -X POST \
-       --fail \
-       -H 'Accept: application/vnd.heroku+json; version=3' \
-       -H 'Content-Type: application/json' \
-       -d '{"slug": "'$slug_id'"}' \
-       -n https://api.heroku.com/apps/$app/releases
+  git init
+  git add .
+  git commit -m "ploup"
+  heroku git:remote -a $app_name
+  git push -f heroku main:main
 )
 
 case $1 in
