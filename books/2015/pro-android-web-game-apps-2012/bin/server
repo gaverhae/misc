@@ -32,10 +32,11 @@ _deploy() (
   rm -rf public .heroku/git
   git checkout public
   _compile $ALL_CHAPTERS
-  cp -r public .heroku/git
+  mkdir .heroku/git
+  cp -r public .heroku/git/
   cd .heroku/git
   cat <<EOF > package.json
-{"scripts": {"start":"serve"},
+{"scripts": {"start":"serve public"},
  "dependencies": {"serve":"14.2.4"}}
 EOF
   git init
