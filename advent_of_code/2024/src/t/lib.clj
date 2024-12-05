@@ -88,23 +88,23 @@
      (def ~'day (-> (ns-name ~*ns*)
                     (string/replace "t.day" "")
                     (Long/parseLong)))
-     (def ~'sample (delay (-> (format "data/day%02d-sample" ~'day)
+     (def ~'sample (delay (-> (format "data/sample/day%02d" ~'day)
                               slurp
                               string/split-lines
                               ~'parse)))
-     (def ~'sample1 (delay (-> (format "data/day%02d-sample1" ~'day)
+     (def ~'sample1 (delay (-> (format "data/sample/day%02d-1" ~'day)
                                slurp
                                string/split-lines
                                ~'parse)))
-     (def ~'sample2 (delay (-> (format "data/day%02d-sample2" ~'day)
+     (def ~'sample2 (delay (-> (format "data/sample/day%02d-2" ~'day)
                                slurp
                                string/split-lines
                                ~'parse)))
      (def ~'puzzle (delay
-                     (let [file# (format "data/day%02d-puzzle" ~'day)]
+                     (let [file# (format "data/puzzle/day%02d" ~'day)]
                        (when (not (.exists (io/file file#)))
                          (spit file#
-                               (-> (format "https://adventofcode.com/2023/day/%d/input"
+                               (-> (format "https://adventofcode.com/2024/day/%d/input"
                                            ~'day)
                                    (hc/get {:headers
                                             {"cookie" (format "session=%s"
