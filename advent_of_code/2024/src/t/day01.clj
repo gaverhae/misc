@@ -30,4 +30,4 @@
   [part1 sample] 11
   [part1 puzzle] 2375403
   [part2 sample] 31
-  [part2 puzzle] 1)
+  [part2 puzzle] 23082277)
