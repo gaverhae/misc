@@ -33,3 +33,5 @@ cat <<EOF > src/t/day$DAY.clj
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
 EOF
+
+touch data/sample/day$DAY
