@@ -60,8 +60,9 @@
         draw-frame (fn [image tx ty w h dx dy dir]
                      (.save ctx)
                      (when (= :left dir)
-                       (.translate ctx w 0)
-                       (.scale ctx -1 1))
+                       (.translate ctx dx dy)
+                       (.scale ctx -1 1)
+                       (.translate ctx dx (- dy)))
                      (.drawImage ctx image tx ty w h (- dx) (- dy) w h)
                      (draw-dot (- dx) (- dy))
                      (.restore ctx))]
