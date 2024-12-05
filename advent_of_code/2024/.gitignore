@@ -1,1 +1,4 @@
 .envrc.private
+/target
+/.lein-*
+/.nrepl-port
