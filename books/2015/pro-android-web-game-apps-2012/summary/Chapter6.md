@@ -142,7 +142,7 @@ We basically have two options:
 [7]: https://en.wikipedia.org/wiki/R-tree
 
 A simple option is to expand again on our offscreen buffer idea: we divide the
-world in a big grid, and organize objects by cells in that grid. It id then
+world in a big grid, and organize objects by cells in that grid. It is then
 easy to check which cells of the grid intersect with the viewport, and loop
 only on those objects. In this model, it is possible for an object to be in
 multiple cells, because a cell would "contain" all the objects that intersect
