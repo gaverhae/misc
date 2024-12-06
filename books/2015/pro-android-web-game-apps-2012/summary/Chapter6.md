@@ -211,6 +211,11 @@ translation between world coordinates and screen coordinates.
 
 ### Rendering Order
 
+If objects can overlap, they need to be drawn in the correct order. In our
+simple case of top-down, square tiles, this basically means sorting them by `y`
+coordinate. In a complex game with a lot of objects, sorting on every frame may
+be too slow.
+
 ### Optimizations
 
 ## Isometric View
