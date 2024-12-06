@@ -204,6 +204,11 @@ always know in which system we are.
 
 ### Implementing WorldObjectRenderer
 
+The goal of WorldObjectRenderer is to render objects on the screen. Objects
+will typically know their sprite sheet, frame in the sheet, and position _in
+the game world_; the job of WorldObjectRenderer is thus to manage the
+translation between world coordinates and screen coordinates.
+
 ### Rendering Order
 
 ### Optimizations
