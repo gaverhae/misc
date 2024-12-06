@@ -113,6 +113,21 @@ We use [xStats][3].
 
 ### Draw Only What Is Required
 
+If we know the viewport size (say, `width` and `height`), the current position
+(`x` and `y`), and the tile size (`size`), we can determine the "tile set
+rectangle" with:
+
+```javascript
+var left = Math.max(0, Math.floor(-x/size));
+var right = Math.min(world[0].length -1, Math.floor((width - x) / size));
+var top = Math.max(0, Math.floor(-y/size));
+var bottom = Math.min(world.length - 1, Math.floor((height - y) / size));
+```
+
+and reduce the range of both indices in the `MapRenderer.draw` method.
+
+> This gets the author from 27 to 34 images per second, which is still not 60.
+
 ### Offscreen Buffer
 
 ### Catching the Area Around the Viewport
