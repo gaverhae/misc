@@ -189,6 +189,8 @@ border.
 
 ## World Objects
 
+Game objects are sprites.
+
 ### Coordinate Systems
 
 ### Implementing WorldObjectRenderer
