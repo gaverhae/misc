@@ -117,6 +117,35 @@ We use [xStats][3].
 
 ### Catching the Area Around the Viewport
 
+One way we can improve this is by making the offscreen buffer slightly larger.
+So far, we draw the offscreen buffer with
+
+```javascript
+mainCtx.drawImage(offCanvas, 0, 0);
+```
+
+but it would be about as fast if we did:
+
+```javascript
+mainCtx.drawImage(offCanvas, x, y, mainWidth, mainHeight, dx, dy, mainWidth, mainHeight);
+```
+
+If we align the offscreen size on tiles, we can limit redrawing the offscreen
+canvas to the times our "tile box" changes. See [book code][5] for the full
+result.
+
+[5]: https://github.com/Apress/pro-android-web-game-apps/tree/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/code/v.04
+
+> This now allows the author to hold on to 45fps when the map is moving.
+
+Note that the same idea of discretizing updates can be applied to loading the
+`world` description from the server: if we define it as a "big enough" square
+around the user position, we can periodically update it when the user nears a
+border.
+
+> Expanding that further, tilesets could be loaded (and unloaded) based on that
+> "loaded world" square.
+
 ## World Objects
 
 ### Coordinate Systems
