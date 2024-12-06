@@ -218,6 +218,30 @@ be too slow.
 
 ### Optimizations
 
+When drawing tiles, we can easily compute a bouding box for the screen. Objects
+can have any position, and possibly move. We don't want to draw the ones that
+are outside the screen if we can avoid it.
+
+We basically have two options:
+
+1. Look at all the objects, for each render. This is viable for [some
+   games][6], but not most of them.
+2. Try to do something smart. Because of its wide range of applications, this
+   problem has been heavily researched (e.g. [R-Tree][7]).
+
+[6]: https://tiny-island-survival.fandom.com/wiki/Main_Island
+[7]: https://en.wikipedia.org/wiki/R-tree
+
+A simple option is to expand again on our offscreen buffer idea: we divide the
+world in a big grid, and organize objects by cells in that grid. It is then
+easy to check which cells of the grid intersect with the viewport, and loop
+only on those objects. In this model, it is possible for an object to be in
+multiple cells, because a cell would "contain" all the objects that intersect
+with it.
+
+> Note that we are optimizing _the render loop_ here. This way of organizing
+> the game objects may not necessarily make the "state update loop" faster.
+
 ## Isometric View
 
 <hr>
