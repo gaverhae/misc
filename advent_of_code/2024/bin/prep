@@ -16,17 +16,13 @@ cat <<EOF > src/t/day$DAY.clj
   [lines]
   lines)
 
-(defn solve
-  [lines]
-  lines)
-
 (defn part1
   [input]
-  (solve input))
+  input)
 
 (defn part2
   [input]
-  (solve input))
+  input)
 
 (lib/check
   [part1 sample] 0
@@ -36,4 +32,5 @@ cat <<EOF > src/t/day$DAY.clj
 EOF
 
 touch data/sample/day$DAY
+echo "git add . && git commit -m 'aoc/2024/$DAY: prep"
 echo "vim -O src/t/day$DAY.clj data/sample/day$DAY"
