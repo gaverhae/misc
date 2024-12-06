@@ -4,6 +4,8 @@
 
 # Chapter 6 - Rendering Virtual Worlds
 
+Sometimes, the game world is bigger than what is shown on the screen.
+
 ## Tile Maps
 
 ### The Idea Behind Tile Maps
