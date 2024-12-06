@@ -244,6 +244,21 @@ with it.
 
 ## Isometric View
 
+An isometric projection is one in which the angles between the three (3d) axes
+(as seen by projecting them on the 2d screen) are at 120° with each other.
+
+A conceptual square on the ground thus looks like a lozenge that is twice as
+wide as it is tall. A rectangle on the screen will be covered by half-lozenges
+on the edges. Our code for mapping world coordinates to screen coordinates
+needs to be adjusted. That said, the principles remain true, and not that much
+of the code needs to change.
+
+There are two main approaches to defining coordinates in isometric views:
+either we keep the axes parallel to the edges of the screen, and live with the
+fact that every other row is shifted half a diamond width, or we use the
+"pre-rotation" axes, which follow the lozenges, with typically $x$ pointing to
+the bottom right and $y$ to the bottom left (and $z$ upwards).
+
 <hr>
 
 [Previous](./Chapter5.md) | [Next](./Chapter7.md)
