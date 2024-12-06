@@ -6,10 +6,8 @@
 
 ## Browser Events
 
-### Desktop Browser vs. Android Browser Input
-
 Browser events on desktop and mobile are different. At the time of writing,
-mobile browser events on Android basically mount to a single-button mouse, so
+mobile browser events on Android basically amount to a single-button mouse, so
 this chapter focuses on that.
 
 > Since then, a lot has happened in the browser event space, the most notable
@@ -19,16 +17,8 @@ this chapter focuses on that.
 
 [0]: https://developer.mozilla.org/en-US/docs/Web/API/Sensor_APIs
 
-### Using Events to Catch User Input
-
-Events are used to decouple components.
-
-#### Event Object
-
 When an event happens, event listeners are called with an event object as their
 first parameter to provide more details than just "the event happened".
-
-#### Registering for Events: DOM Attributes
 
 The `onEVENT` DOM attribute can be used to define a snippet of JavaScript code
 as a listener for a given `EVENT`, for example:
@@ -47,8 +37,6 @@ will execute `init()` when the `load` event happens.
 > <body onload="init(event)">...</body>
 > ```
 
-#### Registering for Events: Event Listeners
-
 We can also register events through JavaScript:
 
 ```javascript
@@ -61,37 +49,31 @@ Outside of code organization (mixing JS and HTML is sometimes frowned upon),
 the main advantage of this approach is that we can register multiple listeners
 for the same event.
 
-> #### Event Propagation
-
 After all of the listeners for an event on an element have ran, the same event
 is sent to the parent node, which also fires all of its listeners for that
 event, and so on. There are two ways to change that:
 
 - `e.stopPropagation()` will stop the event from bubbling up to the parents of
   the current element.
-- `e.preventDefault()` will prevent the default event handlers from running.
+- `e.preventDefault()` will prevent the default event handlers from running on
+  the current element.
 
-### Getting More from Events
-
-The `event` object passed to DOM event listeners have a lot of information.
-
-### Handling the Differences Between Touch and Mouse Interfaces
-
-We can detect touch devices with:
+We can detect touch devices by the fact that they have a touch event emitter:
 
 ```javascript
 'ontouchstart' in document.documentElement
 ```
 
-On desktop, we can use the `mousedown` event as an alternative.
+> In the correspondence between DOM and HTML, `document.documentElement` is the
+> `<html>` node.
 
-## Custom Events
+## Our Own Event System
 
 > I personally think core.async channels are a much superior option.
 
-Our application logic may require its own events (e.g. `coin_collected`). The
-browser [has some support for that][1], which you should use, but in order to
-explain de concepts we'll build our own here.
+Events can also be used to decouple components within our own code (e.g.
+`coin_collected`). The browser [has some support for that][1], which you should
+use, but in order to explain the concepts we'll build our own here.
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events
 
@@ -103,15 +85,9 @@ levelManager.on('loaded', (e) => {
 });
 ```
 
-## Custom Event Listeners and Emitters
-
-Building an event system is easy.
-
-### EventEmitter: The Base Class
-
-There are other options, but here we will make an `EventEmitter` where events
-do not bubble up, event listeners only receive a single argument, and we try to
-protect from memory leaks by limiting the number of listeners.
+to let other parts of our application know that the level has been loaded. We
+will build an `EventEmitter` class that `LevelManager` can inherit from to
+provide that functionality.
 
 ```javascript
 function EventEmitter() {
@@ -149,9 +125,10 @@ _p.emit = (type, event) => {
 > This design assumes that anything that wants to emit events needs to be
 > implemented as a subclass of EventEmitter. I'm not sure I like that.
 >
-> I'm also not too fond of the `apply` call in `emit`.
-
-### Events vs. Callbacks
+> I'm also not too fond of the `apply` call in `emit`. It implies that the
+> callback executes in the context of the emitter of the event, wheres it seems
+> to me it would make a lot more sense if it happened in the context of the
+> listener.
 
 In Chapter 4, we designed the `ImageLoader` class with a callback API:
 
@@ -175,15 +152,16 @@ imageManager.loadImages();
 It's mostly a matter of style, but the event approach allows for multiple
 callbacks on the same event.
 
-## Custom Events
+## "One-Button Mouse" Events
 
 We want to build a single set of synthetic events to cover the differences
 between touch and click devices:
 
 - `down` covers `mousedown` and `touchstart`. The main difference here is that
   `touchstart` can have multiple locations in the case of a multi-touch screen.
+  In that case, we'll ignore all but the first listed location.
 - `up` covers `mouseup` and `touchend`, with the main difference being that
-  `touchend` does not provide coordinates, so we have to track that.
+  `touchend` does not provide coordinates, so we have to track the last move.
 - `move` covers `mousemove` and `touchmove`, but `mousemove` only when the
   button is pressed (i.e. we ignore hovering).
 
@@ -191,7 +169,9 @@ We also want `move` events to include the delta, as it is often useful.
 Finally, we want to filter out unintentional movement to be able to detect taps
 as opposed to short drags.
 
-### Implementing InputHandlerBase
+We will write two classes, one for mouse and one for touch screen, that
+implement the same interface, so the rest of our code does not need to know
+which one we have. We start with the base class:
 
 ```javascript
 function InputHandlerBase(element) {
@@ -241,7 +221,8 @@ _p._onUpDomEvent = (e) => {
 };
 ```
 
-### Creating MouseInputHandler
+The mouse handler needs to ignore hovering, and deal with the cursor moving out
+of the app surface:
 
 ```javascript
 function MouseInputHandler(el) {
@@ -277,7 +258,8 @@ _p._onMouseOut = (e) => {
 };
 ```
 
-### Creating TouchInputHandler
+The touch screen handler needs to track the finger position so we can provide
+it on `up` events:
 
 ```javascript
 function TouchInputHandler(element) {
@@ -321,6 +303,18 @@ With all of that, we still need an entrypoint:
 ```javascript
 var InputHandler = 'ontouchstart' in document.documentElement ? TouchInputHandler : MouseInputHandler;
 ```
+
+The rest of our code can simply run:
+
+```javascript
+var input = new InputHandler();
+input.on('up', (e) => { /* ... */ });
+input.on('down', (e) => { /* ... */ });
+input.on('move', (e) => { /* ... */ });
+```
+
+and blissfully ignore what kind of input device we have, as long as our game is
+defined in terms of only those three interactions.
 
 > I am not impressed by the expressive power of inheritance here. I'm still a
 > sucker for good old composition.
@@ -387,7 +381,15 @@ var InputHandler = 'ontouchstart' in document.documentElement ? TouchInputHandle
 > }
 > ```
 >
+> Usage would be roughly the same:
+>
+> ```javascript
+> var input = makeInput();
+> input.on('down', (e) => { /* ... */ };
+> ```
+>
 > I believe this is much easier to follow, and it's also a little bit shorter.
+> As a bonus, we're not dealing with `this` at all. Lexical scope FTW!
 >
 > See [my_input.html] for a complete example.
 
@@ -395,9 +397,8 @@ var InputHandler = 'ontouchstart' in document.documentElement ? TouchInputHandle
 
 ## Advanced Input
 
-### Drag-and-Drop
-
-It's easy:
+A one-button-mouse model may seem limiting, but we can easily construct more
+advanced controls on top of it. For example, drag-and-drop:
 
 1. Pick: if the `down` event happens on a draggable object, start a drag.
 2. Move: move the object along with `move` events.
@@ -407,10 +408,9 @@ See [book code][2] for a full example.
 
 [2]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/9781430238195_sourcecode_chp05/code/04.drag_and_drop.html
 
-### Pixel-Perfect Picking and Image Masks
-
-After the `down` event, we have the coordinates of the selected pixel. We can
-ask the canvas for the color of that pixel with:
+This assumes we have nice rectangles, but sometimes our shapes are more
+complicated. After the `down` event, we have the coordinates of the selected
+pixel. We can ask the canvas for the color of that pixel with:
 
 ```javascript
 ctx.getImageData(x, y, 1, 1).data
@@ -432,12 +432,11 @@ element should be picked.
 > the screen. We can set its size with `virtual_canvas.height = 5` and get its
 > context with `virtual_canvas.getContext('2d')` etc.
 
-### Composite Operations
-
-When we ask a canvas to draw a new shape, it is composed with the existing
-content of the canvas in a configurable way. The default composition operation
-is known as `source-over`, and means that the existing content is simply
-painted over. Other composition modes exist, though.
+How do we create those masks? When we ask a canvas to draw a new shape, it is
+composed with the existing content of the canvas in a configurable way. The
+default composition operation is known as `source-over`, and means that the
+existing content is simply painted over existing content. Other composition
+modes exist, though.
 
 The one we're interested in for our purposes here is `source-atop`, which means
 that new pixels are only written if the existing canvas already had a non-empty
@@ -463,45 +462,45 @@ give us the image the user clicked on.
 Drawing a canvas on top of another one is a simple call to `drawImage`, which
 happens to accept a canvas as its first argument.
 
-As an untested sketch:
-
-```javascript
-var shapes = [{image: "...", x: 14, y: 18}, /* ... */];
-var canvas = document.getElementById("visibleCanvas");
-var buffer = document.createElement("canvas");
-var masks = document.createElement("canvas");
-
-var width = masks.width = canvas.width;
-var height = masks.height = canvas.height;
-
-function color_to_index(color) {
-  /* ... */
-}
-
-function index_to_color(index) {
-  /* ... */
-}
-
-function get_shape_index(x, y) {
-  var m = masks.getContext('2d');
-  m.clearRect(0, 0, width, height);
-  shapes.forEach((shape, index) => {
-    draw_mask(shape.image, shape.x, shape.y, index_to_color(index), m);
-  });
-  return color_to_index(m.getImageData(x, y, 1, 1).data);
-}
-
-function draw_mask(source, x, y, color, target) {
-  var w = buffer.width = source.width;
-  var h = buffer.height = source.height;
-  var b = buffer.getContext('2d');
-  b.drawImage(source, 0, 0, w, h, 0, 0, w, h);
-  b.globalCompositeOperation = 'source-atop';
-  b.fillStyle = color;
-  b.fillRect(0, 0, w, h);
-  target.drawImage(buffer, x, y);
-}
-```
+> As an untested sketch:
+>
+> ```javascript
+> var shapes = [{image: "...", x: 14, y: 18}, /* ... */];
+> var canvas = document.getElementById("visibleCanvas");
+> var buffer = document.createElement("canvas");
+> var masks = document.createElement("canvas");
+>
+> var width = masks.width = canvas.width;
+> var height = masks.height = canvas.height;
+>
+> function color_to_index(color) {
+>   /* ... */
+> }
+>
+> function index_to_color(index) {
+>   /* ... */
+> }
+>
+> function get_shape_index(x, y) {
+>   var m = masks.getContext('2d');
+>   m.clearRect(0, 0, width, height);
+>   shapes.forEach((shape, index) => {
+>     draw_mask(shape.image, shape.x, shape.y, index_to_color(index), m);
+>   });
+>   return color_to_index(m.getImageData(x, y, 1, 1).data);
+> }
+>
+> function draw_mask(source, x, y, color, target) {
+>   var w = buffer.width = source.width;
+>   var h = buffer.height = source.height;
+>   var b = buffer.getContext('2d');
+>   b.drawImage(source, 0, 0, w, h, 0, 0, w, h);
+>   b.globalCompositeOperation = 'source-atop';
+>   b.fillStyle = color;
+>   b.fillRect(0, 0, w, h);
+>   target.drawImage(buffer, x, y);
+> }
+> ```
 
 See [book code][3] for a complete, working example of pixel-perfect drag and
 drop.
@@ -511,9 +510,7 @@ drop.
 ## Simulating Joystick
 
 Simulating a joystick is a common way to implement controls on a touch screen.
-It's not that great on a desktop, however.
-
-The code is straightforward and an example can be seen with [the book code][4].
+It's not that great on a desktop, however. See [this complete example][4].
 
 [4]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/9781430238195_sourcecode_chp05/code/07.joystick.html
 
