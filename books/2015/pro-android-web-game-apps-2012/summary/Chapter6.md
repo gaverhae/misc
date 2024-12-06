@@ -121,6 +121,15 @@ We use [xStats][3].
 
 ### Coordinate Systems
 
+Whereas the map has a position within the screen, objects have a position
+within the map. We typically consider three coordinate systems: the screen
+coordinates (e.g. click events, rendering), the world coordinates, and the tile
+coordinates.
+
+In a top-down, square-tile view like we have so far, transformations between
+those are mathematically easy, but it is important, at the code level, to
+always know in which system we are.
+
 ### Implementing WorldObjectRenderer
 
 ### Rendering Order
