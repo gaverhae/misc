@@ -119,6 +119,8 @@ We use [xStats][3].
 
 ## World Objects
 
+Game objects are sprites.
+
 ### Coordinate Systems
 
 ### Implementing WorldObjectRenderer
