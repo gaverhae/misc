@@ -50,21 +50,44 @@
 (defn render
   [ctx model img]
   (clear ctx)
+  (let [draw-dot (fn [x y]
+                   (.save ctx)
+                   (set! (.-fillStyle ctx) "red")
+                   (.beginPath ctx)
+                   (.arc ctx x y 5 0 (* 2 js/Math.PI))
+                   (.fill ctx)
+                   (.restore ctx))
+        draw-frame (fn [image tx ty w h dx dy dir]
+                     (.save ctx)
+                     (when (= :left dir)
+                       (.translate ctx w 0)
+                       (.scale ctx -1 1))
+                     (.drawImage ctx image tx ty w h (- dx) (- dy) w h)
+                     (draw-dot (- dx) (- dy))
+                     (.restore ctx))]
   (doseq [m model]
     (match m
-      [:knight x y :standing :right _]
+      [:knight x y :standing dir _]
       (let [i (:image img)
             s (first (:sprites img))
             [tx ty w h] (:rectangle s)
             [dx dy] (:anchor s)]
-        (.drawImage ctx i tx ty w h (- x dx) (- y dy) w h))
-      [:knight x y :walking :right frame]
+        (.save ctx)
+        (.translate ctx x y)
+        (draw-frame i tx ty w h dx dy dir)
+        (.restore ctx)
+        (draw-dot x y))
+      [:knight x y :walking dir frame]
       (let [i (:image img)
             sprites (:sprites img)
             s (nth sprites (mod frame (count sprites)))
             [tx ty w h] (:rectangle s)
             [dx dy] (:anchor s)]
-        (.drawImage ctx i tx ty w h (- x dx) (- y dy) w h)))))
+        (.save ctx)
+        (.translate ctx x y)
+        (draw-frame i tx ty w h dx dy dir)
+        (.restore ctx)
+        (draw-dot x y))))))
 
 (defn start-render-loop!
   [canvas-id <bus]
@@ -116,11 +139,13 @@
           [:input [:down :left]] (recur (let [t (js/performance.now)]
                                           (-> m
                                               (assoc :dx (- speed))
-                                              (assoc :t0 t))))
+                                              (assoc :t0 t)
+                                              (assoc :orientation :left))))
           [:input [:down :right]] (recur (let [t (js/performance.now)]
                                           (-> m
                                               (assoc :dx speed)
-                                              (assoc :t0 t)))))))))
+                                              (assoc :t0 t)
+                                              (assoc :orientation :right)))))))))
 
 (defn start-input-loop!
   [>bus]
