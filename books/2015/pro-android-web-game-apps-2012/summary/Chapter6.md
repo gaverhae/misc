@@ -115,6 +115,32 @@ We use [xStats][3].
 
 ### Offscreen Buffer
 
+Drawing a single big image is faster than drawing lots of small ones that cover
+the same area. To take advantage of that, we create a second canvas, generally
+called the "offscreen buffer", and draw on that first, then copy it to the
+visible canvas.
+
+In this model, we are still clearing and redrawing the entire visible canvas in
+each call from `requestAnimationFrame`, but we redraw it by copying the
+offscreen buffer to it.
+
+How does this help? The offscreen buffer is _not_ redrawn on every frame, but
+only when it needs to change. We still redraw the offscreen canvas as part of
+the `requestAnimationFrame` callback, using pretty much the exact code we had
+before.
+
+There is a little bit of added bookkeeping: the offscreen canvas needs to have
+the same size as the main one, and we need a flag to know when it's dirty.
+
+> This gets the author to 45fps.
+
+There's a catch, though: while we do less work _overall_, we do _more_ work
+when the offscreen buffer is dirty, which is when things happen and thus when
+the user might notice it most.
+
+> This isn't as bad as one might think at first, though, because even if the
+> user is scrolling, they are likely not scrolling by 60 pixels a second.
+
 ### Catching the Area Around the Viewport
 
 ## World Objects
