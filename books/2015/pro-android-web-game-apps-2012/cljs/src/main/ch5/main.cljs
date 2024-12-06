@@ -125,42 +125,39 @@
   [>bus <bus]
   (let [<rcv (async/chan)
         speed 0.05]
-    (async/sub <bus :input <rcv)
+    (async/sub <bus :move-right <rcv)
     (async/go
       (loop [m {:x0 0, :dx 0, :t0 (js/performance.now), :orientation :right}]
         (async/>! >bus [:anim (model->anim m)])
         (match (async/<! <rcv)
-          [:input [:up _]] (recur (let [t (js/performance.now)
-                                        dt (- t (:t0 m))
-                                        dx (* dt (:dx m))]
-                                    (-> m
-                                        (update :x0 + dx)
-                                        (assoc :dx 0)
-                                        (assoc :t0 t))))
-          [:input [:down :left]] (recur (let [t (js/performance.now)]
-                                          (-> m
-                                              (assoc :dx (- speed))
-                                              (assoc :t0 t)
-                                              (assoc :orientation :left))))
-          [:input [:down :right]] (recur (let [t (js/performance.now)]
-                                          (-> m
-                                              (assoc :dx speed)
-                                              (assoc :t0 t)
-                                              (assoc :orientation :right)))))))))
+          [:move-right ddx] (recur (let [t (js/performance.now)
+                                         dt (- t (:t0 m))
+                                         traveled (* dt (:dx m))
+                                         new-speed (+ (:dx m) (* ddx speed))]
+                                     (-> m
+                                         (update :x0 + traveled)
+                                         (assoc :dx new-speed)
+                                         (update :t0 + dt)
+                                         (cond-> (not (zero? new-speed))
+                                           (assoc :orientation (if (pos? new-speed) :right :left)))))))))))
 
 (defn start-input-loop!
   [>bus]
-  (doseq [[t k] [["keydown" :down]
-                 ["keyup" :up]]]
+  (doseq [t ["keydown" "keyup"]]
     (js/document.addEventListener
       t
       (fn [e]
-        (when-let [m (case (.-key e)
-                       "ArrowRight" [k :right]
-                       "ArrowLeft" [k :left]
-                       nil)]
-          (when (not (.-repeat e))
-            (async/put! >bus [:input m])))))))
+        (let [m (match [(.-key e) t]
+                  ["ArrowRight" "keydown"] [:move-right +1]
+                  ["ArrowRight" "keyup"] [:move-right -1]
+                  ["ArrowLeft" "keydown"] [:move-right -1]
+                  ["ArrowLeft" "keyup"] [:move-right +1]
+                  [_ _] nil)]
+          (when m
+            (.preventDefault e)
+            (.stopPropagation e)
+            (when (not (.-repeat e))
+              (async/put! >bus m))))))))
 
 (defn init
   []
