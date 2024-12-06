@@ -5,22 +5,45 @@
 
 (defn parse
   [lines]
-  lines)
+  {:map (->> lines
+             (mapv (fn [line]
+                    (mapv (fn [c] (case c
+                                    \. true
+                                    \^ true
+                                    \# false))
+                          line))))
+   :guard [(->> (for [y (range (count lines))
+                      :let [line (nth lines y)]
+                      x (range (count line))
+                      :let [c (nth line x)]
+                      :when (= c \^)]
+                  [y x])
+                first)
+           [-1 0]]})
 
-(defn solve
-  [lines]
-  lines)
+(def turn
+  {[-1 0] [0 1]
+   [0 1] [1 0]
+   [1 0] [0 -1]
+   [0 -1] [-1 0]})
 
 (defn part1
-  [input]
-  (solve input))
+  [{m :map, [p d] :guard}]
+  (loop [[y0 x0] p
+         [dy dx] d
+         cells #{p}]
+    (let [[y x] [(+ y0 dy) (+ x0 dx)]]
+      (case (get-in m [y x] :out)
+        true (recur [y x] [dy dx] (conj cells [y x]))
+        false (recur [y0 x0] (turn [dy dx]) cells)
+        :out (count cells)))))
 
 (defn part2
   [input]
-  (solve input))
+  input)
 
 (lib/check
-  [part1 sample] 0
-  #_#_[part1 puzzle] 0
+  [part1 sample] 41
+  [part1 puzzle] 5067
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
