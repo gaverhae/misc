@@ -6,6 +6,8 @@
 
 ## Tile Maps
 
+Often, a big world will be composed of repeating patterns.
+
 ### The Idea Behind Tile Maps
 
 ### Implementing a Tile Map
