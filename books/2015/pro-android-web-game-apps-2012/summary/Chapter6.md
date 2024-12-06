@@ -23,6 +23,73 @@ the index of a tile in the image file.
 
 ### Implementing a Tile Map
 
+We use square tiles as they are a bit simpler; other shapes are possible, and
+the principles are exactly the same.
+
+The images for this chapter, a tileset and a few objects, can be found [here][0].
+
+[0]: https://github.com/Apress/pro-android-web-game-apps/tree/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/code/v.05/img
+
+Let's write those tiles on the screen. We'll assume we have the world
+description, as a 2-dimensional array, in [a separate `world.js` file][1]
+defining the `world` variable. We then design a `MapRenderer` class:
+
+[1]: https://github.com/Apress/pro-android-web-game-apps/blob/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/code/v.01/js/world.js
+
+```javascript
+function MapRenderer(mapData, image, tileSize) {
+  this._mapData = mapData;
+  this._image = image;
+  this._tileSize = tileSize;
+  this._x = this._y = 0;
+  this._tilesPerRow = image.width / tileSize;
+}
+_p = MapRenderer.prototype;
+```
+
+We assume square tiles here, hence a single parameter for their size, and the
+rather easy computation of tiles per row. The `_x` and `_y` properties are
+meant to represent the point at which we draw the map; i.e. if the user
+"scrolls" the map we'll update them.
+
+```javascript
+_p.draw = function(ctx) {
+  for (var cellY = 0; cellY < this._mapData.length; cellY++) {
+    for (var cellX = 0; cellX < this._mapData[cellY].length; cellX++) {
+      var tileId = this._mapData[cellY][cellX];
+      this._drawTileAt(ctx, tileId, cellX, cellY);
+    }
+  }
+};
+_p._drawTileAt = function(ctx, tileId, cellX, cellY) {
+  var srcX = (tileId % this._tilesPerRow) * this._tileSize;
+  var srcY = Math.floor(tileId / this._tilesPerRow) * this._tileSize;
+  var size = this._tileSize;
+  var destX = this._x + cellX * size;
+  var destY = this._y + cellY * size;
+  ctx.drawImage(this._image, srcX, srcY, size, size, destX, destY, size, size);
+};
+_p.move = function(deltaX, deltaY) {
+  this._x += deltaX;
+  this._y += deltaY;
+};
+```
+
+See [book code][2] for a full usage example.
+
+[2]: https://github.com/Apress/pro-android-web-game-apps/tree/9e08321ca08e49246f51b1c88bc1ce1ab982aad8/code/v.01
+
+There are two main issues with that code:
+
+- We redraw the entire map on every frame, regardless of whether we can see all
+  of it.
+- We redraw the enitre map on every frame, regardless of whether it has
+  changed.
+
+We will see various ways to address both of these issues over the next few
+sections, but first, let's put in place some measurement so we can see the
+impact of our efforts.
+
 ### Measuring FPS
 
 ## Optimizing Rendering Performance
