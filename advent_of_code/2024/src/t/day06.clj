@@ -44,7 +44,6 @@
                obs-x (range (count (m obs-y)))
                :when (not= [obs-y obs-x] p)]
          [obs-y obs-x])
-       (map (fn [p] (prn p) p))
        (filter (fn [obs]
                  (loop [[y0 x0] p
                         [dy dx] d
@@ -62,4 +61,4 @@
   [part1 sample] 41
   [part1 puzzle] 5067
   [part2 sample] 6
-  [part2 puzzle] 1793)
+  #_#_[part2 puzzle] 1793)
