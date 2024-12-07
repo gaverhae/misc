@@ -1,11 +1,21 @@
 (ns t.day07
   (:require [clojure.core.match :refer [match]]
             [clojure.string :as string]
+            [instaparse.core :as insta]
             [t.lib :as lib :refer [->long]]))
+
+(def parser
+  (insta/parser
+    "<S> = n <':'> (<w> n)+
+     n = #'\\d+'
+     w = #'\\W+'"))
 
 (defn parse
   [lines]
-  lines)
+  (->> lines
+       (map parser)
+       (map (fn [l] (->> l (map (fn [[_ s]] (->long s))))))
+       (map (fn [[tot & ts]] [tot ts]))))
 
 (defn part1
   [input]
