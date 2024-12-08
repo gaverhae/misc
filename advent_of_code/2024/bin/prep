@@ -8,7 +8,8 @@ DAY=$(printf "%02d" $1)
 
 cat <<EOF > src/t/day$DAY.clj
 (ns t.day$DAY
-  (:require [clojure.string :as string]
+  (:require [clojure.core.match :refer [match]]
+            [clojure.string :as string]
             [t.lib :as lib :refer [->long]]))
 
 (defn parse
@@ -35,4 +36,4 @@ cat <<EOF > src/t/day$DAY.clj
 EOF
 
 touch data/sample/day$DAY
-vim -O src/t/day03.clj data/sample/day03
+echo "vim -O src/t/day$DAY.clj data/sample/day$DAY"
