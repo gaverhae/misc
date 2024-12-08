@@ -38,11 +38,24 @@
 
 
 (defn part2
-  [input]
-  input)
+  [{:keys [antennas max-y max-x]}]
+  (->> antennas
+       (mapcat (fn [[k vs]]
+                 (for [[y1 x1] vs
+                       [y2 x2] vs
+                       :when (not= [y1 x1] [y2 x2])
+                       :let [dy (- y2 y1)
+                             dx (- x2 x1)]]
+                   (->> (iterate (fn [[y x]] [(+ y dy) (+ x dx)]) [y1 x1])
+                        (take-while (fn [[y x]]
+                                      (and (<= 0 y max-y)
+                                           (<= 0 x max-x))))))))
+       (apply concat)
+       set
+       count))
 
 (lib/check
   [part1 sample] 14
   [part1 puzzle] 354
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part2 sample] 34
+  [part2 puzzle] 0)
