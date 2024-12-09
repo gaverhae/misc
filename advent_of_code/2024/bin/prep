@@ -9,7 +9,9 @@ DAY=$(printf "%02d" $1)
 cat <<EOF > src/t/day$DAY.clj
 (ns t.day$DAY
   (:require [clojure.core.match :refer [match]]
+            [clojure.set :as set]
             [clojure.string :as string]
+            [instaparse.core :refer [parser]]
             [t.lib :as lib :refer [->long]]))
 
 (defn parse
@@ -32,5 +34,5 @@ cat <<EOF > src/t/day$DAY.clj
 EOF
 
 touch data/sample/day$DAY
-echo "git add . && git commit -m 'aoc/2024/$DAY: prep"
+git add . && git commit -m 'aoc/2024/$DAY: prep'
 echo "vim -O src/t/day$DAY.clj data/sample/day$DAY"
