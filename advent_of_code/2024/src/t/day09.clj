@@ -12,7 +12,7 @@
        (reduce (fn [[blank? d idx] c]
                  (let [n (->long (str c))]
                    [(not blank?)
-                    (concat d (repeat n (if blank? nil idx)))
+                    (vec (concat d (repeat n (if blank? nil idx))))
                     (or (and blank? idx)
                         (inc idx))]))
                [false [] 0])
@@ -20,12 +20,15 @@
 
 (defn trim
   [v]
-  (let [v (vec v)
-        idx (dec (count v))]
-    (loop [idx idx]
-      (if (v idx)
-        (take (inc idx) v)
-        (recur (dec idx))))))
+  (cond (empty? v) []
+        (every? nil? v) []
+        :else
+        (let [v (vec v)
+              idx (dec (count v))]
+          (loop [idx idx]
+            (if (v idx)
+              (take (inc idx) v)
+              (recur (dec idx)))))))
 
 (defn compact
   [disk]
@@ -52,6 +55,6 @@
 
 (lib/check
   [part1 sample] 1928
-  [part1 puzzle] 0
+  [part1 puzzle] 6323641412437
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
