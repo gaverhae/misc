@@ -51,39 +51,48 @@
        (map-indexed *)
        (reduce + 0)))
 
+(defn merge-nils
+  [disk]
+  disk)
+
 (defn compact-whole-files
   [disk]
-  (loop [to-process disk
-         processed-begin []
-         processed-end ()]
-    (cond (empty? to-process) (concat processed-begin processed-end)
-          (-> to-process peek first nil?) (recur (pop to-process)
-                                                  processed-begin
-                                                  processed-end)
-          (ffirst to-process) (recur (vec (rest to-process))
-                                     (conj processed-begin (first to-process))
-                                     processed-end)
+  (loop [to-process (reverse disk)
+         processed disk]
+    (cond (empty? to-process) processed
+          (-> to-process first first nil?) (recur (rest to-process) processed)
           :else
-          (let [[_ free-size] (first to-process)
-                [idx size] (peek to-process)
-                size-diff (- free-size size)]
-            (cond (neg? size-diff) (recur (pop to-process)
-                                          processed-begin
-                                          (conj processed-end (peek to-process)))
-                  (zero? size-diff) (recur (vec (rest (pop to-process)))
-                                           (conj processed-begin (peek to-process))
-                                           processed-end)
-                  (pos? size-diff) (recur (vec (cons [nil size-diff] (rest (pop to-process))))
-                                          (conj processed-begin (peek to-process))
-                                          processed-end))))))
+          (let [[[f-id req-sz] & to-process] to-process
+                old-idx (.indexOf ^java.util.List processed [f-id req-sz])
+                available? (->> processed
+                                (map-indexed vector)
+                                (some (fn [[idx [file? size]]]
+                                        (when (and (< idx old-idx)
+                                                   (not file?)
+                                                   (>= size req-sz))
+                                          [idx (- size req-sz)]))))]
+            (recur to-process
+                   (match available?
+                     nil processed
+                     [idx 0] (-> processed
+                                 (assoc idx [f-id req-sz])
+                                 (assoc old-idx [nil req-sz]))
+                     [idx n] (-> (vec (concat (take idx processed)
+                                              [[f-id req-sz] [nil n]]
+                                              (drop (inc idx) processed)))
+                                 (assoc (inc old-idx) [nil req-sz]))))))))
 
 (defn part2
   [input]
   (->> input
-       compact-whole-files))
+       compact-whole-files
+       (mapcat (fn [[f s]] (repeat s f)))
+       (map-indexed vector)
+       (keep (fn [[m v]] (when v (* m v))))
+       (reduce + 0)))
 
 (lib/check
   [part1 sample] 1928
   #_#_[part1 puzzle] 6323641412437
   [part2 sample] 2858
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle] 6351801932670)
