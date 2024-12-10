@@ -18,12 +18,12 @@
   [[y x]]
   [[(inc y) x] [(dec y) x] [y (inc x)] [y (dec x)]])
 
-(defn part1
-  [{:keys [grid width height]}]
-  (->> (for [y0 (range height)
-             x0 (range width)
-             :when (zero? (get grid [y0 x0]))]
-         (loop [ps #{[y0 x0]}
+(defn count-trails
+  [{:keys [grid width height]} agg]
+  (->> (for [y (range height)
+             x (range width)
+             :when (zero? (get grid [y x]))]
+         (loop [ps (agg [[y x]])
                 v 0]
            (if (= 9 v)
              (count ps)
@@ -31,26 +31,18 @@
                          (mapcat neighbours)
                          (filter (fn [p] (get grid p)))
                          (filter (fn [p] (= (inc v) (get grid p))))
-                         set)
+                         agg)
                     (inc v)))))
        (reduce + 0)))
+
+(defn part1
+  [input]
+  (count-trails input set))
 
 
 (defn part2
-  [{:keys [grid width height]}]
-  (->> (for [y0 (range height)
-             x0 (range width)
-             :when (zero? (get grid [y0 x0]))]
-         (loop [ps [[y0 x0]]
-                v 0]
-           (if (= 9 v)
-             (count ps)
-             (recur (->> ps
-                         (mapcat neighbours)
-                         (filter (fn [p] (get grid p)))
-                         (filter (fn [p] (= (inc v) (get grid p)))))
-                    (inc v)))))
-       (reduce + 0)))
+  [input]
+  (count-trails input vec))
 
 (lib/check
   [part1 sample] 36
