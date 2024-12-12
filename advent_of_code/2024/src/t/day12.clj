@@ -58,7 +58,7 @@
                (+ total-so-far
                   (* (count area) (count fences))))))))
 
-(defn count-sides
+(defn find-sides
   [area]
   (let [same-side? (fn [[b1 from1 to1]]
                      (fn [[b2 from2 to2]]
@@ -69,18 +69,13 @@
   (loop [to-process (set (find-fences area))
          full-sides []]
     (if (empty? to-process)
-      (count full-sides)
+      full-sides
       (let [p1 (first to-process)]
         (if-let [p2 (some (same-side? p1) (rest to-process))]
           (recur (-> to-process (disj p1) (disj p2) (conj (merge-fences p1 p2)))
                  full-sides)
           (recur (-> to-process (disj p1))
                  (-> full-sides (conj p1)))))))))
-
-(defn calculate-discounted-fence-cost
-  [grid p]
-  (let [area (find-area grid p)]
-    [area (* (count area) (count-sides area))]))
 
 (defn part2
   [grid]
@@ -89,10 +84,12 @@
     (if (empty? to-process)
       total-so-far
       (let [p (first to-process)
-            to-process (set (rest to-process))
-            [used fence-cost] (calculate-discounted-fence-cost grid p)]
-        (recur (set/difference to-process used)
-               (+ total-so-far (long fence-cost)))))))
+            area (find-area grid p)
+            sides (find-sides area)]
+        (recur (set/difference to-process area)
+               (+ total-so-far
+                  (* (count area)
+                     (count sides))))))))
 
 (lib/check
   [part1 sample] 140
