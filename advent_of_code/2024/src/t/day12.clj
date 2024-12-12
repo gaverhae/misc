@@ -16,7 +16,7 @@
   [[y x]]
   [[(inc y) x] [(dec y) x] [y (inc x)] [y (dec x)]])
 
-(defn find-area
+(defn area
   [grid p]
   (let [plant (get grid p)]
     (loop [to-process #{p}
@@ -35,7 +35,7 @@
                    (conj area p)
                    area)))))))
 
-(defn find-fences
+(defn fences
   [area]
   (->> area
        (mapcat (fn [[y0 x0 :as p]]
@@ -45,20 +45,7 @@
                              (cond (= x0 x) [[:hori y0 y] x (inc x)]
                                    (= y0 y) [[:vert x0 x] y (inc y)]))))))))
 
-(defn part1
-  [grid]
-  (loop [to-process (set (keys grid))
-         total-so-far 0]
-    (if (empty? to-process)
-      total-so-far
-      (let [p (first to-process)
-            area (find-area grid p)
-            fences (find-fences area)]
-        (recur (set/difference to-process area)
-               (+ total-so-far
-                  (* (count area) (count fences))))))))
-
-(defn find-sides
+(defn sides
   [area]
   (let [same-side? (fn [[b1 from1 to1]]
                      (fn [[b2 from2 to2]]
@@ -66,7 +53,7 @@
                          [b2 from2 to2])))
         merge-fences (fn [[b from1 to1] [_ from2 to2]]
                        [b (min from1 from2) (max to1 to2)])]
-  (loop [to-process (set (find-fences area))
+  (loop [to-process (set (fences area))
          full-sides []]
     (if (empty? to-process)
       full-sides
@@ -77,19 +64,31 @@
           (recur (-> to-process (disj p1))
                  (-> full-sides (conj p1)))))))))
 
-(defn part2
+(defn plots
   [grid]
   (loop [to-process (set (keys grid))
-         total-so-far 0]
+         plots []]
     (if (empty? to-process)
-      total-so-far
+      plots
       (let [p (first to-process)
-            area (find-area grid p)
-            sides (find-sides area)]
+            area (area grid p)]
         (recur (set/difference to-process area)
-               (+ total-so-far
-                  (* (count area)
-                     (count sides))))))))
+               (conj plots area))))))
+
+(defn total-cost
+  [grid unit]
+  (->> (plots grid)
+       (reduce (fn [tot plot]
+                 (+ tot (* (count plot) (count (unit plot)))))
+               0)))
+
+(defn part1
+  [grid]
+  (total-cost grid fences))
+
+(defn part2
+  [grid]
+  (total-cost grid sides))
 
 (lib/check
   [part1 sample] 140
