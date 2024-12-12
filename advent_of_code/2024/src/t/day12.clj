@@ -16,46 +16,7 @@
   [[y x]]
   [[(inc y) x] [(dec y) x] [y (inc x)] [y (dec x)]])
 
-(defn calculate-fence-cost
-  [grid p]
-  (let [plant (get grid p)]
-    (loop [perimeter 0
-           area 0
-           to-process #{p}
-           used #{}
-           seen #{}]
-      (if (empty? to-process)
-        [used (* perimeter area)]
-        (let [[p & to-process] to-process]
-          (if (= plant (get grid p))
-              (recur (+ perimeter (->> (neighbours p)
-                                       (remove (fn [p]
-                                                 (= (get grid p) plant)))
-                                       count))
-                     (inc area)
-                     (set/union (set to-process)
-                                (->> (neighbours p)
-                                     (remove seen)
-                                     (filter (fn [p]
-                                               (get grid p)))
-                                     set))
-                     (conj used p)
-                     (conj seen p))
-            (recur perimeter area to-process used (conj seen p))))))))
-
-(defn part1
-  [grid]
-  (loop [to-process (set (keys grid))
-         total-so-far 0]
-    (if (empty? to-process)
-      total-so-far
-      (let [p (first to-process)
-            to-process (set (rest to-process))
-            [used fence-cost] (calculate-fence-cost grid p)]
-        (recur (set/difference to-process used)
-               (+ total-so-far (long fence-cost)))))))
-
-(defn find-area
+(defn area
   [grid p]
   (let [plant (get grid p)]
     (loop [to-process #{p}
@@ -74,7 +35,7 @@
                    (conj area p)
                    area)))))))
 
-(defn find-fences
+(defn fences
   [area]
   (->> area
        (mapcat (fn [[y0 x0 :as p]]
@@ -84,43 +45,50 @@
                              (cond (= x0 x) [[:hori y0 y] x (inc x)]
                                    (= y0 y) [[:vert x0 x] y (inc y)]))))))))
 
-(defn count-sides
+(defn sides
   [area]
-  (loop [to-process (find-fences area)
+  (let [same-side? (fn [[b1 from1 to1]]
+                     (fn [[b2 from2 to2]]
+                       (when (and (= b1 b2) (or (= to1 from2) (= to2 from1)))
+                         [b2 from2 to2])))
+        merge-fences (fn [[b from1 to1] [_ from2 to2]]
+                       [b (min from1 from2) (max to1 to2)])]
+  (loop [to-process (set (fences area))
          full-sides []]
     (if (empty? to-process)
-      (count full-sides)
-      (let [[[base1 from1 to1 :as p1] & to-process] to-process]
-        (if-let [[_ from2 to2 :as p2] (->> to-process
-                                           (filter (fn [[base2 from2 to2]]
-                                                     (and (= base1 base2)
-                                                          (or (= to2 from1)
-                                                              (= to1 from2)))))
-                                           first)]
-          (recur (-> to-process
-                     set
-                     (disj p2)
-                     (conj [base1 (min from1 from2) (max to1 to2)]))
+      full-sides
+      (let [p1 (first to-process)]
+        (if-let [p2 (some (same-side? p1) (rest to-process))]
+          (recur (-> to-process (disj p1) (disj p2) (conj (merge-fences p1 p2)))
                  full-sides)
-          (recur to-process
-                 (conj full-sides p1)))))))
+          (recur (-> to-process (disj p1))
+                 (-> full-sides (conj p1)))))))))
 
-(defn calculate-discounted-fence-cost
-  [grid p]
-  (let [area (find-area grid p)]
-    [area (* (count area) (count-sides area))]))
+(defn plots
+  [grid]
+  (loop [to-process (set (keys grid))
+         plots []]
+    (if (empty? to-process)
+      plots
+      (let [p (first to-process)
+            area (area grid p)]
+        (recur (set/difference to-process area)
+               (conj plots area))))))
+
+(defn total-cost
+  [grid unit]
+  (->> (plots grid)
+       (reduce (fn [tot plot]
+                 (+ tot (* (count plot) (count (unit plot)))))
+               0)))
+
+(defn part1
+  [grid]
+  (total-cost grid fences))
 
 (defn part2
   [grid]
-  (loop [to-process (set (keys grid))
-         total-so-far 0]
-    (if (empty? to-process)
-      total-so-far
-      (let [p (first to-process)
-            to-process (set (rest to-process))
-            [used fence-cost] (calculate-discounted-fence-cost grid p)]
-        (recur (set/difference to-process used)
-               (+ total-so-far (long fence-cost)))))))
+  (total-cost grid sides))
 
 (lib/check
   [part1 sample] 140
@@ -132,4 +100,4 @@
   [part2 sample2] 1206
   [part2 sample3] 236
   [part2 sample4] 368
-  [part2 puzzle] 0)
+  [part2 puzzle] 953738)
