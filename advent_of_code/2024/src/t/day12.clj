@@ -81,8 +81,8 @@
                  (->> (neighbours p)
                       (remove area)
                       (map (fn [[y x]]
-                             (cond (= x0 x) [:hori (/ (+ y0 y) 2) x (inc x)]
-                                   (= y0 y) [:vert (/ (+ x0 x) 2) y (inc y)]))))))))
+                             (cond (= x0 x) [[:hori y0 y] x (inc x)]
+                                   (= y0 y) [[:vert x0 x] y (inc y)]))))))))
 
 (defn count-sides
   [area]
@@ -90,18 +90,17 @@
          full-sides []]
     (if (empty? to-process)
       (count full-sides)
-      (let [[[dir1 dim1 from1 to1 :as p1] & to-process] to-process]
-        (if-let [[_ _ from2 to2 :as p2] (->> to-process
-                                             (filter (fn [[dir2 dim2 from2 to2]]
-                                                       (and (= dir1 dir2)
-                                                            (= dim1 dim2)
-                                                            (or (= to2 from1)
-                                                                (= to1 from2)))))
-                                             first)]
+      (let [[[base1 from1 to1 :as p1] & to-process] to-process]
+        (if-let [[_ from2 to2 :as p2] (->> to-process
+                                           (filter (fn [[base2 from2 to2]]
+                                                     (and (= base1 base2)
+                                                          (or (= to2 from1)
+                                                              (= to1 from2)))))
+                                           first)]
           (recur (-> to-process
                      set
                      (disj p2)
-                     (conj [dir1 dim1 (min from1 from2) (max to1 to2)]))
+                     (conj [base1 (min from1 from2) (max to1 to2)]))
                  full-sides)
           (recur to-process
                  (conj full-sides p1)))))))
@@ -131,4 +130,6 @@
   [part2 sample] 80
   [part2 sample1] 436
   [part2 sample2] 1206
+  [part2 sample3] 236
+  [part2 sample4] 368
   [part2 puzzle] 0)
