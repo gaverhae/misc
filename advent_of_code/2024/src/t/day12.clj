@@ -60,24 +60,22 @@
 
 (defn count-sides
   [area]
-  (loop [to-process (find-fences area)
+  (let [same-side? (fn [[b1 from1 to1]]
+                     (fn [[b2 from2 to2]]
+                       (when (and (= b1 b2) (or (= to1 from2) (= to2 from1)))
+                         [b2 from2 to2])))
+        merge-fences (fn [[b from1 to1] [_ from2 to2]]
+                       [b (min from1 from2) (max to1 to2)])]
+  (loop [to-process (set (find-fences area))
          full-sides []]
     (if (empty? to-process)
       (count full-sides)
-      (let [[[base1 from1 to1 :as p1] & to-process] to-process]
-        (if-let [[_ from2 to2 :as p2] (->> to-process
-                                           (filter (fn [[base2 from2 to2]]
-                                                     (and (= base1 base2)
-                                                          (or (= to2 from1)
-                                                              (= to1 from2)))))
-                                           first)]
-          (recur (-> to-process
-                     set
-                     (disj p2)
-                     (conj [base1 (min from1 from2) (max to1 to2)]))
+      (let [p1 (first to-process)]
+        (if-let [p2 (some (same-side? p1) (rest to-process))]
+          (recur (-> to-process (disj p1) (disj p2) (conj (merge-fences p1 p2)))
                  full-sides)
-          (recur to-process
-                 (conj full-sides p1)))))))
+          (recur (-> to-process (disj p1))
+                 (-> full-sides (conj p1)))))))))
 
 (defn calculate-discounted-fence-cost
   [grid p]
