@@ -12,9 +12,6 @@ if [ -f src/t/day$PREV_DAY.clj ]; then
   sed -i '1s|\^:test-refresh/focus ||' src/t/day$PREV_DAY.clj
 fi
 
-echo $PREV_DAY
-exit
-
 cat <<EOF > src/t/day$DAY.clj
 (ns ^:test-refresh/focus t.day$DAY
   (:require [clojure.core.match :refer [match]]
