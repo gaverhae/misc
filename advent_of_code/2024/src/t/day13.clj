@@ -5,9 +5,26 @@
             [instaparse.core :refer [parser]]
             [t.lib :as lib :refer [->long]]))
 
+(def grammar
+  "<S> = machine (<'\n\n'> machine)*
+  machine = button <'\n'> button <'\n'> prize
+  <button> = <'Button '> <#'A|B'> <': X+'> n <', Y+'> n
+  <prize> = <'Prize: X='> n <', Y='> n
+  <n> = #'\\d+'")
+
 (defn parse
   [lines]
-  lines)
+  (->> lines
+       (interpose "\n")
+       (apply str)
+       ((parser grammar))
+       (map (fn [[_ ax ay bx by px py]]
+              {:A [(->long ax) (->long ay)]
+               :B [(->long bx) (->long by)]
+               :prize [(->long px) (->long py)]}))))
+
+(def cost
+  {:A 3, :B 1})
 
 (defn part1
   [input]
