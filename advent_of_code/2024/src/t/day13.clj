@@ -37,19 +37,38 @@
 (defn part2
   [input offset]
   (->> input
-       (keep (fn [[ax ay bx by px py]]
+       (filter (fn [[ax ay bx by px py]]
+                 (->> (for [a (range 101)
+                            b (range 101)
+                            :when (and (= px (+ (* a ax) (* b bx)))
+                                       (= py (+ (* a ay) (* b by))))]
+                        (+ (* 3 a) b))
+                      sort
+                      first)))
+       (map (fn [[ax ay bx by px py]]
+              (let [solution (->> (for [a (range 101)
+                                        b (range 101)
+                                        :when (and (= px (+ (* a ax) (* b bx)))
+                                                   (= py (+ (* a ay) (* b by))))]
+                                    [a b])
+                                  (sort-by (fn [[a b]] (+ (* 3 a) b)))
+                                  first)]
+                [ax ay bx by px py solution])))
+       (keep (fn [[ax ay bx by px py solution]]
                ;; start with "all a", one coord <= and one coord >
-               (loop [a (max (quot px ax) (quot py ay))
-                      b 0]
-                 (let [cx (+ (* a ax) (* b bx))
-                       cy (+ (* a ay) (* b by))]
-                   #_(prn [[ax ay bx by px py] a b cx cy])
-                   (cond (or (zero? a)
-                             (and (> cx px) (> cy py))) nil ;; impossible
-                         (and (= px cx) (= py cy)) (+ (* 3 a) b)
-                         (and (<= cx px) (<= cy py)) (recur a (inc b))
-                         (or (> cx px) (> cy py)) (recur (dec a) b)
-                         :else (throw (ex-info "unhandled case" [ax ay bx by px py a b cx cy])))))))
+               (let [[a b] (loop [a (max (quot px ax) (quot py ay))
+                                  b 0]
+                             (let [cx (+ (* a ax) (* b bx))
+                                   cy (+ (* a ay) (* b by))]
+                               #_(prn [[ax ay bx by px py] a b cx cy])
+                               (cond (or (zero? a)
+                                         (and (> cx px) (> cy py))) [a b] #_nil ;; impossible
+                                     (and (= px cx) (= py cy)) [a b] #_(+ (* 3 a) b)
+                                     (and (<= cx px) (<= cy py)) (recur a (inc b))
+                                     (or (> cx px) (> cy py)) (recur (dec a) b)
+                                     :else (throw (ex-info "unhandled case" [ax ay bx by px py a b cx cy])))))]
+                 (when (not= [a b] solution)
+                   (prn [ax ay bx by px py solution [a b] (+ (* a ax) (* b bx)) (+ (* a ay) (* b by))])))))
        (reduce + 0)))
 
 (lib/check
