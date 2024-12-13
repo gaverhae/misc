@@ -18,24 +18,31 @@
        (interpose "\n")
        (apply str)
        ((parser grammar))
-       (map (fn [[_ ax ay bx by px py]]
-              {:A [(->long ax) (->long ay)]
-               :B [(->long bx) (->long by)]
-               :prize [(->long px) (->long py)]}))))
+       (map (fn [[_ & coords]]
+              (map ->long coords)))))
 
 (def cost
   {:A 3, :B 1})
 
 (defn part1
   [input]
-  input)
+  (->> input
+       (keep (fn [[ax ay bx by px py]]
+               (->> (for [a (range 101)
+                          b (range 101)
+                          :when (and (= px (+ (* a ax) (* b bx)))
+                                     (= py (+ (* a ay) (* b by))))]
+                      (+ (* 3 a) b))
+                    sort
+                    first)))
+       (reduce + 0)))
 
 (defn part2
   [input]
   input)
 
 (lib/check
-  [part1 sample] 0
-  #_#_[part1 puzzle] 0
+  [part1 sample] 480
+  [part1 puzzle] 34393
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
