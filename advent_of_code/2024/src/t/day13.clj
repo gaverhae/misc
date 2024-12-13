@@ -21,17 +21,20 @@
        (map (fn [[_ & coords]]
               (map ->long coords)))))
 
+(defn solve
+  [[ax ay bx by px py]]
+  (let [b (long (/ (- py (/ (* px ay) ax))
+                   (- by (/ (* bx ay) ax))))
+        a (long (/ (- px (* b bx))
+                   ax))]
+    (when (and (= px (+ (* a ax) (* b bx)))
+               (= py (+ (* a ay) (* b by))))
+      (+ (* 3 a) b))))
+
 (defn part1
   [input]
   (->> input
-       (keep (fn [[ax ay bx by px py]]
-               (->> (for [a (range 101)
-                          b (range 101)
-                          :when (and (= px (+ (* a ax) (* b bx)))
-                                     (= py (+ (* a ay) (* b by))))]
-                      (+ (* 3 a) b))
-                    sort
-                    first)))
+       (keep solve)
        (reduce + 0)))
 
 (defn part2
@@ -39,14 +42,7 @@
   (->> input
        (map (fn [[ax ay bx by px py]]
               [ax ay bx by (+ px offset) (+ py offset)]))
-       (keep (fn [[ax ay bx by px py]]
-               (let [b (long (/ (- py (/ (* px ay) ax))
-                                (- by (/ (* bx ay) ax))))
-                     a (long (/ (- px (* b bx))
-                                ax))]
-                 (when (and (= px (+ (* a ax) (* b bx)))
-                            (= py (+ (* a ay) (* b by))))
-                   (+ (* 3 a) b)))))
+       (keep solve)
        (reduce + 0)))
 
 (lib/check
