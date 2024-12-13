@@ -61,9 +61,11 @@
                              (let [cx (+ (* a ax) (* b bx))
                                    cy (+ (* a ay) (* b by))]
                                #_(prn [[ax ay bx by px py] a b cx cy])
-                               (cond (or (zero? a)
-                                         (and (> cx px) (> cy py))) [a b] #_nil ;; impossible
+                               (cond ;; not sur I understand this case fully, but debug showed this case to happen
+                                     (and (= cx (+ px ax)) (= cy (+ py ay))) (recur (dec a) b)
                                      (and (= px cx) (= py cy)) [a b] #_(+ (* 3 a) b)
+                                      (or (zero? a)
+                                         (and (> cx px) (> cy py))) [a b] #_nil ;; impossible
                                      (and (<= cx px) (<= cy py)) (recur a (inc b))
                                      (or (> cx px) (> cy py)) (recur (dec a) b)
                                      :else (throw (ex-info "unhandled case" [ax ay bx by px py a b cx cy])))))]
