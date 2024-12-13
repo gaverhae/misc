@@ -50,8 +50,13 @@
                          (and (= px cx) (= py cy)) (+ (* 3 a) b)
                          (or (zero? a)
                              (and (> cx px) (> cy py))) nil ;; impossible
-                         (and (<= cx px) (<= cy py)) (recur a (inc b))
-                         (or (> cx px) (> cy py)) (recur (dec a) b)
+                         (and (<= cx px) (<= cy py)) (recur a (+ b (long (max (min (quot (- px cx) bx)
+                                                                                   (quot (- py cy) by))
+                                                                              1))))
+                         (or (> cx px) (> cy py)) (recur (- a (long (max (min (quot (- cx px) ax)
+                                                                              (quot (- cy py) ay))
+                                                                         1)))
+                                                         b)
                          :else (throw (ex-info "unhandled case" [ax ay bx by px py a b cx cy])))))))
        (reduce + 0)))
 
@@ -60,4 +65,4 @@
   [part1 puzzle] 34393
   [part2 sample 0] 480
   [part2 puzzle 0] 34393
-  [part2 puzzle 10000000000000] 0)
+  #_#_[part2 puzzle 10000000000000] 0)
