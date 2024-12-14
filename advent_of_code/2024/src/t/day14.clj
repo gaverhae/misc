@@ -10,15 +10,15 @@
   lines)
 
 (defn part1
-  [input]
-  input)
+  [robots width height]
+  robots)
 
 (defn part2
   [input]
   input)
 
 (lib/check
-  [part1 sample] 0
-  #_#_[part1 puzzle] 0
+  [part1 sample 11 7] 12
+  #_#_[part1 puzzle 101 103] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
