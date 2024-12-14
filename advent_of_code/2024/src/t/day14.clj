@@ -66,8 +66,8 @@
       (doall (repeatedly 10 println))
       (println idx)
       (println)
-      (draw r width height)
-      (Thread/sleep 300)
+      (spit (format "day14/%06d.txt" idx)
+            (with-out-str (draw r width height)))
       (let [r (->> r (map s))]
         (when (not= r robots)
           (recur r (inc idx)))))))
