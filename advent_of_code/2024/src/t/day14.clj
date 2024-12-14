@@ -45,12 +45,34 @@
        vals
        (reduce * 1)))
 
+(defn draw
+  [robots width height]
+  (let [as-grid (->> robots
+                     (map first)
+                     frequencies)]
+    (doseq [y (range height)
+            x (range width)]
+      (when (zero? x)
+        (println))
+      (print (if (as-grid [y x]) "*" " ")))
+    (println)
+    (println)))
+
 (defn part2
-  [input]
-  input)
+  [robots width height]
+  (let [s (step width height)]
+    (loop [r robots
+           idx 0]
+      (doall (repeatedly 10 println))
+      (println idx)
+      (println)
+      (draw r width height)
+      (Thread/sleep 300)
+      (let [r (->> r (map s))]
+        (when (not= r robots)
+          (recur r (inc idx)))))))
 
 (lib/check
   [part1 sample 11 7] 12
   [part1 puzzle 101 103] 236628054
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle 101 103] 0)
