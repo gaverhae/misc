@@ -7,7 +7,11 @@
 
 (defn parse
   [lines]
-  lines)
+  (->> lines
+       (map (fn [line]
+              (re-find #"p=(\d+),(\d+) v=(-?\d+),(-?\d+)" line)))
+       (map (fn [[_ & p]] (map ->long p)))
+       (mapv (fn [[x y dx dy]] [[y x] [dy dx]]))))
 
 (defn part1
   [robots width height]
