@@ -46,33 +46,56 @@
        (reduce * 1)))
 
 (defn draw
-  [robots width height]
+  [left top right bottom robots]
   (let [as-grid (->> robots
                      (map first)
                      frequencies)]
-    (doseq [y (range height)
-            x (range width)]
-      (when (zero? x)
-        (println))
-      (print (if (as-grid [y x]) "*" " ")))
-    (println)
-    (println)))
+    (->> (range top (inc bottom))
+         (map (fn [y]
+                (->> (range left (inc right))
+                     (map (fn [x] (if (as-grid [y x]) "•" " ")))
+                     (apply str)))))))
 
 (defn part2
-  [robots width height]
-  (let [s (step width height)]
-    (loop [r robots
-           idx 0]
-      (doall (repeatedly 10 println))
-      (println idx)
-      (println)
-      (spit (format "day14/%06d.txt" idx)
-            (with-out-str (draw r width height)))
-      (let [r (->> r (map s))]
-        (when (not= r robots)
-          (recur r (inc idx)))))))
+  [robots width height n-steps]
+  (->> robots
+       (map (fn [r] (nth (iterate (step width height) r)
+                         n-steps)))
+       (draw 39 35 69 67)))
 
 (lib/check
   [part1 sample 11 7] 12
   [part1 puzzle 101 103] 236628054
-  [part2 puzzle 101 103] 0)
+  [part2 puzzle 101 103 7584] ["•••••••••••••••••••••••••••••••"
+                               "•                             •"
+                               "•                             •"
+                               "•                             •"
+                               "•                             •"
+                               "•              •              •"
+                               "•             •••             •"
+                               "•            •••••            •"
+                               "•           •••••••           •"
+                               "•          •••••••••          •"
+                               "•            •••••            •"
+                               "•           •••••••           •"
+                               "•          •••••••••          •"
+                               "•         •••••••••••         •"
+                               "•        •••••••••••••        •"
+                               "•          •••••••••          •"
+                               "•         •••••••••••         •"
+                               "•        •••••••••••••        •"
+                               "•       •••••••••••••••       •"
+                               "•      •••••••••••••••••      •"
+                               "•        •••••••••••••        •"
+                               "•       •••••••••••••••       •"
+                               "•      •••••••••••••••••      •"
+                               "•     •••••••••••••••••••     •"
+                               "•    •••••••••••••••••••••    •"
+                               "•             •••             •"
+                               "•             •••             •"
+                               "•             •••             •"
+                               "•                             •"
+                               "•                             •"
+                               "•                             •"
+                               "•                             •"
+                               "•••••••••••••••••••••••••••••••"])
