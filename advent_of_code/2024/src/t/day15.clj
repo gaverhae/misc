@@ -5,9 +5,42 @@
             [instaparse.core :refer [parser]]
             [t.lib :as lib :refer [->long]]))
 
+(def p
+  (parser
+    "S = grid <'\n'> moves
+    grid = (grid-line <'\n'>)+
+    grid-line = (wall | empty | box | robot)+
+    moves = (up | down | left | right | <'\n'>)+
+    wall = '#'
+    empty = '.'
+    box = 'O'
+    robot = '@'
+    left = '<'
+    right = '>'
+    up = '^'
+    down = 'v'"))
+
 (defn parse
   [lines]
-  lines)
+  (let [[_ [_ & grid] [_ & moves]] (->> lines
+                                        (interpose "\n")
+                                        (apply str)
+                                        p)]
+    {:grid (->> grid
+                (map-indexed vector)
+                (mapcat (fn [[y [_ & line]]]
+                          (->> line
+                               (map-indexed (fn [x [c]] [[y x] (if (= :robot c) :empty c)])))))
+                (into {}))
+     :robot (->> grid
+                 (map-indexed vector)
+                 (mapcat (fn [[y [_ & line]]]
+                           (->> line
+                                (keep-indexed (fn [x [c]]
+                                                (when (= :robot c)
+                                                  [y x]))))))
+                 first)
+     :moves (->> moves (map first))}))
 
 (defn part1
   [input]
