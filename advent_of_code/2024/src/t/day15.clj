@@ -66,12 +66,23 @@
         (recur (move :robot robot grid m) moves)))))
 
 (defn part2
-  [input]
-  input)
+  [{:keys [grid moves]}]
+  (let [grid (->> grid
+                  (mapcat (fn [[[y x] c]] (case c
+                                            :wall [[[y (* 2 x)] :wall] [[y (inc (* 2 x))] :wall]]
+                                            :empty [[[y (* 2 x)] :empty] [[y (inc (* 2 x))] :empty]]
+                                            :robot [[[y (* 2 x)] :robot] [[y (inc (* 2 x))] :empty]]
+                                            :box [[[y (* 2 x)] :left] [[y (inc (* 2 x))] :right]])))
+                  (into {}))
+        robot (->> grid
+                   (filter (fn [[[y x] c]] (= c :robot)))
+                   (ffirst))]
+    [grid robot]
+    ))
 
 (lib/check
   [part1 sample] 10092
   [part1 sample1] 2028
   [part1 puzzle] 1526018
-  #_#_[part2 sample] 0
+  [part2 sample] 9021
   #_#_[part2 puzzle] 0)
