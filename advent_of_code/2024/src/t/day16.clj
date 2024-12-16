@@ -53,23 +53,20 @@
   [initial final? generate-moves]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
     (.add to-visit [0 initial])
-    (loop [visited #{}
-           final-cost nil
+    (loop [min-cost {}
            good-paths []]
       (if (.isEmpty to-visit)
         good-paths
         (let [[cost state] (.poll to-visit)]
-          (cond
-            (and (final? state) (or (nil? final-cost) (= cost final-cost)))
-            (recur (conj visited state) cost (conj good-paths state))
-            (and final-cost (> cost final-cost))
-            (recur visited final-cost good-paths)
-            :else
-            (do (when (not (visited state))
-                  (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
-                    (when (not (visited nxt-state))
-                      (.add to-visit [nxt-cost nxt-state]))))
-                (recur (conj visited state) final-cost good-paths))))))))
+          (if (> cost (min-cost state Long/MAX_VALUE))
+            (recur min-cost good-paths)
+            (do (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
+                  (when (<= nxt-cost (min-cost nxt-state Long/MAX_VALUE))
+                    (.add to-visit [nxt-cost nxt-state])))
+                (recur (update min-cost state (fnil min Long/MAX_VALUE) cost)
+                       (if (final? state)
+                         (conj good-paths state)
+                         good-paths)))))))))
 
 (defn part2
   [{:keys [grid start end]}]
@@ -93,5 +90,5 @@
   [part1 sample1] 11048
   [part1 puzzle] 103512
   [part2 sample] 45
-  #_#_[part2 sample1] 64
-  #_#_[part2 puzzle] 0)
+  [part2 sample1] 64
+  [part2 puzzle] 554)
