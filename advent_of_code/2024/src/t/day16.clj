@@ -54,19 +54,23 @@
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
     (.add to-visit [0 initial])
     (loop [min-cost {}
+           final-cost nil
            good-paths []]
       (if (.isEmpty to-visit)
         good-paths
         (let [[cost state] (.poll to-visit)]
           (if (> cost (min-cost state Long/MAX_VALUE))
-            (recur min-cost good-paths)
+            (recur min-cost final-cost good-paths)
             (do (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
-                  (when (<= nxt-cost (min-cost nxt-state Long/MAX_VALUE))
+                  (when (< nxt-cost (min-cost nxt-state Long/MAX_VALUE))
                     (.add to-visit [nxt-cost nxt-state])))
-                (recur (update min-cost state (fnil min Long/MAX_VALUE) cost)
-                       (if (final? state)
-                         (conj good-paths state)
-                         good-paths)))))))))
+                (let [f (final? state)
+                      final-cost (or final-cost (and f cost))]
+                  (recur (update min-cost state (fnil min Long/MAX_VALUE) cost)
+                         final-cost
+                         (if (and f (= cost final-cost))
+                           (conj good-paths state)
+                           good-paths))))))))))
 
 (defn part2
   [{:keys [grid start end]}]
@@ -82,6 +86,15 @@
                 (filter (fn [[[p d] c]]
                           (contains? #{\S \E \.} (get-in grid p)))))))
        (mapcat (comp :history meta first))
+       set
+       #_((fn [s]
+          (doseq [y (range 17)
+                  x (range 17)]
+            (when (zero? x) (println))
+            (print (if (s [y x]) "O"
+                     (get {\# \•, \. \space} (get-in grid [y x] " ")))))
+          (println)
+          s))
        set
        count))
 
