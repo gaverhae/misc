@@ -104,7 +104,7 @@
                [new-pos (-> grid (assoc pos :empty) (assoc new-pos :robot))])
         no-move [pos grid]]
     (case (get grid new-pos)
-      :empty [new-pos (-> grid (assoc pos :empty) (assoc new-pos :robot))]
+      :empty (move grid)
       :wall [pos grid]
       :left (let [[moved? grid] (move-box new-pos grid dir)]
               (if moved? (move grid) no-move))
