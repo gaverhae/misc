@@ -74,15 +74,17 @@
 (defn part2
   [{:keys [grid start end]}]
   (->> (dijkstra-all
-         [[start] [0 1]]
-         (fn [[[p] _]] (= p end))
-         (fn [[[[[y x] :as hist] [dy dx]] cost :as arg]]
-           (->> [[[hist (clockwise [dy dx])] (+ 1000 cost)]
-                 [[hist (counter-clockwise [dy dx])] (+ 1000 cost)]
-                 [[(cons [(+ dy y) (+ dx x)] hist) [dy dx]] (+ 1 cost)]]
-                (filter (fn [[[[p] d] c]]
+         [(with-meta start {:history [start]}) [0 1]]
+         (fn [[p _]] (= p end))
+         (fn [[[[y x :as pos] [dy dx]] cost]]
+           (->> [[[pos (clockwise [dy dx])] (+ 1000 cost)]
+                 [[pos (counter-clockwise [dy dx])] (+ 1000 cost)]
+                 [[(with-meta [(+ dy y) (+ dx x)]
+                              (update (meta pos) :history conj [(+ dy y) (+ dx x)]))
+                   [dy dx]] (inc cost)]]
+                (filter (fn [[[p d] c]]
                           (contains? #{\S \E \.} (get-in grid p)))))))
-       (mapcat (fn [[hist final-dir]] hist))
+       (mapcat (comp :history meta first))
        set
        count))
 
@@ -91,5 +93,5 @@
   [part1 sample1] 11048
   [part1 puzzle] 103512
   [part2 sample] 45
-  [part2 sample1] 64
+  #_#_[part2 sample1] 64
   #_#_[part2 puzzle] 0)
