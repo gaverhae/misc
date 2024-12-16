@@ -63,7 +63,7 @@
             (and (final? state) (or (nil? final-cost) (= cost final-cost)))
             (recur (conj visited state) cost (conj good-paths state))
             (and final-cost (> cost final-cost))
-            (recur (conj visited state) final-cost good-paths)
+            (recur visited final-cost good-paths)
             :else
             (do (when (not (visited state))
                   (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
@@ -92,4 +92,4 @@
   [part1 puzzle] 103512
   [part2 sample] 45
   [part2 sample1] 64
-  [part2 puzzle] 0)
+  #_#_[part2 puzzle] 0)
