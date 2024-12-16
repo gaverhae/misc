@@ -7,96 +7,62 @@
 
 (defn parse
   [lines]
-  {:grid (->> lines (mapv vec))
-   :start (->> lines
-               (keep-indexed (fn [y line]
-                               (->> line
-                                    (keep-indexed (fn [x c]
-                                                    (when (= c \S)
-                                                      [y x])))
-                                    first)))
-               first)
-   :end (->> lines
-             (keep-indexed (fn [y line]
-                             (->> line
-                                  (keep-indexed (fn [x c]
-                                                  (when (= c \E)
-                                                    [y x])))
-                                  first)))
-             first)})
+  (->> lines
+       (map-indexed vector)
+       (mapcat (fn [[y line]]
+                 (->> line
+                      (keep-indexed (fn [x c]
+                                      (when (not= \# c)
+                                     [[y x] c]))))))
+       (reduce (fn [acc [p c]]
+                 (cond-> (update acc :valid-pos? (fnil conj #{}) p)
+                   (= c \S) (assoc :start p)
+                   (= c \E) (assoc :end p)))
+               {})))
 
-(def clockwise
-  (->> [[0 1] [1 0] [0 -1] [-1 0]]
-       cycle
-       (partition 2 1)
-       (take 4)
-       (reduce #(apply assoc %1 %2) {})))
+(defn generate-moves
+  [valid-pos? s]
+  (let [turn (fn [s]
+               (match (:dir s)
+                 [0 _] [[1 0] [-1 0]]
+                 [_ 0] [[0 1] [0 -1]]))
+        new-pos (fn [{[y x] :pos, [dy dx] :dir}]
+                  (valid-pos? [(+ y dy) (+ x dx)]))]
+    (concat (map #(-> s (assoc :dir %) (update :cost + 1000))
+                 (turn s))
+            (when-let [p (new-pos s)]
+              [(-> s (assoc :pos p) (update :hist conj p) (update :cost + 1))]))))
 
-(def counter-clockwise
-  (->> clockwise
-       (map (fn [[k v]] [v k]))
-       (into {})))
+(defn solve
+  [{:keys [valid-pos? start end]}]
+  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
+    (.add to-visit {:cost 0, :pos start, :dir [0 1], :hist [start]})
+    (loop [min-cost {}
+           best-cost nil
+           traversed #{}]
+      (if (.isEmpty to-visit)
+        [best-cost (count traversed)]
+        (let [{:keys [cost pos dir hist] :as state} (.poll to-visit)]
+          (if (> cost (min-cost [pos dir] Long/MAX_VALUE))
+            (recur min-cost best-cost traversed)
+            (do (doseq [{:keys [pos dir cost] :as nxt-state} (generate-moves valid-pos? state)]
+                  (when (< cost (min-cost [pos dir] Long/MAX_VALUE))
+                    (.add to-visit nxt-state)))
+                (let [final? (= end pos)
+                      best-cost (or best-cost (and final? cost))]
+                  (recur (assoc min-cost [pos dir] cost)
+                         best-cost
+                         (if (and final? (= cost best-cost))
+                           (reduce conj traversed hist)
+                           traversed))))))))))
 
 (defn part1
-  [{:keys [grid start end]}]
-  (lib/dijkstra-search
-    [start [0 1]]
-    (fn [[p _]] (= p end))
-    (fn [[[[y x] [dy dx]] cost :as arg]]
-      (->> [[[[y x] (clockwise [dy dx])] (+ 1000 cost)]
-            [[[y x] (counter-clockwise [dy dx])] (+ 1000 cost)]
-            [[[(+ dy y) (+ dx x)] [dy dx]] (+ 1 cost)]]
-           (filter (fn [[[p d] c]]
-                     (contains? #{\S \E \.} (get-in grid p))))))))
-
-(defn dijkstra-all
-  [initial final? generate-moves]
-  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
-    (.add to-visit [0 initial])
-    (loop [min-cost {}
-           final-cost nil
-           good-paths []]
-      (if (.isEmpty to-visit)
-        good-paths
-        (let [[cost state] (.poll to-visit)]
-          (if (> cost (min-cost state Long/MAX_VALUE))
-            (recur min-cost final-cost good-paths)
-            (do (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
-                  (when (< nxt-cost (min-cost nxt-state Long/MAX_VALUE))
-                    (.add to-visit [nxt-cost nxt-state])))
-                (let [f (final? state)
-                      final-cost (or final-cost (and f cost))]
-                  (recur (update min-cost state (fnil min Long/MAX_VALUE) cost)
-                         final-cost
-                         (if (and f (= cost final-cost))
-                           (conj good-paths state)
-                           good-paths))))))))))
+  [input]
+  (first (solve input)))
 
 (defn part2
-  [{:keys [grid start end]}]
-  (->> (dijkstra-all
-         [(with-meta start {:history [start]}) [0 1]]
-         (fn [[p _]] (= p end))
-         (fn [[[[y x :as pos] [dy dx]] cost]]
-           (->> [[[pos (clockwise [dy dx])] (+ 1000 cost)]
-                 [[pos (counter-clockwise [dy dx])] (+ 1000 cost)]
-                 [[(with-meta [(+ dy y) (+ dx x)]
-                              (update (meta pos) :history conj [(+ dy y) (+ dx x)]))
-                   [dy dx]] (inc cost)]]
-                (filter (fn [[[p d] c]]
-                          (contains? #{\S \E \.} (get-in grid p)))))))
-       (mapcat (comp :history meta first))
-       set
-       #_((fn [s]
-          (doseq [y (range 17)
-                  x (range 17)]
-            (when (zero? x) (println))
-            (print (if (s [y x]) "O"
-                     (get {\# \•, \. \space} (get-in grid [y x] " ")))))
-          (println)
-          s))
-       set
-       count))
+  [input]
+  (second (solve input)))
 
 (lib/check
   [part1 sample] 7036
