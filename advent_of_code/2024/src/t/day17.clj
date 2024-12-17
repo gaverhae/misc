@@ -8,7 +8,6 @@
 (defn parse
   [lines]
   (let [[a b c _ p] lines
-        _ (prn a b c p)
         reg (fn [s] (let [[_ v] (re-matches #"Register .: (\d+)" s)]
                       (parse-long v)))
         prog (fn [s] (let [d (re-seq #"\d" s)]
@@ -33,7 +32,7 @@
         arg (get p (inc i))
         m (update m :i + 2)]
     (when (and op arg)
-      (case op
+      (case (int op)
         0 (assoc m :a (quot a (long (Math/pow 2 (combo arg a b c)))))
         1 (assoc m :b (bit-xor b arg))
         2 (assoc m :b (mod (combo arg a b c) 8))
@@ -43,22 +42,30 @@
         6 (assoc m :b (quot a (long (Math/pow 2 (combo arg a b c)))))
         7 (assoc m :c (quot a (long (Math/pow 2 (combo arg a b c)))))))))
 
+(defn run
+  [machine]
+  (loop [m machine]
+    (if-let [m (step m)]
+      (recur m)
+      m)))
+
 (defn part1
   [input]
-  (->> (loop [m input]
-         (if-let [m (step m)]
-           (recur m)
-           m))
+  (->>(run input)
        :out
        (interpose ",")
        (apply str)))
 
 (defn part2
   [input]
-  input)
+  (loop [a 0]
+    (let [output (:out (run (assoc input :a a)))]
+      (if (= output (:p input))
+        a
+        (recur (inc a))))))
 
 (lib/check
   [part1 sample] "4,6,3,5,6,3,5,2,1,0"
   [part1 puzzle] "1,5,0,3,7,3,0,3,1"
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part2 sample1] 117440
+  [part2 puzzle] 0)
