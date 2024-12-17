@@ -56,57 +56,9 @@
        (interpose ",")
        (apply str)))
 
-(defn part2
-  [{:keys [p] :as input}]
-  (loop [a (vec (repeat (count p) 0))
-         idx 0]
-    (let [in (reduce (fn [acc el] (+ (* 256 acc) el)) a)
-          o (:out (run (assoc input :a in)))]
-      (if (= p o)
-        in
-        :todo))))
-
-(comment
-
-  (defn to-int
-    [v]
-    (reduce (fn [acc el] (+ (* 8 acc) el)) v))
-
-  (defn t
-    [a]
-    (:out (run (assoc @puzzle :a (to-int a)))))
-
-  (:p @puzzle)
-  [2 4 1 5 7 5 1 6 0 3 4 1 5 5 3 0]
-  (t [3 3 0 1 0 1 0 0 0 0 0 0 0 0 0 2])
-  [1 3 3 3 3 3 3 3 1 3 6 3 6 5 0 0]
-  [1 3 3 3 3 3 3 3 1 3 2 3 5 5 0 0]
-  [1 3 3 3 3 3 3 3 1 3 2 1 5 7 0 0]
-  [1 3 3 3 3 3 3 3 1 3 2 3 5 5 0 0]
-  [1 3 3 3 3 3 3 3 1 3 2 3 7 5 1 0]
-  [1 3 3 3 3 3 3 3 1 3 2 3 1 5 3 0]
-  [1 3 3 3 3 3 3 3 1 3 2 3 3 5 3 0]
-  [1 3 3 3 3 3 3 3 1 3 2 3 3 7 3 1]
-  [1 3 3 3 3 3 3 3 1 3 2 3 3 1 3 2]
-
-  (def p (:p @puzzle))
-  (-> p)
-  [2 4 1 5 7 5 1 6 0 3 4 1 5 5 3 0]
-  (count p)
-  16
-
-  (let [input-size 21
-        fitness (fn [i]
-                  (let [o (:out (run (assoc @puzzle :a (to-int i))))]
-                    (->> (map = o p)
-                         (filter identity)
-                         count
-                         (- 16))))
-        mutate (fn [i] (assoc i (rand-int input-size) (rand-int 8)))
-        crossover (fn [i1 i2]
-                    (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
-        make-sol (fn [] (vec (repeatedly input-size #(rand-int 8))))
-        carousel (fn [p] (let [maxi (reduce max (map first p))
+(defn genetic-search
+  [make-sol fitness mutate crossover]
+  (let [carousel (fn [p] (let [maxi (reduce max (map first p))
                                inverted (map (fn [[f i]] [(- maxi f) f i]) p)
                                total (reduce + (map first inverted))
                                roll (rand total)]
@@ -115,57 +67,53 @@
                              (if (<= r f')
                                [f s]
                                (recur (- r f') p)))))]
-    (defn genetic
-      ([] (genetic (->> (repeatedly 100 make-sol)
-                        (map (fn [i] [(fitness i) i]))
-                        sort)))
+    (fn !
+      ([]
+       (! (->> (repeatedly 100 make-sol)
+               (map (fn [i] [(fitness i) i]))
+               sort)))
       ([init-pop]
        (loop [population (sort init-pop)
               step 0]
          (if (== step 1000)
            population
            (recur (let [survivors (concat (take 10 population)
+                                          (->> (repeatedly 7 make-sol)
+                                               (map (fn [i] [(fitness i) i])))
                                           (take 3 (reverse population)))
                         children (repeatedly
-                                   87
+                                   80
                                    #(let [[_ parent1] (carousel population)
                                           [_ parent2] (carousel population)
                                           child (mutate (crossover parent1 parent2))]
                                       [(fitness child) child]))]
                     (sort (concat survivors children)))
-                  (inc step)))))))
+                  (inc step))))))))
 
-  (def g (genetic))
-  (first g)
-  [0 [0 0 0 0 0 3 0 0 6 1 6 5 1 1 0 2 6 4 6 3 2]]
-  [1 [0 0 0 5 1 5 2 3 4 1 5 0 1 4 4 0 7 4 0 1]]
-  [1 [0 0 3 0 0 6 1 6 5 1 1 0 2 0 7 4 0 1]]
-  (to-int [0 0 3 0 0 6 1 6 5 1 1 0 2 0 7 4 0 1])
-  105981155544833
-  (t [0 0 3 0 0 6 1 6 5 1 1 0 2 0 7 4 0 1])
-[2 4 1 5 3 5 1 6 0 3 4 1 5 5 3 0]
-(-> p)
-[2 4 1 5 7 5 1 6 0 3 4 1 5 5 3 0]
-
-  (def g (genetic g))
-  (first g)
-[1 [0 0 3 0 0 6 1 6 5 1 1 0 2 0 7 4 0 1]]
-(second g)
-[1 [0 0 3 0 0 6 1 6 5 1 1 0 2 0 7 4 0 1]]
-(= (first g) (second g))
-true
-
-(t (second (first g)))
-[2 4 1 5 7 5 1 6 0 3 4 1 5 5 3 0]
-(= p (t (second (first g))))
-true
-(to-int (second (first g)))
-105981155568026
-
-  )
+(defn part2
+  [{:keys [p] :as input}]
+  (let [input-size 21
+        to-int (fn [v]
+                 (reduce (fn [acc el] (+ (* 8 acc) el)) v))
+        make-sol (fn [] (vec (repeatedly input-size #(rand-int 8))))
+        fitness (fn [i]
+                  (let [o (:out (run (assoc input :a (to-int i))))]
+                    (->> (map = o p)
+                         (filter identity)
+                         count
+                         (- (count p)))))
+        mutate (fn [i] (assoc i (rand-int input-size) (rand-int 8)))
+        crossover (fn [i1 i2]
+                    (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
+        genetic (genetic-search make-sol fitness mutate crossover)]
+    (loop [[[fit v] :as current-gen] (genetic)]
+      (prn [fit v])
+      (if (zero? fit)
+        (to-int v)
+        (recur (genetic current-gen))))))
 
 (lib/check
   [part1 sample] "4,6,3,5,6,3,5,2,1,0"
   [part1 puzzle] "1,5,0,3,7,3,0,3,1"
   [part2 sample1] 117440
-  [part2 puzzle] 0)
+  [part2 puzzle] 105981155568026)
