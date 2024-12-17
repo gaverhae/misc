@@ -58,11 +58,10 @@
 
 (defn part2
   [input]
-  (loop [a 0]
-    (let [output (:out (run (assoc input :a a)))]
-      (if (= output (:p input))
-        a
-        (recur (inc a))))))
+  (->> (range)
+       (pmap (fn [a] [a (:out (run (assoc input :a a)))]))
+       (filter (fn [[a output]] (= output (:p input))))
+       ffirst))
 
 (lib/check
   [part1 sample] "4,6,3,5,6,3,5,2,1,0"
