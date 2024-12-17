@@ -39,13 +39,19 @@
         2 (assoc m :b (mod (combo arg a b c) 8))
         3 (if (zero? a) m (assoc m :i arg))
         4 (assoc m :b (bit-xor b c))
-        5 (update m :out conj (mod (combo arg) 8))
+        5 (update m :out conj (mod (combo arg a b c) 8))
         6 (assoc m :b (quot a (long (Math/pow 2 (combo arg a b c)))))
         7 (assoc m :c (quot a (long (Math/pow 2 (combo arg a b c)))))))))
 
 (defn part1
   [input]
-  input)
+  (->> (loop [m input]
+         (if-let [m (step m)]
+           (recur m)
+           m))
+       :out
+       (interpose ",")
+       (apply str)))
 
 (defn part2
   [input]
@@ -53,6 +59,6 @@
 
 (lib/check
   [part1 sample] "4,6,3,5,6,3,5,2,1,0"
-  #_#_[part1 puzzle] 0
+  [part1 puzzle] "1,5,0,3,7,3,0,3,1"
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
