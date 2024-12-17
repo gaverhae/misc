@@ -58,29 +58,31 @@
 
 (defn part2
   [{:keys [p] :as input}]
-  (let [lower (loop [a 1]
-                (prn [:lower a])
-                (let [m 1.1
-                      up (if (= a (long (* m a)))
-                           (inc a)
-                           (long (* m a)))
-                      o1 (:out (run (assoc input :a a)))
-                      o2 (:out (run (assoc input :a up)))]
-                  (if (and (< (count o1) (count p))
-                           (>= (count o2) (count p)))
-                    a
-                    (recur up))))]
-    (->> (range lower Long/MAX_VALUE)
-         (pmap (fn [a]
-                 (let [o (:out (run (assoc input :a a)))]
-                   (when (zero? (mod a (* 1 1000 1000)))
-                     (prn [a o p (= o p)]))
-                   [a o])))
-         (filter (fn [[a o]] (= o p)))
-         ffirst)))
+  (loop [a (vec (repeat (count p) 0))
+         idx 0]
+    (let [in (reduce (fn [acc el] (+ (* 256 acc) el)) a)
+          o (:out (run (assoc input :a in)))]
+      (if (= p o)
+        in
+        :todo))))
+
+(comment
+
+  (defn t
+    [a]
+    (:out (run (assoc @puzzle :a (reduce (fn [acc el] (+ (* 256 acc) el)) a)))))
+
+  (:p @puzzle)
+[2 4 1 5 7 5 1 6 0 3 4 1 5 5 3 0]
+  (t [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
+[3]
+
+
+
+  )
 
 (lib/check
   [part1 sample] "4,6,3,5,6,3,5,2,1,0"
   [part1 puzzle] "1,5,0,3,7,3,0,3,1"
   [part2 sample1] 117440
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle] 0)
