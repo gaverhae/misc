@@ -56,6 +56,70 @@
        (interpose ",")
        (apply str)))
 
+(defn inv-step
+  [{:keys [a b c p i out t] :as m}]
+  (concat (when-let [from (t i)]
+            ;; We could have jumped here instead of coming from the previous
+            ;; instruction, if A was not zero. Undoing the jump means excluding
+            ;; a possible value of 0 for a and no other change except for i.
+            [(-> m
+                 (assoc :i from)
+                 (update :a (fn [[lower upper]] [(max 1 lower) upper])))])
+          ;; other cases: for each opcode we return the set of machines we
+          ;; could have come from
+          (let [op (get p i)
+                arg (get p (inc i))
+                ;; we know we did not jump here, so i just goes down
+                m (update m :i - 2)]
+            (case (int op)
+              ;; We know the current value of A is the quotient of the
+              ;; division, truncated. Unfortunately that doesn't give us much.
+              ;; Let's just ignore this case for now, see if that works.
+              0 [m]
+              ;; Bitwise-xor is its own inverse: a x b = c <=> a x c = b
+              ;; This also means there's only one state we could have come from
+              ;; (per current state).
+              1 [{update m :b (fn [[l u]]
+                                (let [l (bit-xor l arg)
+                                      u (bit-xor u arg)]
+                                  [(min l u 0) (max l u)]))}]
+              ;; this operation "loses" everything above the first
+
+              2 :todo
+              3 :todo
+              4 :todo
+              5 :todo
+              6 :todo
+              7 :todo))))
+
+(defn part2
+  [input]
+  ;; The only way a program stops is by i running out of p, so to run in
+  ;; reverse we can start with pc pointing to the last opcode.
+  ;; We're going to represent a set of machines by putting all of the valid
+  ;; values in a, b, and c in the form of a range.
+  ;; Our inv-step function must return the set of sets of machines that could
+  ;; have let to the current state.
+  (let [rev-machine {:p (:p input)
+                     ;; We know from part1 that running it forward has worked
+                     ;; with no long overflow, so we have a cap on the max
+                     ;; value here.
+                     :a [0 Long/MAX_VALUE]
+                     :b [0 Long/MAX_VALUE]
+                     :c [0 Long/MAX_VALUE]
+                     :out (:p input)
+                     :i (count (:p input))
+                     ;; jump points
+                     :t (->> (:p input)
+                             (partition 2 2)
+                             (keep-indexed (fn [idx [op arg]] (when (= op 3) [arg idx])))
+                             (into {}))}]
+  ;; check if we're back at the start of the program
+  (if (and (zero? i) (empty? out))
+    (inv-step rev-machine)))
+
+(comment
+
 (defn genetic-search
   [make-sol fitness mutate crossover]
   (let [carousel (fn [p] (let [maxi (reduce max (map first p))
@@ -111,6 +175,8 @@
       (if (zero? fit)
         (to-int v)
         (recur (genetic current-gen))))))
+
+)
 
 (lib/check
   [part1 sample] "4,6,3,5,6,3,5,2,1,0"
