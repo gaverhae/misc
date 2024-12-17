@@ -7,7 +7,16 @@
 
 (defn parse
   [lines]
-  lines)
+  (let [[a b c _ p] lines
+        _ (prn a b c p)
+        reg (fn [s] (let [[_ v] (re-matches #"Register .: (\d+)" s)]
+                      (parse-long v)))
+        prog (fn [s] (let [d (re-seq #"\d" s)]
+                       (map parse-long d)))]
+    {:a (reg a)
+     :b (reg b)
+     :c (reg c)
+     :p (prog p)}))
 
 (defn part1
   [input]
