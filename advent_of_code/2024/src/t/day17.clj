@@ -58,22 +58,6 @@
 
 (defn part2
   [input]
-  ;; Properties my algorithm is based on; they are true for my input but may
-  ;; not hold for yours.
-  ;; 1. We have a single jump in the code, at the end, and it jumps to the beginning:
-  (assert (= 1 (->> input :p (partition 2 2) (map first) (filter #{3}) count)))
-  (assert (= [3 0] (->> input :p (partition 2 2) last)))
-  ;; The adv operation only happens once, with 3 as its arg. Note that no other
-  ;; operation writes to A, so this basically means each loop removes one
-  ;; 3-bit "byte" from A.
-  (assert (= 1 (->> input :p (partition 2 2) (filter #{[0 3]}) count)))
-  (assert (= 1 (->> input :p (partition 2 2) (map first) (filter zero?) count)))
-  ;; In each iteration, B and C are written to before they are read.
-  ;; Not sure how to assert that one.
-  ;; All of that together means we can run from the end and only the value of A
-  ;; at the end and the output matter. We know all of the expected outputs, and
-  ;; we know A has to be 0 at the end for the program to terminate. In turn,
-  ;; this means A had to be between 7 and 0 at the start.
   (let [machine (update input :p (fn [p] (vec (take (- (count p) 2) p))))]
     (loop [to-output (->> (:p input) reverse)
            possible-as [0]]
