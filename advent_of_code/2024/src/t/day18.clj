@@ -29,11 +29,18 @@
       (generate-moves grid size))))
 
 (defn part2
-  [input]
-  input)
+  [input size start]
+  (loop [num-bytes start]
+    (if (try (part1 input size num-bytes)
+          true
+          (catch Exception e false))
+      (recur (inc num-bytes))
+      (->> (nth input (dec num-bytes))
+           (interpose ",")
+           (apply str)))))
 
 (lib/check
   [part1 sample 7 12] 22
   [part1 puzzle 71 1024] 316
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part2 sample 7 12] "6,1"
+  [part2 puzzle 71 1024] "45,18")
