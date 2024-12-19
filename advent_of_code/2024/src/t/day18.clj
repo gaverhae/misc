@@ -1,4 +1,4 @@
-(ns ^:test-refresh/focus t.day18
+(ns t.day18
   (:require [clojure.core.match :refer [match]]
             [clojure.set :as set]
             [clojure.string :as string]
