@@ -14,26 +14,6 @@
                           {}))
      :patterns patterns}))
 
-(defn is-possible?
-  [towels]
-  (let [f (fn [rec p]
-            (if (empty? p)
-              true
-              (->> (towels (first p))
-                   (some (fn [t]
-                           (and (>= (count p) (count t))
-                                (= t (subs p 0 (count t)))
-                                (rec rec (subs p (count t)))))))))
-        memo-f (memoize f)]
-    (fn [p]
-      (memo-f memo-f p))))
-
-(defn part1
-  [{:keys [towels patterns]}]
-  (->> patterns
-       (filter (is-possible? towels))
-       count))
-
 (defn count-possible
   [towels]
   (let [f (fn [rec p]
@@ -48,6 +28,14 @@
         memo-f (memoize f)]
     (fn [p]
       (memo-f memo-f p))))
+
+(defn part1
+  [{:keys [towels patterns]}]
+  (->> patterns
+       (map (count-possible towels))
+       (filter pos?)
+       count))
+
 
 (defn part2
   [{:keys [towels patterns]}]
