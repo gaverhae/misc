@@ -8,7 +8,10 @@
 (defn parse
   [lines]
   (let [[towels _ & patterns] lines]
-    {:towels (string/split towels #", ")
+    {:towels (->> (string/split towels #", ")
+                  (reduce (fn [acc el]
+                            (update acc (first el) (fnil conj []) el))
+                          {}))
      :patterns patterns}))
 
 (defn is-possible?
@@ -16,7 +19,7 @@
   (fn ! [p]
     (if (empty? p)
       true
-      (->> towels
+      (->> (towels (first p))
            (some (fn [t]
                    (and (>= (count p) (count t))
                         (= t (subs p 0 (count t)))
@@ -25,7 +28,7 @@
 (defn part1
   [{:keys [towels patterns]}]
   (->> patterns
-       (map-indexed (fn [i p] (prn i) p))
+       (map-indexed (fn [i x] (prn i) x))
        (filter (is-possible? towels))
        count))
 
