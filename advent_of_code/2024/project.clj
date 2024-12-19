@@ -6,7 +6,8 @@
                  [org.clojure/clojure "1.12.0"]
                  [org.clojure/core.async "1.6.681"]
                  [org.clojure/core.match "1.1.0"]
-                 [org.clojure/data.int-map "1.3.0"]]
+                 [org.clojure/data.int-map "1.3.0"]
+                 [org.clojure/data.json "2.5.1"]]
   :global-vars {*warn-on-reflection* true}
   :main ^:skip-aot t.core
   :jvm-opts ["-Xverify:none"]
