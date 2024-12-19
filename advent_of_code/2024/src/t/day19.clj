@@ -16,14 +16,17 @@
 
 (defn is-possible?
   [towels]
-  (fn ! [p]
-    (if (empty? p)
-      true
-      (->> (towels (first p))
-           (some (fn [t]
-                   (and (>= (count p) (count t))
-                        (= t (subs p 0 (count t)))
-                        (! (subs p (count t))))))))))
+  (let [f (fn [rec p]
+            (if (empty? p)
+              true
+              (->> (towels (first p))
+                   (some (fn [t]
+                           (and (>= (count p) (count t))
+                                (= t (subs p 0 (count t)))
+                                (rec rec (subs p (count t)))))))))
+        memo-f (memoize f)]
+    (fn [p]
+      (memo-f memo-f p))))
 
 (defn part1
   [{:keys [towels patterns]}]
