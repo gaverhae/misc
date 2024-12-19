@@ -11,9 +11,23 @@
     {:towels (string/split towels #", ")
      :patterns patterns}))
 
+(defn is-possible?
+  [towels]
+  (fn ! [p]
+    (if (empty? p)
+      true
+      (->> towels
+           (some (fn [t]
+                   (and (>= (count p) (count t))
+                        (= t (subs p 0 (count t)))
+                        (! (subs p (count t))))))))))
+
 (defn part1
-  [input]
-  input)
+  [{:keys [towels patterns]}]
+  (->> patterns
+       (map-indexed (fn [i p] (prn i) p))
+       (filter (is-possible? towels))
+       count))
 
 (defn part2
   [input]
@@ -21,6 +35,6 @@
 
 (lib/check
   [part1 sample] 6
-  #_#_[part1 puzzle] 0
+  [part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
