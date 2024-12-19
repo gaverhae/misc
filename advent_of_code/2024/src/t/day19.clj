@@ -38,12 +38,13 @@
   [towels]
   (let [f (fn [rec p]
             (if (empty? p)
-              [1]
+              1
               (->> (towels (first p))
-                   (mapcat (fn [t]
-                             (when (and (>= (count p) (count t))
-                                        (= t (subs p 0 (count t))))
-                               (rec rec (subs p (count t)))))))))
+                   (keep (fn [t]
+                           (when (and (>= (count p) (count t))
+                                      (= t (subs p 0 (count t))))
+                             (rec rec (subs p (count t))))))
+                   (reduce + 0))))
         memo-f (memoize f)]
     (fn [p]
       (memo-f memo-f p))))
@@ -51,11 +52,11 @@
 (defn part2
   [{:keys [towels patterns]}]
   (->> patterns
-       (mapcat (count-possible towels))
+       (map (count-possible towels))
        (reduce + 0)))
 
 (lib/check
   [part1 sample] 6
   [part1 puzzle] 302
   [part2 sample] 16
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle] 771745460576799)
