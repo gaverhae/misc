@@ -31,16 +31,31 @@
 (defn part1
   [{:keys [towels patterns]}]
   (->> patterns
-       (map-indexed (fn [i x] (prn i) x))
        (filter (is-possible? towels))
        count))
 
+(defn count-possible
+  [towels]
+  (let [f (fn [rec p]
+            (if (empty? p)
+              [1]
+              (->> (towels (first p))
+                   (mapcat (fn [t]
+                             (when (and (>= (count p) (count t))
+                                        (= t (subs p 0 (count t))))
+                               (rec rec (subs p (count t)))))))))
+        memo-f (memoize f)]
+    (fn [p]
+      (memo-f memo-f p))))
+
 (defn part2
-  [input]
-  input)
+  [{:keys [towels patterns]}]
+  (->> patterns
+       (mapcat (count-possible towels))
+       (reduce + 0)))
 
 (lib/check
   [part1 sample] 6
-  [part1 puzzle] 0
-  #_#_[part2 sample] 0
+  [part1 puzzle] 302
+  [part2 sample] 16
   #_#_[part2 puzzle] 0)
