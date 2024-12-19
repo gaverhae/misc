@@ -82,6 +82,14 @@
   [col s]
   (color-text col s 10))
 
+(defn get-aoc
+  [path]
+  (-> (str "https://adventofcode.com/2024" path)
+      (hc/get {:headers
+               {"cookie" (format "session=%s"
+                                 (System/getenv "AOC_SESSION"))}})
+      :body))
+
 (defmacro check
   [& specs]
   `(do
