@@ -7,7 +7,9 @@
 
 (defn parse
   [lines]
-  lines)
+  (let [[towels _ & patterns] lines]
+    {:towels (string/split towels #", ")
+     :patterns patterns}))
 
 (defn part1
   [input]
