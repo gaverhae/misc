@@ -10,13 +10,13 @@
 
 (let [dirs [[1 0] [-1 0] [0 1] [0 -1]]]
   (defn generate-moves
-    [valid-pos? [y x] cheat-done? cost]
+    [valid-pos? [y x] cheated? cost]
     (concat (->> dirs
                  (map (fn [[dy dx]]
-                        [(+ y dy) (+ x dx) cheat-done?]))
-                 (filter (fn [[p c]] (valid-pos? p)))
-                 (map (fn [[p c]] [p c (inc cost)])))
-            (when (not cheat-done?)
+                        [(+ y dy) (+ x dx)]))
+                 (filter valid-pos?)
+                 (map (fn [p] [p cheated? (inc cost)])))
+            (when (not cheated?)
               (->> dirs
                    (map (fn [[dy dx]]
                           [(+ y dy) (+ x dx)]))
@@ -39,12 +39,12 @@
       (if (.isEmpty to-visit)
         min-cost
         (let [[pos cheated? cost] (.poll to-visit)]
-          (if (> cost (min-cost cheated? Long/MAX_VALUE))
+          (if (> cost (min-cost [pos cheated?] Long/MAX_VALUE))
             (recur min-cost)
             (do (doseq [[pos cheated? cost :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
-                  (when (< cost (min-cost cheated? Long/MAX_VALUE))
+                  (when (< cost (min-cost [pos cheated?] Long/MAX_VALUE))
                     (.add to-visit nxt-state)))
-                (recur (-> min-cost (cond-> (= end pos) (assoc cheated? cost)))))))))))
+                (recur (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))))
 
 (defn part1
   [input min-cheat]
