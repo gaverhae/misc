@@ -37,7 +37,12 @@
     (.add to-visit [start false 0])
     (loop [min-cost {}]
       (if (.isEmpty to-visit)
-        min-cost
+        (let [cost-no-cheat (min-cost [end false])]
+          (->> min-cost
+               (filter (fn [[[pos cheated?] c]] (= pos end)))
+               (filter (fn [[[pos cheated?] c]] (<= c cost-no-cheat)))
+               (map (fn [[[pos cheated?] c]] [cheated? c]))
+               (into {})))
         (let [[pos cheated? cost] (.poll to-visit)]
           (if (> cost (min-cost [pos cheated?] Long/MAX_VALUE))
             (recur min-cost)
@@ -47,8 +52,12 @@
                 (recur (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))))
 
 (defn part1
-  [input min-cheat]
-  (all-paths input))
+  [input saves-at-least]
+  (let [cost-per-cheat (all-paths input)
+        cost-with-no-cheat (cost-per-cheat false)]
+    (->> cost-per-cheat
+         (filter (fn [[cheat c]] (>= (- cost-with-no-cheat c) saves-at-least))))))
+
 
 (defn part2
   [input]
