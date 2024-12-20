@@ -11,21 +11,17 @@
 (let [dirs [[1 0] [-1 0] [0 1] [0 -1]]]
   (defn generate-moves
     [valid-pos? [y x] cheated? cost]
-    (concat (->> dirs
-                 (map (fn [[dy dx]]
-                        [(+ y dy) (+ x dx)]))
-                 (filter valid-pos?)
-                 (map (fn [p] [p (inc cost) cheated?])))
+    (concat (for [[dy dx] dirs
+                  :let [y (+ y dy), x (+ x dx)]
+                  :when (valid-pos? [y x])]
+              [[y x] (inc cost) cheated?])
             (when (not cheated?)
-              (->> dirs
-                   (map (fn [[dy dx]]
-                          [[(+ y dy) (+ x dx)] [y x]]))
-                   (mapcat (fn [[[y x] c1]]
-                             (->> dirs
-                                  (map (fn [[dy dx]]
-                                         [[(+ y dy) (+ x dx)] [c1 [y x]]])))))
-                   (filter (fn [[p c]] (valid-pos? p)))
-                   (map (fn [[p c]] [p (+ 2 cost) c])))))))
+              (for [[dy1 dx1] dirs
+                    [dy2 dx2] dirs
+                    :let [y' (+ y dy1 dy2), x' (+ x dx1 dx2)]
+                    :when (not= [y' x'] [y x])
+                    :when (valid-pos? [y' x'])]
+                [[y' x'] (+ cost 2) [(+ y dy1) (+ x dx1)]])))))
 
 (defn cheating-paths
   [{:keys [valid-pos? start end]} max-cost]
