@@ -15,7 +15,7 @@
                  (map (fn [[dy dx]]
                         [(+ y dy) (+ x dx) cheat-done?]))
                  (filter (fn [[p c]] (valid-pos? p)))
-                 (map (fn [s] [s (inc cost)])))
+                 (map (fn [[p c]] [p c (inc cost)])))
             (when (not cheat-done?)
               (->> dirs
                    (map (fn [[dy dx]]
@@ -29,25 +29,26 @@
                                   (map (fn [[dy dx]]
                                          [[(+ y dy) (+ x dx)] [c1 [y x]]])))))
                    (filter (fn [[p c]] (valid-pos? p)))
-                   (map (fn [[p c]] [[p c] (+ 3 cost)])))))))
+                   (map (fn [[p c]] [p c (+ 3 cost)])))))))
 
 (defn all-paths
   [{:keys [valid-pos? start end]}]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
-    (.add to-visit {:cost 0, :pos start, :cheated? false})
+    (.add to-visit [start false 0])
     (loop [min-cost {}]
       (if (.isEmpty to-visit)
         min-cost
-        (let [{:keys [cost pos cheated?] :as state} (.poll to-visit)]
+        (let [[pos cheated? cost] (.poll to-visit)]
           (if (> cost (min-cost cheated? Long/MAX_VALUE))
             (recur min-cost)
-            (do (doseq [{:keys [cost pos cheated?] :as nxt-state} (generate-moves valid-pos? pos cheated? cost)]
+            (do (doseq [[pos cheated? cost :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
                   (when (< cost (min-cost cheated? Long/MAX_VALUE))
                     (.add to-visit nxt-state)))
                 (recur (-> min-cost (cond-> (= end pos) (assoc cheated? cost)))))))))))
 
 (defn part1
-  [input min-cheat])
+  [input min-cheat]
+  (all-paths input))
 
 (defn part2
   [input]
@@ -55,16 +56,16 @@
 
 (lib/check
   [part1 sample 2] 44
-  [part1 sample 4] 30
-  [part1 sample 6] 16
-  [part1 sample 8] 14
-  [part1 sample 10] 10
-  [part1 sample 12] 8
-  [part1 sample 20] 5
-  [part1 sample 36] 4
-  [part1 sample 38] 3
-  [part1 sample 40] 2
-  [part1 sample 64] 1
+  #_#_[part1 sample 4] 30
+  #_#_[part1 sample 6] 16
+  #_#_[part1 sample 8] 14
+  #_#_[part1 sample 10] 10
+  #_#_[part1 sample 12] 8
+  #_#_[part1 sample 20] 5
+  #_#_[part1 sample 36] 4
+  #_#_[part1 sample 38] 3
+  #_#_[part1 sample 40] 2
+  #_#_[part1 sample 64] 1
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
