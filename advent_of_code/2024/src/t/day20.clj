@@ -13,14 +13,16 @@
 
 (defn generate-moves
   [path [y x] cheated? cost]
-  (concat [[(path [y x]) (inc cost) cheated?]]
-          (when (not cheated?)
-            (for [[dy1 dx1] dirs
-                  [dy2 dx2] dirs
-                  :let [y' (+ y dy1 dy2), x' (+ x dx1 dx2)]
-                  :when (not= [y' x'] [y x])
-                  :when (path [y' x'])]
-              [[y' x'] (+ cost 2) [(+ y dy1) (+ x dx1)]]))))
+  (let [[next-step] (path [y x])]
+    (concat [[next-step (inc cost) cheated?]]
+            (when (not cheated?)
+              (for [[dy1 dx1] dirs
+                    [dy2 dx2] dirs
+                    :let [y' (+ y dy1 dy2), x' (+ x dx1 dx2)]
+                    :when (not= [y' x'] [y x])
+                    :let [[_ cost-to-finish end] (path [y' x'])]
+                    :when cost-to-finish]
+                [end (+ cost 2 cost-to-finish) [(+ y dy1) (+ x dx1)]])))))
 
 (defn cheating-paths
   [no-cheat-path start end max-cost]
@@ -61,7 +63,8 @@
           (when (not (visited nxt-state))
             (.add to-visit [nxt-cost nxt-state]))))
       (if (= end state)
-        [cost (->> state meta :history (cons end) (cons [-1 -1]) reverse (partition 2 1)
+        [cost (->> state meta :history (cons end) (cons [-1 -1]) (partition 2 1)
+                   (map-indexed (fn [idx [to from]] [from [to idx end]]))
                    (reduce (fn [acc [k v]] (assoc acc k v)) {}))]
         (recur (.poll to-visit)
                (conj visited state))))))
@@ -88,6 +91,6 @@
   [part1 sample 38] 3
   [part1 sample 40] 2
   [part1 sample 64] 1
-  [part1 puzzle 7000] 0
+  [part1 puzzle 4000] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
