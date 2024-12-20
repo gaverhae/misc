@@ -12,21 +12,18 @@
   [[1 0] [-1 0] [0 1] [0 -1]])
 
 (defn generate-moves
-  [valid-pos? [y x] cheated? cost]
-  (concat (for [[dy dx] dirs
-                :let [y (+ y dy), x (+ x dx)]
-                :when (valid-pos? [y x])]
-            [[y x] (inc cost) cheated?])
+  [path [y x] cheated? cost]
+  (concat [[(path [y x]) (inc cost) cheated?]]
           (when (not cheated?)
             (for [[dy1 dx1] dirs
                   [dy2 dx2] dirs
                   :let [y' (+ y dy1 dy2), x' (+ x dx1 dx2)]
                   :when (not= [y' x'] [y x])
-                  :when (valid-pos? [y' x'])]
+                  :when (path [y' x'])]
               [[y' x'] (+ cost 2) [(+ y dy1) (+ x dx1)]]))))
 
 (defn cheating-paths
-  [{:keys [valid-pos? start end]} max-cost]
+  [no-cheat-path start end max-cost]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
     (.add to-visit [start 0 false])
     (loop [min-cost {}]
@@ -36,10 +33,12 @@
              (map (fn [[[pos cheated?] c]] [cheated? c]))
              (into {}))
         (let [[pos cost cheated?] (.poll to-visit)]
+          (prn [pos cost cheated?])
           (if (or (> cost (min-cost [pos cheated?] max-cost))
                   (> cost (min-cost [pos false] max-cost)))
             (recur min-cost)
-            (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
+            (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves no-cheat-path pos cheated? cost)]
+                  (prn [:doseq pos cost cheated?])
                   (when (and (<= cost (min-cost [pos cheated?] max-cost))
                              (<= cost (min-cost [pos false] max-cost)))
                     (.add to-visit nxt-state)))
@@ -55,7 +54,7 @@
        (inc cost)])))
 
 (defn trace-no-cheat-path
-  [initial final? valid-pos?]
+  [initial end valid-pos?]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
     (loop [[cost state] [0 initial]
            visited #{}]
@@ -63,17 +62,18 @@
         (doseq [[nxt-state nxt-cost] (trace-moves valid-pos? [state cost])]
           (when (not (visited nxt-state))
             (.add to-visit [nxt-cost nxt-state]))))
-      (if (final? state)
-        [cost (set (:history (meta state)))]
+      (if (= end state)
+        [cost (->> state meta :history (cons end) (cons [-1 -1]) reverse (partition 2 1)
+                   (reduce (fn [acc [k v]] (assoc acc k v)) {}))]
         (recur (.poll to-visit)
                (conj visited state))))))
 
 (defn part1
   [{:keys [valid-pos? start end] :as input} saves-at-least]
-  (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start #(= % end) valid-pos?)
+  (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
         max-cost (- no-cheat-cost saves-at-least)]
-    (count (cheating-paths (assoc input :valid-pos? (conj no-cheat-path end))
-                           max-cost))))
+    (prn no-cheat-path)
+    (count (cheating-paths no-cheat-path start end max-cost))))
 
 (defn part2
   [input]
@@ -91,6 +91,6 @@
   #_#_[part1 sample 38] 3
   #_#_[part1 sample 40] 2
   #_#_[part1 sample 64] 1
-  #_#_[part1 puzzle 7000] 0
+  #_#_[part1 puzzle 100] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
