@@ -33,12 +33,10 @@
              (map (fn [[[pos cheated?] c]] [cheated? c]))
              (into {}))
         (let [[pos cost cheated?] (.poll to-visit)]
-          (prn [pos cost cheated?])
           (if (or (> cost (min-cost [pos cheated?] max-cost))
                   (> cost (min-cost [pos false] max-cost)))
             (recur min-cost)
             (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves no-cheat-path pos cheated? cost)]
-                  (prn [:doseq pos cost cheated?])
                   (when (and (<= cost (min-cost [pos cheated?] max-cost))
                              (<= cost (min-cost [pos false] max-cost)))
                     (.add to-visit nxt-state)))
@@ -72,7 +70,6 @@
   [{:keys [valid-pos? start end] :as input} saves-at-least]
   (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
         max-cost (- no-cheat-cost saves-at-least)]
-    (prn no-cheat-path)
     (count (cheating-paths no-cheat-path start end max-cost))))
 
 (defn part2
@@ -81,16 +78,16 @@
 
 (lib/check
   [part1 sample 2] 44
-  #_#_[part1 sample 4] 30
-  #_#_[part1 sample 6] 16
-  #_#_[part1 sample 8] 14
-  #_#_[part1 sample 10] 10
-  #_#_[part1 sample 12] 8
-  #_#_[part1 sample 20] 5
-  #_#_[part1 sample 36] 4
-  #_#_[part1 sample 38] 3
-  #_#_[part1 sample 40] 2
-  #_#_[part1 sample 64] 1
-  #_#_[part1 puzzle 100] 0
+  [part1 sample 4] 30
+  [part1 sample 6] 16
+  [part1 sample 8] 14
+  [part1 sample 10] 10
+  [part1 sample 12] 8
+  [part1 sample 20] 5
+  [part1 sample 36] 4
+  [part1 sample 38] 3
+  [part1 sample 40] 2
+  [part1 sample 64] 1
+  [part1 puzzle 7000] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
