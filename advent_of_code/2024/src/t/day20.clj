@@ -38,10 +38,12 @@
              (map (fn [[[pos cheated?] c]] [cheated? c]))
              (into {}))
         (let [[pos cost cheated?] (.poll to-visit)]
-          (if (> cost (min-cost [pos cheated?] max-cost))
+          (if (or (> cost (min-cost [pos cheated?] max-cost))
+                  (> cost (min-cost [pos false] max-cost)))
             (recur min-cost)
             (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
-                  (when (<= cost (min-cost [pos cheated?] max-cost))
+                  (when (and (<= cost (min-cost [pos cheated?] max-cost))
+                             (<= cost (min-cost [pos false] max-cost)))
                     (.add to-visit nxt-state)))
                 (recur (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))))
 
@@ -70,6 +72,6 @@
   [part1 sample 38] 3
   [part1 sample 40] 2
   [part1 sample 64] 1
-  [part1 puzzle 100] 0
+  [part1 puzzle 7000] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
