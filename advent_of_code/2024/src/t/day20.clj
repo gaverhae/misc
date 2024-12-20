@@ -41,7 +41,7 @@
           (if (> cost (min-cost [pos cheated?] max-cost))
             (recur min-cost)
             (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
-                  (when (< cost (min-cost [pos cheated?] max-cost))
+                  (when (<= cost (min-cost [pos cheated?] max-cost))
                     (.add to-visit nxt-state)))
                 (recur (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))))
 
