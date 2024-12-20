@@ -8,24 +8,33 @@
 
 (def parse t.day16/parse)
 
-(def dirs
-  [[1 0] [-1 0] [0 1] [0 -1]])
-
 (defn generate-moves
-  [path [y x] cheated? cost]
+  [max-cheats path [y x] cheated? cost]
   (let [[next-step] (path [y x])]
     (concat [[next-step (inc cost) cheated?]]
             (when (not cheated?)
-              (for [[dy1 dx1] dirs
-                    [dy2 dx2] dirs
-                    :let [y' (+ y dy1 dy2), x' (+ x dx1 dx2)]
-                    :when (not= [y' x'] [y x])
-                    :let [[_ cost-to-finish end] (path [y' x'])]
-                    :when cost-to-finish]
-                [end (+ cost 2 cost-to-finish) [(+ y dy1) (+ x dx1)]])))))
+              (loop [remaining-steps max-cheats
+                     positions [[y x 0]]]
+                (if (zero? remaining-steps)
+                  (->> positions
+                       (keep (fn [[y' x' c]]
+                               (when-let [[_ cost-to-finish end] (path [y' x'])]
+                                 [end (+ cost c cost-to-finish) [[y x] [y' x']]]))))
+                  (recur (dec remaining-steps)
+                         (->> positions
+                              (mapcat (fn [[y x c]]
+                                        [[y x c]
+                                         [(inc y) x (inc c)]
+                                         [(dec y) x (inc c)]
+                                         [y (inc x) (inc c)]
+                                         [y (dec x) (inc c)]]))
+                              (reduce (fn [acc [y x c]]
+                                        (update acc [y x] (fnil min Long/MAX_VALUE) c))
+                                      {})
+                              (map (fn [[[y x] c]] [y x c]))))))))))
 
 (defn cheating-paths
-  [no-cheat-path start end max-cost]
+  [max-cheats no-cheat-path start end max-cost]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
     (.add to-visit [start 0 false])
     (loop [min-cost {}]
@@ -38,7 +47,7 @@
           (if (or (> cost (min-cost [pos cheated?] max-cost))
                   (> cost (min-cost [pos false] max-cost)))
             (recur min-cost)
-            (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves no-cheat-path pos cheated? cost)]
+            (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves max-cheats no-cheat-path pos cheated? cost)]
                   (when (and (<= cost (min-cost [pos cheated?] max-cost))
                              (<= cost (min-cost [pos false] max-cost)))
                     (.add to-visit nxt-state)))
@@ -47,7 +56,7 @@
 (defn trace-moves
   [valid-pos? [[y x :as state] cost]]
   (let [hist (:history (meta state))]
-    (for [[dy dx] dirs
+    (for [[dy dx] [[1 0] [-1 0] [0 1] [0 -1]]
           :let [y (+ y dy), x (+ x dx)]
           :when (valid-pos? [y x])]
       [(with-meta [y x] {:history (cons state hist)})
@@ -73,11 +82,13 @@
   [{:keys [valid-pos? start end] :as input} saves-at-least]
   (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
         max-cost (- no-cheat-cost saves-at-least)]
-    (count (cheating-paths no-cheat-path start end max-cost))))
+    (count (cheating-paths 2 no-cheat-path start end max-cost))))
 
 (defn part2
-  [input]
-  input)
+  [{:keys [valid-pos? start end] :as input} saves-at-least]
+  (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
+        max-cost (- no-cheat-cost saves-at-least)]
+    (count (cheating-paths 20 no-cheat-path start end max-cost))))
 
 (lib/check
   [part1 sample 2] 44
@@ -91,6 +102,19 @@
   [part1 sample 38] 3
   [part1 sample 40] 2
   [part1 sample 64] 1
-  [part1 puzzle 4000] 0
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part1 puzzle 100] 1323
+  [part2 sample 76] 3
+  [part2 sample 74] 7
+  [part2 sample 72] 29
+  [part2 sample 70] 41
+  [part2 sample 68] 55
+  [part2 sample 66] 67
+  [part2 sample 64] 86
+  [part2 sample 62] 106
+  [part2 sample 60] 129
+  [part2 sample 58] 154
+  [part2 sample 56] 193
+  [part2 sample 54] 222
+  [part2 sample 52] 253
+  [part2 sample 50] 285
+  [part2 puzzle 100] 983905)
