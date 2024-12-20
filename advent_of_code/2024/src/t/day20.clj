@@ -3,15 +3,51 @@
             [clojure.set :as set]
             [clojure.string :as string]
             [instaparse.core :refer [parser]]
+            [t.day16]
             [t.lib :as lib :refer [->long]]))
 
-(defn parse
-  [lines]
-  lines)
+(def parse t.day16/parse)
+
+(let [dirs [[1 0] [-1 0] [0 1] [0 -1]]]
+  (defn generate-moves
+    [valid-pos? [y x] cheat-done? cost]
+    (concat (->> dirs
+                 (map (fn [[dy dx]]
+                        [(+ y dy) (+ x dx) cheat-done?]))
+                 (filter (fn [[p c]] (valid-pos? p)))
+                 (map (fn [s] [s (inc cost)])))
+            (when (not cheat-done?)
+              (->> dirs
+                   (map (fn [[dy dx]]
+                          [(+ y dy) (+ x dx)]))
+                   (mapcat (fn [[y x]]
+                             (->> dirs
+                                  (map (fn [[dy dx]]
+                                         [[(+ y dy) (+ x dx)] [y x]])))))
+                   (mapcat (fn [[[y x] c1]]
+                             (->> dirs
+                                  (map (fn [[dy dx]]
+                                         [[(+ y dy) (+ x dx)] [c1 [y x]]])))))
+                   (filter (fn [[p c]] (valid-pos? p)))
+                   (map (fn [[p c]] [[p c] (+ 3 cost)])))))))
+
+(defn all-paths
+  [{:keys [valid-pos? start end]}]
+  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
+    (.add to-visit {:cost 0, :pos start, :cheated? false})
+    (loop [min-cost {}]
+      (if (.isEmpty to-visit)
+        min-cost
+        (let [{:keys [cost pos cheated?] :as state} (.poll to-visit)]
+          (if (> cost (min-cost cheated? Long/MAX_VALUE))
+            (recur min-cost)
+            (do (doseq [{:keys [cost pos cheated?] :as nxt-state} (generate-moves valid-pos? pos cheated? cost)]
+                  (when (< cost (min-cost cheated? Long/MAX_VALUE))
+                    (.add to-visit nxt-state)))
+                (recur (-> min-cost (cond-> (= end pos) (assoc cheated? cost)))))))))))
 
 (defn part1
-  [input min-cheat]
-  input)
+  [input min-cheat])
 
 (defn part2
   [input]
