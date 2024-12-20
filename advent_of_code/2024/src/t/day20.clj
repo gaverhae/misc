@@ -52,9 +52,6 @@
                              #(= % end)
                              #(generate-moves valid-pos? (% 0) true (% 1)))
         max-cost (- cost-with-no-cheat saves-at-least)]
-    (prn [cost-with-no-cheat saves-at-least max-cost (->> (cheating-paths input max-cost)
-                                                          (map (fn [[cheat cost]] cost))
-                                                          sort)])
     (count (cheating-paths input max-cost))))
 
 (defn part2
@@ -65,14 +62,14 @@
   [part1 sample 2] 44
   [part1 sample 4] 30
   [part1 sample 6] 16
-  #_#_[part1 sample 8] 14
-  #_#_[part1 sample 10] 10
-  #_#_[part1 sample 12] 8
-  #_#_[part1 sample 20] 5
-  #_#_[part1 sample 36] 4
-  #_#_[part1 sample 38] 3
-  #_#_[part1 sample 40] 2
-  #_#_[part1 sample 64] 1
-  #_#_[part1 puzzle 100] 0
+  [part1 sample 8] 14
+  [part1 sample 10] 10
+  [part1 sample 12] 8
+  [part1 sample 20] 5
+  [part1 sample 36] 4
+  [part1 sample 38] 3
+  [part1 sample 40] 2
+  [part1 sample 64] 1
+  [part1 puzzle 100] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
