@@ -15,7 +15,7 @@
                  (map (fn [[dy dx]]
                         [(+ y dy) (+ x dx)]))
                  (filter valid-pos?)
-                 (map (fn [p] [p cheated? (inc cost)])))
+                 (map (fn [p] [p (inc cost) cheated?])))
             (when (not cheated?)
               (->> dirs
                    (map (fn [[dy dx]]
@@ -25,36 +25,37 @@
                                   (map (fn [[dy dx]]
                                          [[(+ y dy) (+ x dx)] [c1 [y x]]])))))
                    (filter (fn [[p c]] (valid-pos? p)))
-                   (map (fn [[p c]] [p c (+ 2 cost)])))))))
+                   (map (fn [[p c]] [p (+ 2 cost) c])))))))
 
-(defn all-paths
-  [{:keys [valid-pos? start end]}]
+(defn cheating-paths
+  [{:keys [valid-pos? start end]} max-cost]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
-    (.add to-visit [start false 0])
+    (.add to-visit [start 0 false])
     (loop [min-cost {}]
       (if (.isEmpty to-visit)
-        (let [cost-no-cheat (min-cost [end false])]
-          (->> min-cost
-               (filter (fn [[[pos cheated?] c]] (= pos end)))
-               (filter (fn [[[pos cheated?] c]] (<= c cost-no-cheat)))
-               (map (fn [[[pos cheated?] c]] [cheated? c]))
-               (into {})))
-        (let [[pos cheated? cost] (.poll to-visit)]
-          (if (> cost (min-cost [pos cheated?] Long/MAX_VALUE))
+        (->> min-cost
+             (filter (fn [[[pos cheated?] c]] (= pos end)))
+             (map (fn [[[pos cheated?] c]] [cheated? c]))
+             (into {}))
+        (let [[pos cost cheated?] (.poll to-visit)]
+          (if (> cost (min-cost [pos cheated?] max-cost))
             (recur min-cost)
-            (do (doseq [[pos cheated? cost :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
-                  (when (< cost (min-cost [pos cheated?] Long/MAX_VALUE))
+            (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves valid-pos? pos cheated? cost)]
+                  (when (< cost (min-cost [pos cheated?] max-cost))
                     (.add to-visit nxt-state)))
                 (recur (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))))
 
 (defn part1
-  [input saves-at-least]
-  (let [cost-per-cheat (all-paths input)
-        cost-with-no-cheat (cost-per-cheat false)]
-    (->> cost-per-cheat
-         (filter (fn [[cheat c]] (>= (- cost-with-no-cheat c) saves-at-least)))
-         count)))
-
+  [{:keys [valid-pos? start end] :as input} saves-at-least]
+  (let [cost-with-no-cheat (lib/dijkstra-search
+                             start
+                             #(= % end)
+                             #(generate-moves valid-pos? (% 0) true (% 1)))
+        max-cost (- cost-with-no-cheat saves-at-least)]
+    (prn [cost-with-no-cheat saves-at-least max-cost (->> (cheating-paths input max-cost)
+                                                          (map (fn [[cheat cost]] cost))
+                                                          sort)])
+    (count (cheating-paths input max-cost))))
 
 (defn part2
   [input]
@@ -64,14 +65,14 @@
   [part1 sample 2] 44
   [part1 sample 4] 30
   [part1 sample 6] 16
-  [part1 sample 8] 14
-  [part1 sample 10] 10
-  [part1 sample 12] 8
-  [part1 sample 20] 5
-  [part1 sample 36] 4
-  [part1 sample 38] 3
-  [part1 sample 40] 2
-  [part1 sample 64] 1
-  [part1 puzzle 100] 0
+  #_#_[part1 sample 8] 14
+  #_#_[part1 sample 10] 10
+  #_#_[part1 sample 12] 8
+  #_#_[part1 sample 20] 5
+  #_#_[part1 sample 36] 4
+  #_#_[part1 sample 38] 3
+  #_#_[part1 sample 40] 2
+  #_#_[part1 sample 64] 1
+  #_#_[part1 puzzle 100] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
