@@ -229,8 +229,4 @@
 (lib/check
   #_#_[part1 sample] 126384
   #_#_[part1 puzzle] 219366
-  #_#_[part2 sample 1] 53772
-  #_#_[part2 sample 2] 126384
-  #_#_[part2 sample 3] 310188
-  #_#_[part2 sample 25] 154115708116294
   #_#_[part2 puzzle] 0)
