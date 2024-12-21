@@ -94,8 +94,7 @@
 (defn directional-keypad
   [out n]
   (if (zero? n)
-    #_(count out)
-    out
+    (count out)
     (let [parts (string/split out #"A")]
       (->> parts
            (map (fn [part]
@@ -110,33 +109,31 @@
                        (map (fn [s] (str s "A")))
                        set
                        (map (fn [possible] (directional-keypad possible (dec n))))
-                       #_(apply min)
-                       (sort-by count)
-                       first)))
-           (apply str)
-           #_(reduce + (count parts))))))
+                       (apply min))))
+           (reduce + 0)))))
 
 (defn shortest-length
-  [c]
+  [c iters]
   (->> (numeric-keypad c)
-       (map (fn [o] (directional-keypad o 2)))
-       (sort-by count)
-       first
-       count))
+       (map (fn [o] (directional-keypad o iters)))
+       (apply min)))
 
 (defn part1
   [codes]
   (->> codes
        (map (fn [c] (* (numeric-part c)
-                       (shortest-length c))))
+                       (shortest-length c 2))))
        (reduce + 0)))
 
 (defn part2
-  [input]
-  input)
+  [codes]
+  (->> codes
+       (map (fn [c] (* (numeric-part c)
+                       (shortest-length c 6))))
+       (reduce + 0)))
 
 (lib/check
   [part1 sample] 126384
   [part1 puzzle] 219366
-  #_#_[part2 sample] 0
+  [part2 sample] 4613090
   #_#_[part2 puzzle] 0)
