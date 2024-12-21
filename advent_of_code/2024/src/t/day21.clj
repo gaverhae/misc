@@ -17,7 +17,7 @@
        parse-long))
 
 (defn move-numeric
-  [current-pos direction]
+  [current-position direction]
   (-> {"9" {"<" "8" "v" "6"}
        "8" {"<" "7" "v" "5" ">" "9"}
        "7" {">" "8" "v" "4"}
