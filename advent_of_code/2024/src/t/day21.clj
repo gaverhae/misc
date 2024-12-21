@@ -126,9 +126,10 @@
   [c]
   (->> c
        numeric-keypad
-       (mapcat directional-keypad)
-       set
-       (mapcat directional-keypad)
+       (pmap directional-keypad)
+       (reduce set/union)
+       (pmap directional-keypad)
+       (reduce set/union)
        (sort-by count)
        first
        count))
