@@ -40,9 +40,40 @@
        ">" {"^" "A" "<" "v"}}
       (get-in [current-position direction])))
 
+(defn generate-numeric-moves
+  [{:keys [outer inner output history]} cost]
+  (->> (concat (when (= outer "A")
+                 ;; pressing A activates inner button
+                 [{:outer "A"
+                   :inner inner
+                   :output (str output inner)
+                   :history (str history "A")}])
+               (->> ["<" ">" "^" "v"]
+                    (map (fn [d]
+                           (when-let [next-key (move-numeric inner d)]
+                             [(with-meta {:outer next-key
+                                          :inner inner
+                                          :output output}
+                                         {:history (str (:history (meta s)) d)}) (inc cost)]))))))))
+
 (defn numeric-keypad
-  [code]
-  "")
+  [desired-output]
+  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
+    (loop [state {:outer "A"
+                  :inner "A"
+                  :output ""
+                  :history ""}
+           cost 0
+           visited #{}]
+      (when (not (visited (dissoc state :history)))
+        (doseq [[nxt-state nxt-cost] (generate-moves state cost)]
+          ;; FIXME
+          (when (not (visited nxt-state))
+            (.add to-visit [nxt-cost nxt-state]))))
+      (if (final? state)
+        cost
+        (recur (.poll to-visit)
+               (conj visited state))))))
 
 (defn directional-keypad
   [moves]
