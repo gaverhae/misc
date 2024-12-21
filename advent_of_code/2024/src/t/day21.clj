@@ -9,16 +9,27 @@
   [lines]
   lines)
 
+(defn numeric-part
+  [code]
+  0)
+
+(defn shortest-length
+  [c]
+  0)
+
 (defn part1
-  [input]
-  input)
+  [codes]
+  (->> codes
+       (map (fn [c] (* (numeric-part c)
+                       (shortest-length c))))
+       (reduce + 0)))
 
 (defn part2
   [input]
   input)
 
 (lib/check
-  [part1 sample] 0
+  [part1 sample] 126384
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
