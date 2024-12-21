@@ -60,7 +60,8 @@
 
 (defn part1
   [codes]
-  (->> codes
+  (->> codes first numeric-keypad)
+  #_(->> codes
        (map (fn [c] (* (numeric-part c)
                        (shortest-length c))))
        (reduce + 0)))
