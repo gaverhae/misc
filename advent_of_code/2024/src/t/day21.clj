@@ -95,18 +95,19 @@
   [out n]
   (let [f (fn [rec out n]
             (if (zero? n)
-              #_(count out)
-              out
+              (count out)
+              #_out
               (->> (str "A" out)
                    (partition 2 1)
                    (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
                    (map (fn [set-of-pos]
                           (->> set-of-pos
                                (map (fn [p] (rec rec (str p "A") (dec n))))
-                               #_(apply min)
-                               (sort-by count)
-                               first)))
-                   (apply str))))
+                               (apply min)
+                               #_(sort-by count)
+                               #_first)))
+                   (reduce + 0)
+                   #_(apply str))))
 ;              (let [parts (string/split out #"A")]
 ;                #_(prn [:string out])
 ;                #_(prn [:parts parts])
@@ -135,9 +136,9 @@
   [c iters]
   (->> (numeric-keypad c)
        (map (fn [o] (directional-keypad o iters)))
-       (sort-by (juxt count identity))
-       first
-       #_(apply min)))
+       #_(sort-by (juxt count identity))
+       #_first
+       (apply min)))
 
 (string/split "<<^AA>vA" #"A")
 ["<<^" "" ">v"]
@@ -202,6 +203,7 @@
                    "9" (case m \< "8", \v "6"))))))))
 
 
+(comment
 (clojure.test/deftest rev
   (let [code "0"]
   (clojure.test/is (= code
@@ -213,6 +215,7 @@
                           #_f-d
                           #_f-n
                           )))))
+)
 
 (comment
 
@@ -254,7 +257,7 @@
   [codes]
   (->> codes
        #_(drop 1)
-       (take 1)
+       #_(take 1)
        (map (fn [c]
 #_(shortest-length c 3)
               (* (numeric-part c)
@@ -264,14 +267,14 @@
 (defn part2
   [codes iters]
   (->> codes
-       (take 1)
+       #_(take 1)
        (map (fn [c]
-              (shortest-length c iters)
-              #_[:* (numeric-part c)
-                     (shortest-length c iters)]))
-       #_(reduce + 0)))
+              #_(shortest-length c iters)
+              (* (numeric-part c)
+                  (shortest-length c iters))))
+       (reduce + 0)))
 
 (lib/check
-  #_#_[part1 sample] 126384
-  #_#_[part1 puzzle] 219366
-  #_#_[part2 puzzle] 0)
+  [part1 sample] 126384
+  [part1 puzzle] 219366
+  [part2 puzzle 25] 0)
