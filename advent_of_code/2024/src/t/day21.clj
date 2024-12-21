@@ -96,6 +96,7 @@
   (let [f (fn [rec out n]
             (if (zero? n)
               (count out)
+              #_out
               (let [parts (string/split out #"A")]
                 (->> parts
                      (map (fn [part]
@@ -110,7 +111,10 @@
                                  (map (fn [s] (str s "A")))
                                  set
                                  (map (fn [possible] (rec rec possible (dec n))))
-                                 (apply min))))
+                                 (apply min)
+                                 #_(sort-by (juxt count identity))
+                                 #_first)))
+                     #_(apply str)
                      (reduce + 0)))))
         memo-f (memoize f)]
     (memo-f memo-f out n)))
@@ -119,14 +123,31 @@
   [c iters]
   (->> (numeric-keypad c)
        (map (fn [o] (directional-keypad o iters)))
+       #_(sort-by (juxt count identity))
+       #_first
        (apply min)))
 
 (defn part1
   [codes]
   (->> codes
-       (map (fn [c] (* (numeric-part c)
+       #_(drop 1)
+       #_(take 1)
+       (map (fn [c]
+#_(shortest-length c 3)
+              (* (numeric-part c)
                        (shortest-length c 2))))
        (reduce + 0)))
+
+(comment
+"v<A<AA>^>AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA^<A>A"
+"<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+
+"<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"
+"<v<A>>^AAAvA^Av<A<AA>^>AvAA<^A>A<v<A>A>^AAAvA^<A>A<vA>^A<A>A"
+
+"   < v  A   <   AA >>  ^ A  v  AA <^A>A<v<A>>^AvA^A<v<A>>^AA<vA>A^A<A>A<v<A>A>^AAA<A>vA^A"
+"<v<A>A>^A<v<A>>^AAvAA<^A>A<vA>^AA<Av<A>>^AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<v<A>A>^A<A>vA^A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^A<A>vA^A<v<A>>^A<vA>A^A<A>A"
+)
 
 (defn part2
   [codes]
@@ -138,4 +159,5 @@
 (lib/check
   [part1 sample] 126384
   [part1 puzzle] 219366
-  [part2 puzzle] 0)
+  [part2 sample] 154115708116294
+  #_#_[part2 puzzle] 0)
