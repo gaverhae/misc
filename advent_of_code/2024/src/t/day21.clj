@@ -11,7 +11,10 @@
 
 (defn numeric-part
   [code]
-  0)
+  (->> code
+       (filter (fn [c] (<= (int \0) (int c) (int \9))))
+       (apply str)
+       parse-long))
 
 (defn shortest-length
   [c]
@@ -19,7 +22,8 @@
 
 (defn part1
   [codes]
-  (->> codes
+  (map numeric-part codes)
+  #_(->> codes
        (map (fn [c] (* (numeric-part c)
                        (shortest-length c))))
        (reduce + 0)))
