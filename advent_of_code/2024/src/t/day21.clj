@@ -16,6 +16,35 @@
        (apply str)
        parse-long))
 
+(defn to-combinations
+  [s]
+  (case (count (set s))
+    0 #{s}
+    1 #{s}
+    2 (loop [to-add s
+             possible-strings #{""}]
+        (if (empty? to-add)
+          possible-strings
+          (let [[nxt & to-add] to-add]
+            (recur to-add
+                   (->> possible-strings
+                        (mapcat (fn [s]
+                                  (->> (range (inc (count s)))
+                                       (map (fn [i]
+                                              (str (subs s 0 i) nxt (subs s i (count s))))))))
+                        set)))))))
+
+(to-combinations "")
+#{""}
+(to-combinations "<")
+#{"<"}
+(to-combinations "<<<")
+#{"<<<"}
+(to-combinations "<<vv")
+#{"v<<v" "vv<<" "<vv<" "<v<v" "v<v<" "<<vv"}
+(to-combinations "<<<v")
+#{"<v<<" "<<v<" "<<<v" "v<<<"}
+
 (def from-to-num
   {"9" {"9" #{""}
         "8" #{"<"}
