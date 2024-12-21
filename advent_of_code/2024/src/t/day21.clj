@@ -41,39 +41,41 @@
       (get-in [current-position direction])))
 
 (defn generate-numeric-moves
-  [{:keys [outer inner output history]} cost]
-  (->> (concat (when (= outer "A")
-                 ;; pressing A activates inner button
-                 [{:outer "A"
-                   :inner inner
-                   :output (str output inner)
-                   :history (str history "A")}])
-               (->> ["<" ">" "^" "v"]
-                    (map (fn [d]
-                           (when-let [next-key (move-numeric inner d)]
-                             [(with-meta {:outer next-key
-                                          :inner inner
-                                          :output output}
-                                         {:history (str (:history (meta s)) d)}) (inc cost)]))))))))
+  [{:keys [inner outer output]} desired-output]
+  (let [target (str (get desired-output (count output)))]
+  (if (= inner target)
+    [{:inner inner
+      :outer (str outer "A")
+      :output (str output inner)}]
+    (->> ["<" ">" "^" "v"]
+         (map (fn [d]
+                (when-let [next-key (move-numeric inner d)]
+                  {:inner next-key
+                   :output output
+                   :outer (str outer d)})))))))
 
 (defn numeric-keypad
   [desired-output]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
-    (loop [state {:outer "A"
-                  :inner "A"
-                  :output ""
-                  :history ""}
-           cost 0
-           visited #{}]
-      (when (not (visited (dissoc state :history)))
-        (doseq [[nxt-state nxt-cost] (generate-moves state cost)]
-          ;; FIXME
-          (when (not (visited nxt-state))
-            (.add to-visit [nxt-cost nxt-state]))))
-      (if (final? state)
-        cost
-        (recur (.poll to-visit)
-               (conj visited state))))))
+    (loop [[cost state] [0 {:inner "A", :output "", :outer ""}]
+           min-cost nil
+           visited #{}
+           good-paths []]
+      (prn [cost state min-cost visited good-paths])
+      (Thread/sleep 100)
+      (if (and min-cost (> cost min-cost))
+        good-paths
+        (do (when (not (visited (dissoc state :outer)))
+              (doseq [nxt-state (generate-numeric-moves state desired-output)]
+                (when (not (visited (dissoc nxt-state :outer)))
+                  (.add to-visit [(inc cost) nxt-state]))))
+            (recur (.poll to-visit)
+                   (if (and (nil? min-cost) (= (:output state) desired-output))
+                     cost
+                     min-cost)
+                   (conj visited (dissoc state :outer))
+                   (cond-> good-paths
+                     (= (:output state) desired-output) (conj (:outer state)))))))))
 
 (defn directional-keypad
   [moves]
