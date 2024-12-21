@@ -122,43 +122,23 @@
        (remove is-bad-sequence-dir?)
        set))
 
-(comment
-(defn count-dirs
-  [iters]
-  (fn [dir-seq]
-    (let [f (fn [s i]
-              (if (= zero? i)
-                (count s)
-                (->>
-    (->> (str "A" dir-seq)
-         (partition 2 1)
-         (map (fn [[from to]]
-                (->> (get from-to-dir [(str from) (str to)])
-                     )))))))]))))
-
-
 (defn shortest-length
-  [c iters]
+  [c]
   (->> (numeric-keypad c)
-       #_(map (count-dirs iters))
-       #_(apply min)))
-
-(comment
-       numeric-keypad
        (pmap directional-keypad)
        (reduce set/union)
        (pmap directional-keypad)
        (reduce set/union)
        (sort-by count)
        first
-       count)
+       count))
 
 (defn part1
   [codes]
   (->> codes
-       (map (fn [c] [:* (numeric-part c)
-                     (shortest-length c 2)]))
-       #_(reduce + 0)))
+       (map (fn [c] (* (numeric-part c)
+                       (shortest-length c))))
+       (reduce + 0)))
 
 (defn part2
   [input]
