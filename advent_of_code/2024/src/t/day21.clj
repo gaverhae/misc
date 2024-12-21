@@ -96,39 +96,14 @@
   (let [f (fn [rec out n]
             (if (zero? n)
               (count out)
-              #_out
               (->> (str "A" out)
                    (partition 2 1)
                    (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
                    (map (fn [set-of-pos]
                           (->> set-of-pos
                                (map (fn [p] (rec rec (str p "A") (dec n))))
-                               (apply min)
-                               #_(sort-by count)
-                               #_first)))
-                   (reduce + 0)
-                   #_(apply str))))
-;              (let [parts (string/split out #"A")]
-;                #_(prn [:string out])
-;                #_(prn [:parts parts])
-;                (->> parts
-;                     (map (fn [part]
-;                            (->> (str "A" part "A")
-;                                 (partition 2 1)
-;                                 (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
-;                                 (interpose ["A"])
-;                                 (reduce (fn [acc el]
-;                                           (->> acc
-;                                                (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
-;                                         [""])
-;                                 (map (fn [s] (str s "A")))
-;                                 set
-;                                 (map (fn [possible] (rec rec possible (dec n))))
-;                                 #_(apply min)
-;                                 (sort-by (juxt count identity))
-;                                 first)))
-;                     (apply str)
-;                     #_(reduce + 0)))))
+                               (apply min))))
+                   (reduce + 0))))
         memo-f (memoize f)]
     (memo-f memo-f out n)))
 
@@ -136,145 +111,17 @@
   [c iters]
   (->> (numeric-keypad c)
        (map (fn [o] (directional-keypad o iters)))
-       #_(sort-by (juxt count identity))
-       #_first
        (apply min)))
 
-(string/split "<<^AA>vA" #"A")
-["<<^" "" ">v"]
-
-(defn f-d
-  [moves]
-  (loop [moves moves
-         [p out] ["A" ""]]
-    (if (empty? moves)
-      out
-      (let [[m & moves] moves]
-        (recur moves
-               (match [p m]
-                 [_ \A] [p (str out p)]
-                 ["A" \<] ["^" out]
-                 ["A" \v] [">" out]
-                 ["^" \v] ["v" out]
-                 ["^" \>] ["A" out]
-                 ["<" \>] ["v" out]
-                 ["v" \<] ["<" out]
-                 ["v" \^] ["^" out]
-                 ["v" \>] [">" out]
-                 [">" \<] ["v" out]
-                 [">" \^] ["A" out]))))))
-
-(f-d "<v<A>A>^A<v<A>>^AAvAA<^A>A<vA>^AA<Av<A>>^AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<v<A>A>^A<A>vA^A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^A<A>vA^A<v<A>>^A<vA>A^A<A>A")
-(f-d "<vA<AA>>^AvAA^<A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AvA^Av<<A>A^>A<Av>A^A")
-(f-d "v<<A>>^A<A>AvA<^A>A<vA^>A")
-"<A^A>^AvA"
-" 0 2  6 3"
-
-
-(f-d "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<v<A>>^AA<vA>A^A<A>A<v<A>A>^AAA<A>vA^A")
-(f-d "v<<A>>^A<A>A<AAv>A^A<vAAA^>A")
-"<A^A^^>AvvvA"
-" 0 2   9   A"
-
-(defn f-n
-  [moves]
-  (loop [moves moves
-         out ""
-         p "A"]
-    (if (empty? moves)
-      out
-      (let [[m & moves] moves
-            out (if (= \A m) (str out p) out)]
-        (recur moves
-               out
-               (if (= \A m)
-                 p
-                 (case p
-                   "A" (case m \< "0", \^ "3")
-                   "0" (case m \^ "2", \> "A")
-                   "1" (case m \^ "4", \> "2")
-                   "2" (case m \v "0", \> "3", \< "1", \^ "5")
-                   "3" (case m \< "2", \v "A", \^ "6")
-                   "4" (case m \^ "7", \> "5", \v "1")
-                   "5" (case m \< "4", \^ "8", \v "2", \> "6")
-                   "6" (case m \^ "9", \< "5", \v "3")
-                   "7" (case m \v "4", \> "8")
-                   "8" (case m \< "7", \v "5", \> "9")
-                   "9" (case m \< "8", \v "6"))))))))
-
-
-(comment
-(clojure.test/deftest rev
-  (let [code "0"]
-  (clojure.test/is (= code
-                      (-> code
-                          (shortest-length 1)
-                          #_f-d
-                          #_f-d
-                          #_f-d
-                          #_f-d
-                          #_f-n
-                          )))))
-)
-
-(comment
-
-(shortest-length "0" 0)
-"<A"
-(f-n (shortest-length "0" 0))
-"0"
-
-(shortest-length "0" 1)
-"v<<A>^>A"
-(-> (shortest-length "0" 1) f-d f-n)
-"0"
-
-(shortest-length "0" 2)
-"<vA<AA>^>AvAA<^A>A"
-
-(-> (shortest-length "0" 2) f-d f-d f-n)
-"0"
-
-(shortest-length "0" 3)
-"v<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^AAv<<A>^A>AvA^A"
-(->> (shortest-length "0" 3) f-d f-d f-d f-n)
-
-(shortest-length "0" 5)
-"v<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>^>AvA<^A>AvA^A<vA>^A<A>A<vA<AA>^>AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>^>AvA^A"
-(->> (shortest-length "0" 5) f-d f-d f-d f-d f-d f-n)
-"0"
-
-(->> (shortest-length "029A" 8) f-d f-d f-d f-d f-d f-d f-d f-d f-n)
-"029A"
-
-
-"  v << A>^>A"
-"<vA<AAAvAA<^AA"
-
-)
-
-(defn part1
-  [codes]
-  (->> codes
-       #_(drop 1)
-       #_(take 1)
-       (map (fn [c]
-#_(shortest-length c 3)
-              (* (numeric-part c)
-                       (shortest-length c 2))))
-       (reduce + 0)))
-
-(defn part2
+(defn solve
   [codes iters]
   (->> codes
-       #_(take 1)
        (map (fn [c]
-              #_(shortest-length c iters)
               (* (numeric-part c)
-                  (shortest-length c iters))))
+                 (shortest-length c iters))))
        (reduce + 0)))
 
 (lib/check
-  [part1 sample] 126384
-  [part1 puzzle] 219366
-  [part2 puzzle 25] 0)
+  [solve sample 2] 126384
+  [solve puzzle 2] 219366
+  [solve puzzle 25] 271631192020464)
