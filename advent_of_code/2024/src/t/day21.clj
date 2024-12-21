@@ -151,6 +151,10 @@
                  [">" \^] ["A" out]))))))
 
 (forward-num "<v<A>A>^A<v<A>>^AAvAA<^A>A<vA>^AA<Av<A>>^AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<v<A>A>^A<A>vA^A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^A<A>vA^A<v<A>>^A<vA>A^A<A>A")
+(forward-num "<vA<AA>>^AvAA^<A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AvA^Av<<A>A^>A<Av>A^A")
+(forward-num "v<<A>>^A<A>AvA<^A>A<vA^>A")
+"<A^A>^AvA"
+0263
 
 (defn part1
   [codes]
