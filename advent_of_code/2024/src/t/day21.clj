@@ -58,6 +58,17 @@
                                                                (apply str)))]]))
        (into {})))
 
+(defn is-bad-sequence-dir?
+  [moves]
+  (loop [[y x] [0 2]
+         moves moves]
+    (cond (= [y x] [0 0]) true
+          (empty? moves) false
+          :else (let [[m & moves] moves
+                      [dy dx] (get {"^" [-1 0], "<" [0 -1], "v" [1 0], ">" [0 1], "A" [0 0]} (str m))
+                      [y x] [(+ dy y) (+ dx x)]]
+                  (recur [y x] moves)))))
+
 (def from-to-dir
   (->> {["^" "^"] "" ["^" "A"] ">" ["^" "<"] "v<" ["^" "v"] "v" ["^" ">"] "v>"
         ["A" "A"] "" ["A" ">"] "v" ["A" "v"] "v<" ["A" "<"] "v<<"
@@ -69,6 +80,7 @@
                   [[to from] (to-combinations (->> one-path
                                                    (map {\< \>, \> \<, \v \^, \^ \v})
                                                    (apply str)))]]))
+       (map (fn [[k ps]] [k (remove is-bad-sequence-dir? ps)]))
        (into {})))
 
 (defn is-bad-sequence-num?
@@ -96,17 +108,6 @@
        (map (fn [s] (str s "A")))
        (remove is-bad-sequence-num?)
        set))
-
-(defn is-bad-sequence-dir?
-  [moves]
-  (loop [[y x] [0 2]
-         moves moves]
-    (cond (= [y x] [0 0]) true
-          (empty? moves) false
-          :else (let [[m & moves] moves
-                      [dy dx] (get {"^" [-1 0], "<" [0 -1], "v" [1 0], ">" [0 1], "A" [0 0]} (str m))
-                      [y x] [(+ dy y) (+ dx x)]]
-                  (recur [y x] moves)))))
 
 (defn directional-keypad
   [desired-output]
