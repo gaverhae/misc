@@ -93,24 +93,27 @@
 
 (defn directional-keypad
   [out n]
-  (if (zero? n)
-    (count out)
-    (let [parts (string/split out #"A")]
-      (->> parts
-           (map (fn [part]
-                  (->> (str "A" part "A")
-                       (partition 2 1)
-                       (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
-                       (interpose ["A"])
-                       (reduce (fn [acc el]
-                                 (->> acc
-                                      (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
-                               [""])
-                       (map (fn [s] (str s "A")))
-                       set
-                       (map (fn [possible] (directional-keypad possible (dec n))))
-                       (apply min))))
-           (reduce + 0)))))
+  (let [f (fn [rec out n]
+            (if (zero? n)
+              (count out)
+              (let [parts (string/split out #"A")]
+                (->> parts
+                     (map (fn [part]
+                            (->> (str "A" part "A")
+                                 (partition 2 1)
+                                 (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
+                                 (interpose ["A"])
+                                 (reduce (fn [acc el]
+                                           (->> acc
+                                                (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
+                                         [""])
+                                 (map (fn [s] (str s "A")))
+                                 set
+                                 (map (fn [possible] (rec rec possible (dec n))))
+                                 (apply min))))
+                     (reduce + 0)))))
+        memo-f (memoize f)]
+    (memo-f memo-f out n)))
 
 (defn shortest-length
   [c iters]
@@ -129,11 +132,10 @@
   [codes]
   (->> codes
        (map (fn [c] (* (numeric-part c)
-                       (shortest-length c 6))))
+                       (shortest-length c 25))))
        (reduce + 0)))
 
 (lib/check
   [part1 sample] 126384
   [part1 puzzle] 219366
-  [part2 sample] 4613090
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle] 0)
