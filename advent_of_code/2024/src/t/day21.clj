@@ -71,41 +71,18 @@
                                                    (apply str)))]]))
        (into {})))
 
-(defn move-numeric
-  [current-position direction]
-  (-> {"9" {"<" "8" "v" "6"}
-       "8" {"<" "7" "v" "5" ">" "9"}
-       "7" {">" "8" "v" "4"}
-       "6" {"^" "9" "<" "5" "v" "3"}
-       "5" {"<" "4" "^" "8" ">" "6" "v" "2"}
-       "4" {"^" "7" ">" "5" "v" "1"}
-       "3" {"^" "6" "<" "2" "v" "A"}
-       "2" {"^" "5" "<" "1" ">" "3" "v" "0"}
-       "1" {"^" "4" ">" "2"}
-       "0" {"^" "2" ">" "A"}
-       "A" {"^" "3" "<" "0"}}
-      (get-in [current-position direction])))
-
-(defn move-directional
-  [current-position direction]
-  (-> {"^" {">" "A" "v" "v"}
-       "A" {"<" "^" "v" ">"}
-       "<" {">" "v"}
-       "v" {"<" "<" "^" "^" ">" ">"}
-       ">" {"^" "A" "<" "v"}}
-      (get-in [current-position direction])))
-
-(defn make-from-to
-  [t]
-  (for [from (keys t)
-        to (keys t)
-       (map (fn [k]
-
-    f))
-
 (defn numeric-keypad
   [desired-output]
-  [])
+  (->> (str "A" desired-output)
+       (partition 2 1)
+       (map (fn [[from to]] (get from-to-num [(str from) (str to)])))
+       (interpose ["A"])
+       (reduce (fn [acc el]
+                 (->> acc
+                      (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
+               [""])
+       (map (fn [s] (str s "A")))
+       set))
 
 (defn directional-keypad
   [moves]
