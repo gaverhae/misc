@@ -61,19 +61,17 @@
            min-cost nil
            visited #{}
            good-paths #{}]
-      #_(prn [cost state min-cost visited good-paths])
-      #_(Thread/sleep 100)
       (if (and min-cost (> cost min-cost))
         good-paths
-        (do (when (not (visited (dissoc state :outer)))
+        (do (when (not (visited state))
               (doseq [nxt-state (generate-numeric-moves state desired-output)]
-                (when (not (visited (dissoc nxt-state :outer)))
+                (when (not (visited nxt-state))
                   (.add to-visit [(inc cost) nxt-state]))))
             (recur (.poll to-visit)
                    (if (and (nil? min-cost) (= (:output state) desired-output))
                      cost
                      min-cost)
-                   (conj visited (dissoc state :outer))
+                   (conj visited state)
                    (cond-> good-paths
                      (= (:output state) desired-output) (conj (:outer state)))))))))
 
