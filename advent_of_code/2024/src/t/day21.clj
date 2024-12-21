@@ -61,6 +61,7 @@
            min-cost nil
            visited #{}
            good-paths #{}]
+      (when (= 28 cost) (prn [:ploup state]))
       (if (and min-cost (> cost min-cost))
         good-paths
         (do (when (not (visited state))
@@ -91,7 +92,8 @@
 
 (defn part1
   [codes]
-  (->> codes first ((fn [c] (numeric-keypad c move-numeric))))
+  (->> codes first ((fn [c] (numeric-keypad c move-numeric)))
+       (mapcat (fn [c] (numeric-keypad c move-directional))))
   #_(->> codes
        (map (fn [c] (* (numeric-part c)
                        (shortest-length c))))
