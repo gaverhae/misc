@@ -102,7 +102,7 @@
                 #_(prn [:parts parts])
                 (->> parts
                      (map (fn [part]
-                            (->> (str "A" part)
+                            (->> (str "A" part "A")
                                  (partition 2 1)
                                  (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
                                  (interpose ["A"])
@@ -191,12 +191,17 @@
                    "8" (case m \< "7", \v "5", \> "9")
                    "9" (case m \< "8", \v "6"))))))))
 
+
 (clojure.test/deftest rev
   (let [code "029A"]
   (clojure.test/is (= code
                       (-> code
-                          (shortest-length 0)
-                          f-n)))))
+                          (shortest-length 3)
+                          f-d
+                          f-d
+                          f-d
+                          f-n
+                          )))))
 
 
 
