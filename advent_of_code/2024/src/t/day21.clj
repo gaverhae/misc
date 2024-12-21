@@ -58,17 +58,6 @@
                                                                (apply str)))]]))
        (into {})))
 
-(defn is-bad-sequence-dir?
-  [moves]
-  (loop [[y x] [0 2]
-         moves moves]
-    (cond (= [y x] [0 0]) true
-          (empty? moves) false
-          :else (let [[m & moves] moves
-                      [dy dx] (get {"^" [-1 0], "<" [0 -1], "v" [1 0], ">" [0 1], "A" [0 0]} (str m))
-                      [y x] [(+ dy y) (+ dx x)]]
-                  (recur [y x] moves)))))
-
 (def from-to-dir
   (->> {["^" "^"] "" ["^" "A"] ">" ["^" "<"] "v<" ["^" "v"] "v" ["^" ">"] "v>"
         ["A" "A"] "" ["A" ">"] "v" ["A" "v"] "v<" ["A" "<"] "v<<"
@@ -80,9 +69,6 @@
                   [[to from] (to-combinations (->> one-path
                                                    (map {\< \>, \> \<, \v \^, \^ \v})
                                                    (apply str)))]]))
-       (map (fn [[k ps]] [k (->> ps
-                                 (remove is-bad-sequence-dir?)
-                                 set)]))
        (into {})))
 
 (defn is-bad-sequence-num?
@@ -111,6 +97,17 @@
        (remove is-bad-sequence-num?)
        set))
 
+(defn is-bad-sequence-dir?
+  [moves]
+  (loop [[y x] [0 2]
+         moves moves]
+    (cond (= [y x] [0 0]) true
+          (empty? moves) false
+          :else (let [[m & moves] moves
+                      [dy dx] (get {"^" [-1 0], "<" [0 -1], "v" [1 0], ">" [0 1], "A" [0 0]} (str m))
+                      [y x] [(+ dy y) (+ dx x)]]
+                  (recur [y x] moves)))))
+
 (defn directional-keypad
   [desired-output]
   (->> (str "A" desired-output)
@@ -125,66 +122,24 @@
        (remove is-bad-sequence-dir?)
        set))
 
-(defn iter-directional
-  [from to n]
-  (if (zero? n)
-    1
-    (->> (get from-to-dir [(str from) (str to)])
-         (map (fn [dir-seq]
-                (->> (str "A" dir-seq)
-                     (partition 2 1)
-                     (map (fn [[from to]] (iter-directional from to (dec n))))
-
-                     ))))))
-
-(comment
-
-(iter-directional "A" "<" 0)
-1
-(iter-directional "A" "<" 1)
-((1 1 1) (1 1 1))
-(("v" "<" "<") ("<" "v" "<"))
-(iter-directional "A" "<" 2)
-(((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<"))))
-(iter-directional "A" "<" 5)
-(((((((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))) (((("v" "<" "<") ("<" "v" "<")))) (())) ((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))) (((("v")))) (((("v" "<" "<") ("<" "v" "<")))))) (((((("<" "v") ("v" "<"))))))) ((((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))) (((("v"))))) ((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))) (((("v" "<" "<") ("<" "v" "<")))))) (((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))))))) (((((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))) (((("v" "<" "<") ("<" "v" "<")))) (())) ((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))) (((("v")))) (((("v" "<" "<") ("<" "v" "<")))))))) (())) ((((((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))) (((("v"))))) ((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))) (((("v" "<" "<") ("<" "v" "<")))))) (((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))))) (())) ((((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))) (((("v" "<" "<") ("<" "v" "<")))) (())) ((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))) (((("v")))) (((("v" "<" "<") ("<" "v" "<")))))) (((((("<" "v") ("v" "<")))))) (((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))))))) (((((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))))))) (((((((("v" "<" "<") ("<" "v" "<")) ((">"))) ((("<" "v") ("v" "<")) (("<")))) (((("v" "<" "<") ("<" "v" "<")))) (())) ((((("<" "v") ("v" "<")) (("<")) (())) ((("v" "<" "<") ("<" "v" "<")) ((">")) (("<")))) (((("v")))) (((("v" "<" "<") ("<" "v" "<"))))))))))
-
-(iter-directional "A" "<" 1)
-(iter-directional "A" "<" 2)
-(iter-directional "A" "<" 5)
-
-(->> (str "A" "<A^A>^^AvvvA")
-     (partition 2 1)
-     (map (fn [[from to]] (iter-directional from to 2)))
-     (map #(apply min %)))
-     (= 68)
-(((2 1 1) (2 1 1)) ((1 2 2) (1 1 2) (1 2 1)) ((2)) ((1)) ((2)) ((2 2) (1 2)) (()) ((1)) ((2 1) (2 1)) (()) (()) ((1 2) (1 2)))
-
-)
-
-
-
-
 (defn shortest-length
   [c]
-  (->> (numeric-keypad c)
+  (->> c
+       numeric-keypad
        (pmap directional-keypad)
        (reduce set/union)
-       sort
-       (mapv (fn [s] (prn s)))
-       #_(pmap directional-keypad)
-       #_(reduce set/union)
-       #_(sort-by count)
-       #_first
-       #_count))
+       (pmap directional-keypad)
+       (reduce set/union)
+       (sort-by count)
+       first
+       count))
 
 (defn part1
   [codes]
   (->> codes
-       (take 1)
-       (map (fn [c] [:* (numeric-part c)
-                     (shortest-length c)]))
-       #_(reduce + 0)))
+       (map (fn [c] (* (numeric-part c)
+                       (shortest-length c))))
+       (reduce + 0)))
 
 (defn part2
   [input]
