@@ -122,40 +122,28 @@
        (remove is-bad-sequence-dir?)
        set))
 
+(comment
+(defn count-dirs
+  [iters]
+  (fn [dir-seq]
+    (let [f (fn [s i]
+              (if (= zero? i)
+                (count s)
+                (->>
+    (->> (str "A" dir-seq)
+         (partition 2 1)
+         (map (fn [[from to]]
+                (->> (get from-to-dir [(str from) (str to)])
+                     )))))))]))))
+
+
 (defn shortest-length
-  [c]
-  (prn [:shortest c])
-  (->> (str "A" c)
-       (partition 2 1)
-       (mapv (fn [[from to]]
-              (->> (get from-to-num [(str from) (str to)])
-                   (mapv (fn [step1]
-                          (prn [:step1 step1])
-                          (->> (str "A" step1)
-                               (partition 2 1)
-                               (mapv (fn [[from to]]
-                                       (->> (get from-to-dir [(str from) (str to)])
-                                            (mapv (fn [step2]
-                                                    (prn [:step2 step2])
-                                                    (-> (str "A" step2)
-                                                        (partition 2 1)
-                                                        (mapv (fn [[from to]]
-                                                                (->> (get from-to-dir [(str from) (str to)])
-                                                                     (mapv (fn [step3]
-                                                                             (prn [:step3 step3])
-                                                                             step3)))))))))))))))))))
+  [c iters]
+  (->> (numeric-keypad c)
+       #_(map (count-dirs iters))
+       #_(apply min)))
 
 (comment
-       (interpose ["A"])
-       (reduce (fn [acc el]
-                 (->> acc
-                      (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
-               [""])
-       (map (fn [s] (str s "A")))
-       (remove is-bad-sequence-dir?)
-       set
-
-
        numeric-keypad
        (pmap directional-keypad)
        (reduce set/union)
@@ -169,7 +157,7 @@
   [codes]
   (->> codes
        (map (fn [c] [:* (numeric-part c)
-                     (shortest-length c)]))
+                     (shortest-length c 2)]))
        #_(reduce + 0)))
 
 (defn part2
