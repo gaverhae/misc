@@ -58,19 +58,6 @@
                                                                (apply str)))]]))
        (into {})))
 
-(def from-to-dir
-  (->> {["^" "^"] "" ["^" "A"] ">" ["^" "<"] "v<" ["^" "v"] "v" ["^" ">"] "v>"
-        ["A" "A"] "" ["A" ">"] "v" ["A" "v"] "v<" ["A" "<"] "v<<"
-        ["<" "<"] "" ["<" "v"] ">" ["<" ">"] ">>"
-        ["v" "v"] "" ["v" ">"] ">"
-        [">" ">"] ""}
-       (mapcat (fn [[[from to] one-path]]
-                 [[[from to] (to-combinations one-path)]
-                  [[to from] (to-combinations (->> one-path
-                                                   (map {\< \>, \> \<, \v \^, \^ \v})
-                                                   (apply str)))]]))
-       (into {})))
-
 (defn is-bad-sequence-num?
   "We are not allowed to have the head in front of the empty cell."
   [moves]
@@ -96,6 +83,13 @@
        (map (fn [s] (str s "A")))
        (remove is-bad-sequence-num?)
        set))
+
+(def from-to-dir
+  {["<" "<"] #{""} ["<" ">"] #{">>"} ["<" "A"] #{">^>" ">>^" "^>>"} ["<" "^"] #{">^" "^>"} ["<" "v"] #{">"}
+   [">" "<"] #{"<<"} [">" ">"] #{""} [">" "A"] #{"^"} [">" "^"] #{"<^" "^<"} [">" "v"] #{"<"}
+   ["A" "<"] #{"<<v" "v<<" "<v<"} ["A" ">"] #{"v"} ["A" "A"] #{""} ["A" "^"] #{"<"} ["A" "v"] #{"<v" "v<"}
+   ["^" "<"] #{"<v" "v<"} ["^" ">"] #{">v" "v>"} ["^" "A"] #{">"} ["^" "^"] #{""} ["^" "v"] #{"v"}
+   ["v" "<"] #{"<"} ["v" ">"] #{">"} ["v" "A"] #{">^" "^>"} ["v" "^"] #{"^"} ["v" "v"] #{""}})
 
 (defn is-bad-sequence-dir?
   [moves]
