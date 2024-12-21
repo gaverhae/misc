@@ -16,14 +16,27 @@
        (apply str)
        parse-long))
 
+(defn numeric-keypad
+  [code]
+  "")
+
+(defn directional-keypad
+  [moves]
+  [""])
+
 (defn shortest-length
   [c]
-  0)
+  (->> c
+       (map numeric-keypad)
+       (mapcat directional-keypad)
+       (mapcat directional-keypad)
+       (map count)
+       sort
+       first))
 
 (defn part1
   [codes]
-  (map numeric-part codes)
-  #_(->> codes
+  (->> codes
        (map (fn [c] (* (numeric-part c)
                        (shortest-length c))))
        (reduce + 0)))
