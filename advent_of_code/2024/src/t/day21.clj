@@ -48,11 +48,11 @@
       :outer (str outer "A")
       :output (str output inner)}]
     (->> ["<" ">" "^" "v"]
-         (map (fn [d]
-                (when-let [next-key (move-numeric inner d)]
-                  {:inner next-key
-                   :output output
-                   :outer (str outer d)})))))))
+         (keep (fn [d]
+                 (when-let [next-key (move-numeric inner d)]
+                   {:inner next-key
+                    :output output
+                    :outer (str outer d)})))))))
 
 (defn numeric-keypad
   [desired-output]
