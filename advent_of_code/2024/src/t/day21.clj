@@ -60,9 +60,9 @@
     (loop [[cost state] [0 {:inner "A", :output "", :outer ""}]
            min-cost nil
            visited #{}
-           good-paths []]
-      (prn [cost state min-cost visited good-paths])
-      (Thread/sleep 100)
+           good-paths #{}]
+      #_(prn [cost state min-cost visited good-paths])
+      #_(Thread/sleep 100)
       (if (and min-cost (> cost min-cost))
         good-paths
         (do (when (not (visited (dissoc state :outer)))
@@ -104,7 +104,7 @@
   input)
 
 (lib/check
-  [part1 sample] 126384
+  [part1 sample] #_126384 #{"<A^A>^^AvvvA" "<A^A^>^AvvvA" "<A^A^^>AvvvA"}
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
