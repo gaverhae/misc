@@ -58,6 +58,19 @@
                                                                (apply str)))]]))
        (into {})))
 
+(def from-to-dir
+  (->> {["^" "^"] "" ["^" "A"] ">" ["^" "<"] "v<" ["^" "v"] "v" ["^" ">"] "v>"
+        ["A" "A"] "" ["A" ">"] "v" ["A" "v"] "v<" ["A" "<"] "v<<"
+        ["<" "<"] "" ["<" "v"] ">" ["<" ">"] ">>"
+        ["v" "v"] "" ["v" ">"] ">"
+        [">" ">"] ""}
+       (mapcat (fn [[[from to] one-path]]
+                 [[[from to] (to-combinations one-path)]
+                  [[to from] (to-combinations (->> one-path
+                                                   (map {\< \>, \> \<, \v \^, \^ \v})
+                                                   (apply str)))]]))
+       (into {})))
+
 (defn move-numeric
   [current-position direction]
   (-> {"9" {"<" "8" "v" "6"}
