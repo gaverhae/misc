@@ -16,6 +16,17 @@
        (apply str)
        parse-long))
 
+(def from-to-num
+  {"9" {"9" #{""}
+        "8" #{"<"}
+        "7" #{"<<"}
+        "6" #{"v"}
+        "5" #{"<v" "v<"}
+        "4" #{"<<v" "<v<" "v<<"}
+        "3" #{"vv"}
+        "2" #{"vv<" "v<v" "<vv"}
+        "1" #{"<<vv" "<v<v" :...}}})
+
 (defn move-numeric
   [current-position direction]
   (-> {"9" {"<" "8" "v" "6"}
@@ -39,6 +50,14 @@
        "v" {"<" "<" "^" "^" ">" ">"}
        ">" {"^" "A" "<" "v"}}
       (get-in [current-position direction])))
+
+(defn make-from-to
+  [t]
+  (for [from (keys t)
+        to (keys t)
+       (map (fn [k]
+
+    f))
 
 (defn numeric-keypad
   [desired-output]
