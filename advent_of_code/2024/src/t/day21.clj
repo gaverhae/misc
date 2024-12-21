@@ -31,6 +31,15 @@
        "A" {"^" "3" "<" "0"}}
       (get-in [current-position direction])))
 
+(defn move-directional
+  [current-position direction]
+  (-> {"^" {">" "A" "v" "v"}
+       "A" {"<" "^" "v" ">"}
+       "<" {">" "v"}
+       "v" {"<" "<" "^" "^" ">" ">"}
+       ">" {"^" "A" "<" "v"}}
+      (get-in [current-position direction])))
+
 (defn numeric-keypad
   [code]
   "")
