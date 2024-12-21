@@ -138,7 +138,10 @@
        first
        numeric-keypad
        (mapcat directional-keypad)
-       (filter #{"v<<A>>^A<A>AvA<^AA>A<vAAA>^A"})
+       set
+       (mapcat directional-keypad)
+       set
+       (filter #{"<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"})
        count
        #_(mapcat (fn [c] (numeric-keypad c move-directional))))
   #_(->> codes
