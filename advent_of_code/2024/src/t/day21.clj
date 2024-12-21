@@ -98,8 +98,8 @@
               #_(count out)
               out
               (let [parts (string/split out #"A")]
-                (prn [:string out])
-                (prn [:parts parts])
+                #_(prn [:string out])
+                #_(prn [:parts parts])
                 (->> parts
                      (map (fn [part]
                             (->> (str "A" part "A")
@@ -154,7 +154,14 @@
 (forward-num "<vA<AA>>^AvAA^<A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AvA^Av<<A>A^>A<Av>A^A")
 (forward-num "v<<A>>^A<A>AvA<^A>A<vA^>A")
 "<A^A>^AvA"
-0263
+" 0 2  6 3"
+
+
+(forward-num "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<v<A>>^AA<vA>A^A<A>A<v<A>A>^AAA<A>vA^A")
+(forward-num "v<<A>>^A<A>A<AAv>A^A<vAAA^>A")
+"<A^A^^>AvvvA"
+" 0 2   9   A"
+
 
 (defn part1
   [codes]
@@ -181,7 +188,7 @@
   #_#_[part1 sample] 126384
   #_#_[part1 puzzle] 219366
   #_#_[part2 sample 1] 53772
-  #_#_[part2 sample 2] 126384
+  [part2 sample 2] 126384
   [part2 sample 3] 310188
   #_#_[part2 sample 25] 154115708116294
   #_#_[part2 puzzle] 0)
