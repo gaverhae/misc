@@ -97,9 +97,30 @@
        (remove is-bad-sequence-num?)
        set))
 
-(defn directional-keypad
+(defn is-bad-sequence-dir?
   [moves]
-  [])
+  (loop [[y x] [0 2]
+         moves moves]
+    (cond (= [y x] [0 0]) true
+          (empty? moves) false
+          :else (let [[m & moves] moves
+                      [dy dx] (get {"^" [-1 0], "<" [0 -1], "v" [1 0], ">" [0 1], "A" [0 0]} (str m))
+                      [y x] [(+ dy y) (+ dx x)]]
+                  (recur [y x] moves)))))
+
+(defn directional-keypad
+  [desired-output]
+  (->> (str "A" desired-output)
+       (partition 2 1)
+       (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
+       (interpose ["A"])
+       (reduce (fn [acc el]
+                 (->> acc
+                      (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
+               [""])
+       (map (fn [s] (str s "A")))
+       (remove is-bad-sequence-dir?)
+       set))
 
 (defn shortest-length
   [c]
@@ -113,7 +134,12 @@
 
 (defn part1
   [codes]
-  (->> codes first numeric-keypad
+  (->> codes
+       first
+       numeric-keypad
+       (mapcat directional-keypad)
+       (filter #{"v<<A>>^A<A>AvA<^AA>A<vAAA>^A"})
+       count
        #_(mapcat (fn [c] (numeric-keypad c move-directional))))
   #_(->> codes
        (map (fn [c] (* (numeric-part c)
@@ -125,7 +151,7 @@
   input)
 
 (lib/check
-  [part1 sample] #_126384 #{"<A^A>^^AvvvA" "<A^A^>^AvvvA" "<A^A^^>AvvvA"}
+  [part1 sample] #_126384 1
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
