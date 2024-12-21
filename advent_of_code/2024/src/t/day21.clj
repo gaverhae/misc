@@ -125,26 +125,17 @@
 (defn shortest-length
   [c]
   (->> c
-       (map numeric-keypad)
-       (mapcat directional-keypad)
-       (mapcat directional-keypad)
-       (map count)
-       sort
-       first))
-
-(defn part1
-  [codes]
-  (->> codes
-       first
        numeric-keypad
        (mapcat directional-keypad)
        set
        (mapcat directional-keypad)
-       set
-       (filter #{"<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"})
-       count
-       #_(mapcat (fn [c] (numeric-keypad c move-directional))))
-  #_(->> codes
+       (sort-by count)
+       first
+       count))
+
+(defn part1
+  [codes]
+  (->> codes
        (map (fn [c] (* (numeric-part c)
                        (shortest-length c))))
        (reduce + 0)))
@@ -154,7 +145,7 @@
   input)
 
 (lib/check
-  [part1 sample] #_126384 1
+  [part1 sample] 126384
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
