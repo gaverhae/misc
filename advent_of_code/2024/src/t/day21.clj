@@ -97,16 +97,15 @@
             (if (zero? n)
               #_(count out)
               out
-              (->> out
+              (->> (str "A" out)
                    (partition 2 1)
                    (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
                    (map (fn [set-of-pos]
                           (->> set-of-pos
-                               (map (fn [p] (rec rec p (dec n))))
+                               (map (fn [p] (rec rec (str p "A") (dec n))))
                                #_(apply min)
                                (sort-by count)
                                first)))
-                   (map (fn [s] (str s "A")))
                    (apply str))))
 ;              (let [parts (string/split out #"A")]
 ;                #_(prn [:string out])
@@ -223,13 +222,27 @@
 "0"
 
 (shortest-length "0" 1)
-">^>A"
-(f-d (shortest-length "0" 1))
-"<A"
+"v<<A>^>A"
+(-> (shortest-length "0" 1) f-d f-n)
+"0"
 
 (shortest-length "0" 2)
-"<vA<AAAvAA<^AA"
-(f-d (shortest-length "0" 2))
+"<vA<AA>^>AvAA<^A>A"
+
+(-> (shortest-length "0" 2) f-d f-d f-n)
+"0"
+
+(shortest-length "0" 3)
+"v<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^AAv<<A>^A>AvA^A"
+(->> (shortest-length "0" 3) f-d f-d f-d f-n)
+
+(shortest-length "0" 5)
+"v<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>^>AvA<^A>AvA^A<vA>^A<A>A<vA<AA>^>AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>^>AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>^>AvA^A"
+(->> (shortest-length "0" 5) f-d f-d f-d f-d f-d f-n)
+"0"
+
+(->> (shortest-length "029A" 8) f-d f-d f-d f-d f-d f-d f-d f-d f-n)
+"029A"
 
 
 "  v << A>^>A"
