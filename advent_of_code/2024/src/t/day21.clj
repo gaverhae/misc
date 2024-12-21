@@ -34,27 +34,29 @@
                                               (str (subs s 0 i) nxt (subs s i (count s))))))))
                         set)))))))
 
-(to-combinations "")
-#{""}
-(to-combinations "<")
-#{"<"}
-(to-combinations "<<<")
-#{"<<<"}
-(to-combinations "<<vv")
-#{"v<<v" "vv<<" "<vv<" "<v<v" "v<v<" "<<vv"}
-(to-combinations "<<<v")
-#{"<v<<" "<<v<" "<<<v" "v<<<"}
-
 (def from-to-num
-  {"9" {"9" #{""}
-        "8" #{"<"}
-        "7" #{"<<"}
-        "6" #{"v"}
-        "5" #{"<v" "v<"}
-        "4" #{"<<v" "<v<" "v<<"}
-        "3" #{"vv"}
-        "2" #{"vv<" "v<v" "<vv"}
-        "1" #{"<<vv" "<v<v" :...}}})
+  (->> {[9 9] "" [9 8] "<" [9 7] "<<" [9 6] "v" [9 5] "<v" [9 4] "<<v"
+        [9 3] "vv" [9 2] "vv<" [9 1] "<<vv" [9 0] "vvv<" [9 "A"] "vvv"
+        [8 8] "" [8 7] "<" [8 6] "v>" [8 5] "v" [8 4] "v<" [8 3] "vv>"
+        [8 2] "vv" [8 1] "vv<" [8 0] "vvv" [8 "A"] "vvv>"
+        [7 7] "" [7 6] "v>>" [7 5] "v>" [7 4] "v" [7 3] "vv>>" [7 2] "vv>"
+        [7 1] "vv" [7 0] "vv>v" [7 "A"] "vvv>>"
+        [6 6] "" [6 5] "<" [6 4] "<<" [6 3] "v" [6 2] "v<" [6 1] "v<<"
+        [6 0] "vv<" [6 "A"] "vv"
+        [5 5] "" [5 4] "<" [5 3] ">v" [5 2] "v" [5 1] "v<" [5 0] "vv"
+        [5 "A"] "vv>"
+        [4 4] "" [4 3] "v>>" [4 2] "v>" [4 1] "v" [4 0] "vv>" [4 "A"] "vv>>"
+        [3 3] "" [3 2] "<" [3 1] "<<" [3 0] "<v" [3 "A"] "v"
+        [2 2] "" [2 1] "<" [2 0] "v" [2 "A"] "v>"
+        [1 1] "" [1 0] "v>" [1 "A"] "v>>"
+        [0 0] "" [0 "A"] ">"
+        ["A" "A"] ""}
+       (mapcat (fn [[[from to] one-path]]
+                 [[[(str from) (str to)] (to-combinations one-path)]
+                  [[(str to) (str from)] (to-combinations (->> one-path
+                                                               (map {\< \>, \> \<, \v \^, \^ \v})
+                                                               (apply str)))]]))
+       (into {})))
 
 (defn move-numeric
   [current-position direction]
