@@ -97,27 +97,38 @@
             (if (zero? n)
               #_(count out)
               out
-              (let [parts (string/split out #"A")]
-                #_(prn [:string out])
-                #_(prn [:parts parts])
-                (->> parts
-                     (map (fn [part]
-                            (->> (str "A" part "A")
-                                 (partition 2 1)
-                                 (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
-                                 (interpose ["A"])
-                                 (reduce (fn [acc el]
-                                           (->> acc
-                                                (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
-                                         [""])
-                                 (map (fn [s] (str s "A")))
-                                 set
-                                 (map (fn [possible] (rec rec possible (dec n))))
-                                 #_(apply min)
-                                 (sort-by (juxt count identity))
-                                 first)))
-                     (apply str)
-                     #_(reduce + 0)))))
+              (->> out
+                   (partition 2 1)
+                   (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
+                   (map (fn [set-of-pos]
+                          (->> set-of-pos
+                               (map (fn [p] (rec rec p (dec n))))
+                               #_(apply min)
+                               (sort-by count)
+                               first)))
+                   (map (fn [s] (str s "A")))
+                   (apply str))))
+;              (let [parts (string/split out #"A")]
+;                #_(prn [:string out])
+;                #_(prn [:parts parts])
+;                (->> parts
+;                     (map (fn [part]
+;                            (->> (str "A" part "A")
+;                                 (partition 2 1)
+;                                 (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
+;                                 (interpose ["A"])
+;                                 (reduce (fn [acc el]
+;                                           (->> acc
+;                                                (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
+;                                         [""])
+;                                 (map (fn [s] (str s "A")))
+;                                 set
+;                                 (map (fn [possible] (rec rec possible (dec n))))
+;                                 #_(apply min)
+;                                 (sort-by (juxt count identity))
+;                                 first)))
+;                     (apply str)
+;                     #_(reduce + 0)))))
         memo-f (memoize f)]
     (memo-f memo-f out n)))
 
@@ -193,17 +204,38 @@
 
 
 (clojure.test/deftest rev
-  (let [code "029A"]
+  (let [code "0"]
   (clojure.test/is (= code
                       (-> code
-                          (shortest-length 3)
-                          f-d
-                          f-d
-                          f-d
-                          f-n
+                          (shortest-length 1)
+                          #_f-d
+                          #_f-d
+                          #_f-d
+                          #_f-d
+                          #_f-n
                           )))))
 
+(comment
 
+(shortest-length "0" 0)
+"<A"
+(f-n (shortest-length "0" 0))
+"0"
+
+(shortest-length "0" 1)
+">^>A"
+(f-d (shortest-length "0" 1))
+"<A"
+
+(shortest-length "0" 2)
+"<vA<AAAvAA<^AA"
+(f-d (shortest-length "0" 2))
+
+
+"  v << A>^>A"
+"<vA<AAAvAA<^AA"
+
+)
 
 (defn part1
   [codes]
