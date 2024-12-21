@@ -102,7 +102,7 @@
                 #_(prn [:parts parts])
                 (->> parts
                      (map (fn [part]
-                            (->> (str "A" part "A")
+                            (->> (str "A" part)
                                  (partition 2 1)
                                  (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
                                  (interpose ["A"])
@@ -129,7 +129,10 @@
        first
        #_(apply min)))
 
-(defn forward-num
+(string/split "<<^AA>vA" #"A")
+["<<^" "" ">v"]
+
+(defn f-d
   [moves]
   (loop [moves moves
          [p out] ["A" ""]]
@@ -150,17 +153,51 @@
                  [">" \<] ["v" out]
                  [">" \^] ["A" out]))))))
 
-(forward-num "<v<A>A>^A<v<A>>^AAvAA<^A>A<vA>^AA<Av<A>>^AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<v<A>A>^A<A>vA^A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^A<A>vA^A<v<A>>^A<vA>A^A<A>A")
-(forward-num "<vA<AA>>^AvAA^<A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AvA^Av<<A>A^>A<Av>A^A")
-(forward-num "v<<A>>^A<A>AvA<^A>A<vA^>A")
+(f-d "<v<A>A>^A<v<A>>^AAvAA<^A>A<vA>^AA<Av<A>>^AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<v<A>A>^A<A>vA^A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^A<A>vA^A<v<A>>^A<vA>A^A<A>A")
+(f-d "<vA<AA>>^AvAA^<A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AvA^Av<<A>A^>A<Av>A^A")
+(f-d "v<<A>>^A<A>AvA<^A>A<vA^>A")
 "<A^A>^AvA"
 " 0 2  6 3"
 
 
-(forward-num "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<v<A>>^AA<vA>A^A<A>A<v<A>A>^AAA<A>vA^A")
-(forward-num "v<<A>>^A<A>A<AAv>A^A<vAAA^>A")
+(f-d "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<v<A>>^AA<vA>A^A<A>A<v<A>A>^AAA<A>vA^A")
+(f-d "v<<A>>^A<A>A<AAv>A^A<vAAA^>A")
 "<A^A^^>AvvvA"
 " 0 2   9   A"
+
+(defn f-n
+  [moves]
+  (loop [moves moves
+         out ""
+         p "A"]
+    (if (empty? moves)
+      out
+      (let [[m & moves] moves
+            out (if (= \A m) (str out p) out)]
+        (recur moves
+               out
+               (if (= \A m)
+                 p
+                 (case p
+                   "A" (case m \< "0", \^ "3")
+                   "0" (case m \^ "2", \> "A")
+                   "1" (case m \^ "4", \> "2")
+                   "2" (case m \v "0", \> "3", \< "1", \^ "5")
+                   "3" (case m \< "2", \v "A", \^ "6")
+                   "4" (case m \^ "7", \> "5", \v "1")
+                   "5" (case m \< "4", \^ "8", \v "2", \> "6")
+                   "6" (case m \^ "9", \< "5", \v "3")
+                   "7" (case m \v "4", \> "8")
+                   "8" (case m \< "7", \v "5", \> "9")
+                   "9" (case m \< "8", \v "6"))))))))
+
+(clojure.test/deftest rev
+  (let [code "029A"]
+  (clojure.test/is (= code
+                      (-> code
+                          (shortest-length 0)
+                          f-n)))))
+
 
 
 (defn part1
@@ -188,7 +225,7 @@
   #_#_[part1 sample] 126384
   #_#_[part1 puzzle] 219366
   #_#_[part2 sample 1] 53772
-  [part2 sample 2] 126384
-  [part2 sample 3] 310188
+  #_#_[part2 sample 2] 126384
+  #_#_[part2 sample 3] 310188
   #_#_[part2 sample 25] 154115708116294
   #_#_[part2 puzzle] 0)
