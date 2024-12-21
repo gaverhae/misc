@@ -92,26 +92,34 @@
    ["v" "<"] #{"<"} ["v" ">"] #{">"} ["v" "A"] #{">^" "^>"} ["v" "^"] #{"^"} ["v" "v"] #{""}})
 
 (defn directional-keypad
-  [desired-output]
-  (->> (str "A" desired-output)
-       (partition 2 1)
-       (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
-       (interpose ["A"])
-       (reduce (fn [acc el]
-                 (->> acc
-                      (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
-               [""])
-       (map (fn [s] (str s "A")))
-       set))
+  [out n]
+  (if (zero? n)
+    #_(count out)
+    out
+    (let [parts (string/split out #"A")]
+      (->> parts
+           (map (fn [part]
+                  (->> (str "A" part "A")
+                       (partition 2 1)
+                       (map (fn [[from to]] (get from-to-dir [(str from) (str to)])))
+                       (interpose ["A"])
+                       (reduce (fn [acc el]
+                                 (->> acc
+                                      (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
+                               [""])
+                       (map (fn [s] (str s "A")))
+                       set
+                       (map (fn [possible] (directional-keypad possible (dec n))))
+                       #_(apply min)
+                       (sort-by count)
+                       first)))
+           (apply str)
+           #_(reduce + (count parts))))))
 
 (defn shortest-length
   [c]
-  (->> c
-       numeric-keypad
-       (pmap directional-keypad)
-       (reduce set/union)
-       (pmap directional-keypad)
-       (reduce set/union)
+  (->> (numeric-keypad c)
+       (map (fn [o] (directional-keypad o 2)))
        (sort-by count)
        first
        count))
@@ -129,6 +137,6 @@
 
 (lib/check
   [part1 sample] 126384
-  #_#_[part1 puzzle] 0
+  [part1 puzzle] 219366
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
