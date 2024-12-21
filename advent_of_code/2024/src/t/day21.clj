@@ -40,50 +40,18 @@
        ">" {"^" "A" "<" "v"}}
       (get-in [current-position direction])))
 
-(defn generate-moves
-  [{:keys [inner outer output]} desired-output inner-keypad]
-  (let [target (str (get desired-output (count output)))]
-  (if (= inner target)
-    [{:inner inner
-      :outer (str outer "A")
-      :output (str output inner)}]
-    (->> ["<" ">" "^" "v"]
-         (keep (fn [d]
-                 (when-let [next-key (inner-keypad inner d)]
-                   {:inner next-key
-                    :output output
-                    :outer (str outer d)})))))))
-
 (defn numeric-keypad
-  [desired-output inner-keypad]
-  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
-    (loop [[cost state] [0 {:inner "A", :output "", :outer ""}]
-           min-cost nil
-           visited #{}
-           good-paths #{}]
-      (when (= 28 cost) (prn [:ploup state]))
-      (if (and min-cost (> cost min-cost))
-        good-paths
-        (do (when (not (visited state))
-              (doseq [nxt-state (generate-moves state desired-output inner-keypad)]
-                (when (not (visited nxt-state))
-                  (.add to-visit [(inc cost) nxt-state]))))
-            (recur (.poll to-visit)
-                   (if (and (nil? min-cost) (= (:output state) desired-output))
-                     cost
-                     min-cost)
-                   (conj visited state)
-                   (cond-> good-paths
-                     (= (:output state) desired-output) (conj (:outer state)))))))))
+  [desired-output]
+  [])
 
 (defn directional-keypad
   [moves]
-  [""])
+  [])
 
 (defn shortest-length
   [c]
   (->> c
-       (map (fn [c] (numeric-keypad c move-numeric)))
+       (map numeric-keypad)
        (mapcat directional-keypad)
        (mapcat directional-keypad)
        (map count)
@@ -92,8 +60,8 @@
 
 (defn part1
   [codes]
-  (->> codes first ((fn [c] (numeric-keypad c move-numeric)))
-       (mapcat (fn [c] (numeric-keypad c move-directional))))
+  (->> codes first numeric-keypad
+       #_(mapcat (fn [c] (numeric-keypad c move-directional))))
   #_(->> codes
        (map (fn [c] (* (numeric-part c)
                        (shortest-length c))))
