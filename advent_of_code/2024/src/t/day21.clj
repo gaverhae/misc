@@ -91,17 +91,6 @@
    ["^" "<"] #{"v<"} ["^" ">"] #{">v" "v>"} ["^" "A"] #{">"} ["^" "^"] #{""} ["^" "v"] #{"v"}
    ["v" "<"] #{"<"} ["v" ">"] #{">"} ["v" "A"] #{">^" "^>"} ["v" "^"] #{"^"} ["v" "v"] #{""}})
 
-(defn is-bad-sequence-dir?
-  [moves]
-  (loop [[y x] [0 2]
-         moves moves]
-    (cond (= [y x] [0 0]) true
-          (empty? moves) false
-          :else (let [[m & moves] moves
-                      [dy dx] (get {"^" [-1 0], "<" [0 -1], "v" [1 0], ">" [0 1], "A" [0 0]} (str m))
-                      [y x] [(+ dy y) (+ dx x)]]
-                  (recur [y x] moves)))))
-
 (defn directional-keypad
   [desired-output]
   (->> (str "A" desired-output)
@@ -113,7 +102,6 @@
                       (mapcat (fn [p1] (->> el (map (fn [p2] (str p1 p2))))))))
                [""])
        (map (fn [s] (str s "A")))
-       (remove is-bad-sequence-dir?)
        set))
 
 (defn shortest-length
