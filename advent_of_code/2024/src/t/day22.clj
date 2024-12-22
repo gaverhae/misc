@@ -13,12 +13,12 @@
   [a op]
   (mod (bit-xor a (op a)) 16777216))
 
-(defn next-random
-  [n]
-  (-> n
-      (mix-prune #(* 64 %))
-      (mix-prune #(quot % 32))
-      (mix-prune #(* 2048 %))))
+(def next-random
+  (memoize (fn [n]
+             (-> n
+                 (mix-prune #(* 64 %))
+                 (mix-prune #(quot % 32))
+                 (mix-prune #(* 2048 %))))))
 
 (defn part1
   [input]
