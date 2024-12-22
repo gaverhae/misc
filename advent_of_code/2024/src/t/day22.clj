@@ -37,12 +37,16 @@
                    (partition 2 1)
                    (map (fn [[prev cur]] [cur (- cur prev)]))
                    (partition 4 1)
-                   (map (fn [[[_ p1] [_ p2] [_ p3] [cur p4]]]
-                          [cur [p1 p2 p3 p4]]))
-                   (reduce (fn [acc [p s]]
-                             (if (contains? acc s)
-                               acc
-                               (assoc acc s p)))
+                   (map vec)
+                   (reduce (fn [acc p]
+                             (let [s [(get (get p 0) 1)
+                                      (get (get p 1) 1)
+                                      (get (get p 2) 1)
+                                      (get (get p 3) 1)]
+                                   v (get (get p 3) 0)]
+                               (if (contains? acc s)
+                                 acc
+                                 (assoc acc s v))))
                            {}))))
        (reduce (fn [acc el]
                  (merge-with + acc el)))
