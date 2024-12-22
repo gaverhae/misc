@@ -1,7 +1,9 @@
 (ns t.lib
   (:require [clojure.java.io :as io]
+            [clojure.java.shell :refer [sh]]
             [clojure.string :as string]
             [clojure.test :refer [deftest are is testing]]
+            [criterium.core :as crit]
             [hato.client :as hc]))
 
 (defn ->long
@@ -162,3 +164,16 @@
             (-> d (quot 1000) (quot 60) (quot 60))
             (-> d (quot 1000) (quot 60) (mod 60))
             (-> d (quot 1000) (mod 60)))))
+
+(defn bench
+  [f]
+  (let [res (crit/benchmark (f) {})
+        cur-ver (-> (sh "git" "show" "-q" "--format=%cd.%h" "--date=format:%Y%m%d.%H%M" "--abbrev=8")
+                    :out
+                    string/trim)]
+    (format "%s: %5.2f ± %5.2f [%5.2f %5.2f]"
+            cur-ver
+            (-> res :mean first)
+            (-> res :variance first)
+            (-> res :lower-q first)
+            (-> res :upper-q first))))

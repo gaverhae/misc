@@ -74,3 +74,13 @@
   [part1 puzzle] 19150344884
   [part2 sample1] 23
   [part2 puzzle] 2121)
+
+(comment
+
+  (lib/timed (part2 @puzzle))
+4265
+
+  (lib/bench #(part2 @puzzle))
+"20241222.1622.1b5abc0c:  4,27 ±  0,00 [ 4,24  4,30]"
+
+  )
