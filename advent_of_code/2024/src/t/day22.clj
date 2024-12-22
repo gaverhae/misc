@@ -57,17 +57,12 @@
                     (let [n (inc n)
                           prev p
                           p (mod secret 10)
-                          secret (next-random secret)]
-                      (if (nil? prev)
-                        (recur n p prev secret last-4 m)
-                        (let [d (- p prev)
-                              last-4 (conj last-4 d)
-                              last-4 (cond-> last-4
-                                       (= 5 (count last-4)) pop)
-                              m (cond-> m
-                                  (and (= 4 (count last-4))
-                                       (nil? (m last-4))) (assoc last-4 p))]
-                          (recur n p prev secret last-4 m)))))))))
+                          secret (next-random secret)
+                          d (- p prev)
+                          last-4 (pop (conj last-4 d))
+                          m (cond-> m
+                              (nil? (m last-4)) (assoc last-4 p))]
+                      (recur n p prev secret last-4 m)))))))
        (reduce (fn [acc el]
                  (merge-with + acc el)))
        (sort-by (fn [[k v]] (- v)))
