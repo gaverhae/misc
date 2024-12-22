@@ -52,18 +52,25 @@
                                 (map (fn [[prev cur]] [cur (- cur prev)]))
                                 (partition 4 1)
                                 (map (fn [[[_ p1] [_ p2] [_ p3] [cur p4]]]
-                                       [cur [p1 p2 p3 p4]]))))))]
-    (loop [to-try (->> prices (mapcat (fn [vendor] (map (fn [[cur s]] s) vendor))) set)
+                                       [cur [p1 p2 p3 p4]]))))))
+        all-seqs (->> prices (mapcat (fn [vendor] (map (fn [[cur s]] s) vendor))) set)
+        by-seq (->> prices
+                    (map (fn [vendor]
+                           (->> vendor
+                                (reduce (fn [acc [p s]]
+                                          (if (contains? acc s)
+                                            acc
+                                            (assoc acc s p)))
+                                        {})))))]
+    (loop [to-try all-seqs
            best-so-far 0]
       (if (empty? to-try)
         best-so-far
         (let [[s & to-try] to-try
-              result (->> prices
-                          (keep (fn [vendor]
-                                  (->> vendor
-                                       (some (fn [[cur s']] (when (= s s') cur))))))
-                          (reduce + 0)
-                          long)]
+              result (reduce (fn [acc vendor]
+                               (+ acc (get vendor s 0)))
+                             0
+                             by-seq)]
           (when (> result best-so-far)
             (prn [best-so-far '-> result]))
           (recur to-try
@@ -73,4 +80,4 @@
   [part1 sample] 37327623
   [part1 puzzle] 19150344884
   [part2 sample1] 23
-  [part2 puzzle] 0)
+  [part2 puzzle] 2121)
