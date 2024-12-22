@@ -5,6 +5,10 @@
             [instaparse.core :refer [parser]]
             [t.lib :as lib :refer [->long]]))
 
+(defn parse
+  [lines]
+  (->> lines (map parse-long)))
+
 (defn mix-prune
   [a op]
   (mod (bit-xor a (op a)) 16777216))
@@ -15,24 +19,6 @@
       (mix-prune #(* 64 %))
       (mix-prune #(quot % 32))
       (mix-prune #(* 2048 %))))
-
-(clojure.test/deftest secret-numbers
-  (clojure.test/is (= [123
-                       15887950
-                       16495136
-                       527345
-                       704524
-                       1553684
-                       12683156
-                       11100544
-                       12249484
-                       7753432
-                       5908254]
-                      (take 11 (iterate next-random 123)))))
-
-(defn parse
-  [lines]
-  (->> lines (map parse-long)))
 
 (defn part1
   [input]
@@ -71,8 +57,6 @@
                                (+ acc (get vendor s 0)))
                              0
                              by-seq)]
-          (when (> result best-so-far)
-            (prn [best-so-far '-> result]))
           (recur to-try
                  (max best-so-far result)))))))
 
