@@ -64,6 +64,8 @@
                                        (some (fn [[cur s']] (when (= s s') cur))))))
                           (reduce + 0)
                           long)]
+          (when (> result best-so-far)
+            (prn [best-so-far '-> result]))
           (recur to-try
                  (max best-so-far result)))))))
 
