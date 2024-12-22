@@ -27,27 +27,33 @@
                          2000)))
        (reduce + 0)))
 
+(def mtq clojure.lang.PersistentQueue/EMPTY)
+
 (defn part2
   [input]
   (->> input
        (map (fn [x]
-              (->> (iterate next-random x)
-                   (take 2001)
-                   (map (fn [r] (mod r 10)))
-                   (partition 2 1)
-                   (map (fn [[prev cur]] [cur (- cur prev)]))
-                   (partition 4 1)
-                   (map vec)
-                   (reduce (fn [acc p]
-                             (let [s [(get (get p 0) 1)
-                                      (get (get p 1) 1)
-                                      (get (get p 2) 1)
-                                      (get (get p 3) 1)]
-                                   v (get (get p 3) 0)]
-                               (if (contains? acc s)
-                                 acc
-                                 (assoc acc s v))))
-                           {}))))
+              (loop [n 0
+                     p nil
+                     prev nil
+                     secret x
+                     last-4 mtq
+                     m {}]
+                (if (= 2000 n)
+                  m
+                  (let [n (inc n)
+                        prev p
+                        p (mod secret 10)
+                        secret (next-random secret)]
+                    (if (nil? prev)
+                      (recur n p prev secret last-4 m)
+                      (let [d (- p prev)
+                            last-4 (conj last-4 d)
+                            last-4 (cond-> last-4
+                                     (= 5 (count last-4)) pop)
+                            m (cond-> m
+                                (nil? (m last-4)) (assoc last-4 p))]
+                        (recur n p prev secret last-4 m))))))))
        (reduce (fn [acc el]
                  (merge-with + acc el)))
        (sort-by (fn [[k v]] (- v)))
