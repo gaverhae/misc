@@ -33,25 +33,41 @@
   [input]
   (->> input
        (map (fn [x]
-              (loop [n 1
-                     p (mod x 10)
-                     prev nil
-                     secret (next-random x)
-                     last-4 (conj mtq p)
-                     m {}]
-                (if (= 2000 n)
-                  m
-                  (let [n (inc n)
-                        prev p
-                        p (mod secret 10)
-                        secret (next-random secret)
-                        d (- p prev)
-                        last-4 (conj last-4 d)
-                        last-4 (cond-> last-4
-                                 (= 5 (count last-4)) pop)
-                        m (cond-> m
-                            (nil? (m last-4)) (assoc last-4 p))]
-                    (recur n p prev secret last-4 m))))))
+              (let [n 5
+                    secret (nth (iterate next-random x)
+                                (- n 2))
+                    prev (mod secret 10)
+                    secret (next-random secret)
+                    p (mod secret 10)
+                    secret (next-random secret)
+                    last-4 (->> (iterate next-random x)
+                                (take n)
+                                (partition 2 1)
+                                (map (fn [[a b]] (- (mod b 10) (mod a 10))))
+                                (into mtq))
+                    m {last-4 p}]
+                (loop [n n
+                       p p
+                       prev prev
+                       secret secret
+                       last-4 last-4
+                       m m]
+                  (if (= 2000 n)
+                    m
+                    (let [n (inc n)
+                          prev p
+                          p (mod secret 10)
+                          secret (next-random secret)]
+                      (if (nil? prev)
+                        (recur n p prev secret last-4 m)
+                        (let [d (- p prev)
+                              last-4 (conj last-4 d)
+                              last-4 (cond-> last-4
+                                       (= 5 (count last-4)) pop)
+                              m (cond-> m
+                                  (and (= 4 (count last-4))
+                                       (nil? (m last-4))) (assoc last-4 p))]
+                          (recur n p prev secret last-4 m)))))))))
        (reduce (fn [acc el]
                  (merge-with + acc el)))
        (sort-by (fn [[k v]] (- v)))
