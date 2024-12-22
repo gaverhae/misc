@@ -116,7 +116,11 @@ true
              tot (long-array div)]
          (loop [vs input]
            (if (empty? vs)
-             tot
+             (loop [idx 0
+                    v 0]
+               (if (= idx div)
+                 v
+                 (recur (inc idx) (max v (aget tot idx)))))
              (let [vendor (first vs)
                    vs (rest vs)
                    n 5
@@ -150,11 +154,7 @@ true
                        (aset tot last-4 (long (+ (aget tot last-4) p))))
                      (.set bs last-4)
                      (recur n p prev secret last-4))))
-               (recur vs)))))
-       sort
-       reverse
-       (remove zero?)
-       first))
+               (recur vs)))))))
 
 (lib/check
   [part1 sample] 37327623
