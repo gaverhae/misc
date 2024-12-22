@@ -33,27 +33,25 @@
   [input]
   (->> input
        (map (fn [x]
-              (loop [n 0
-                     p nil
+              (loop [n 1
+                     p (mod x 10)
                      prev nil
-                     secret x
-                     last-4 mtq
+                     secret (next-random x)
+                     last-4 (conj mtq p)
                      m {}]
                 (if (= 2000 n)
                   m
                   (let [n (inc n)
                         prev p
                         p (mod secret 10)
-                        secret (next-random secret)]
-                    (if (nil? prev)
-                      (recur n p prev secret last-4 m)
-                      (let [d (- p prev)
-                            last-4 (conj last-4 d)
-                            last-4 (cond-> last-4
-                                     (= 5 (count last-4)) pop)
-                            m (cond-> m
-                                (nil? (m last-4)) (assoc last-4 p))]
-                        (recur n p prev secret last-4 m))))))))
+                        secret (next-random secret)
+                        d (- p prev)
+                        last-4 (conj last-4 d)
+                        last-4 (cond-> last-4
+                                 (= 5 (count last-4)) pop)
+                        m (cond-> m
+                            (nil? (m last-4)) (assoc last-4 p))]
+                    (recur n p prev secret last-4 m))))))
        (reduce (fn [acc el]
                  (merge-with + acc el)))
        (sort-by (fn [[k v]] (- v)))
