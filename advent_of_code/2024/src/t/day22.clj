@@ -129,8 +129,7 @@ true
                                 (take n)
                                 (partition 2 1)
                                 (map (fn [[a b]] (- (mod b 10) (mod a 10))))
-                                (into mtq)
-                                #_to-single-num)
+                                to-single-num)
                     m {last-4 p}]
                 (loop [n n
                        p p
@@ -145,7 +144,7 @@ true
                           p (mod secret 10)
                           secret (next-random secret)
                           d (- p prev)
-                          last-4 #_(add-num last-4 p) (pop (conj last-4 d))
+                          last-4 (add-num last-4 d)
                           m (cond-> m
                               (nil? (m last-4)) (assoc last-4 p))]
                       (recur n p prev secret last-4 m)))))))
