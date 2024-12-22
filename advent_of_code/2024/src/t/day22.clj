@@ -43,10 +43,21 @@
 
 (defn part2
   [input]
-  input)
+  (let [prices (->> input
+                    (map (fn [x]
+                           (->> (iterate next-random x)
+                                (take 2001)
+                                (map (fn [r] (mod r 10)))
+                                (partition 2 1)
+                                (map (fn [[prev cur]] [cur (- cur prev)]))
+                                (partition 4 1)
+                                (map (fn [[[_ p1] [_ p2] [_ p3] [cur p4]]]
+                                       [cur [p1 p2 p3 p4]]))))))]
+    (doall prices)
+    (ffirst prices)))
 
 (lib/check
   [part1 sample] 37327623
   [part1 puzzle] 19150344884
-  #_#_[part2 sample] 0
+  [part2 sample1] 23
   #_#_[part2 puzzle] 0)
