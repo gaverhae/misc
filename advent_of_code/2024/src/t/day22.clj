@@ -53,11 +53,22 @@
                                 (partition 4 1)
                                 (map (fn [[[_ p1] [_ p2] [_ p3] [cur p4]]]
                                        [cur [p1 p2 p3 p4]]))))))]
-    (doall prices)
-    (ffirst prices)))
+    (loop [to-try (->> prices (mapcat (fn [vendor] (map (fn [[cur s]] s) vendor))) set)
+           best-so-far 0]
+      (if (empty? to-try)
+        best-so-far
+        (let [[s & to-try] to-try
+              result (->> prices
+                          (keep (fn [vendor]
+                                  (->> vendor
+                                       (some (fn [[cur s']] (when (= s s') cur))))))
+                          (reduce + 0)
+                          long)]
+          (recur to-try
+                 (max best-so-far result)))))))
 
 (lib/check
   [part1 sample] 37327623
   [part1 puzzle] 19150344884
   [part2 sample1] 23
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle] 0)
