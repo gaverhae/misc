@@ -27,13 +27,93 @@
                          2000)))
        (reduce + 0)))
 
-(def mtq clojure.lang.PersistentQueue/EMPTY)
+(comment
+
+(->> [-3 6 -1 -1 0 2 -2 0 -2]
+     (partition 4 1)
+     (map (fn [s]
+            (reduce (fn [acc el]
+                      (+ (* acc 20) (+ 10 el)))
+                    0
+                    s)))
+     (map (fn [d]
+            (->> [(mod d 20)
+                  (mod d (* 20 20))
+                  (mod d (* 20 20 20))
+                  (mod d (* 20 20 20 20))]
+                 (map #(- % 10))))))
+(= (->> (for [d1 (range -9 10)
+              d2 (range -9 10)
+              d3 (range -9 10)
+              d4 (range -9 10)]
+          [d1 d2 d3 d4])
+        count)
+   (->> (for [d1 (range -9 10)
+              d2 (range -9 10)
+              d3 (range -9 10)
+              d4 (range -9 10)]
+          [d1 d2 d3 d4])
+        set
+        count)
+   (->> (for [d1 (range -9 10)
+              d2 (range -9 10)
+              d3 (range -9 10)
+              d4 (range -9 10)]
+          (reduce (fn [acc el]
+                    (+ (* acc 20) 10 el))
+                  0
+                  [d1 d2 d3 d4]))
+        count)
+   (->> (for [d1 (range -9 10)
+              d2 (range -9 10)
+              d3 (range -9 10)
+              d4 (range -9 10)]
+          (reduce (fn [acc el]
+                    (+ (* acc 20) 10 el))
+                  0
+                  [d1 d2 d3 d4]))
+        set
+        count))
+true
+
+(defn to-single-num
+  [[d1 d2 d3 d4]]
+  (reduce (fn [acc el]
+            (+ (* acc 20) 10 el))
+          0
+          [d1 d2 d3 d4]))
+
+(defn add-num
+  [s d]
+  (mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
+
+(to-single-num [1 2 3 4])
+93074
+(to-single-num [2 3 4 5])
+101495
+(add-num 93074 5)
+101495
+
+(->> (for [d1 (range -9 10)
+           d2 (range -9 10)
+           d3 (range -9 10)
+           d4 (range -9 10)
+           d5 (range -9 10)
+           :let [s1 (to-single-num [d1 d2 d3 d4])
+                 s2 (to-single-num [d2 d3 d4 d5])]
+           :when (not= s2 (add-num s1 d5))]
+       [d1 d2 d3 d4 d5]))
+()
+
+
+)
 
 (defn part2
   [input]
   (->> input
        (map (fn step1 [x]
-              (let [n 5
+              (let [div (* 20 20 20 20)
+                    n 5
                     secret (nth (iterate next-random x)
                                 (- n 2))
                     prev (mod secret 10)
@@ -44,7 +124,9 @@
                                 (take n)
                                 (partition 2 1)
                                 (map (fn [[a b]] (- (mod b 10) (mod a 10))))
-                                (into mtq))
+                                (reduce (fn [acc el]
+                                          (+ (* acc 20) (+ 10 el)))
+                                        0))
                     m {last-4 p}]
                 (loop [n n
                        p p
@@ -59,7 +141,7 @@
                           p (mod secret 10)
                           secret (next-random secret)
                           d (- p prev)
-                          last-4 (pop (conj last-4 d))
+                          last-4 (mod (+ (* 20 last-4) (+ 10 p)) div)
                           m (cond-> m
                               (nil? (m last-4)) (assoc last-4 p))]
                       (recur n p prev secret last-4 m)))))))
