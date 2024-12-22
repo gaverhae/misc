@@ -100,16 +100,14 @@ true
 
 (defn to-single-num
   [[d1 d2 d3 d4]]
-  [d1 d2 d3 d4]
-  #_(reduce (fn [acc el]
+  (reduce (fn [acc el]
             (+ (* acc 20) 10 el))
           0
           [d1 d2 d3 d4]))
 
 (defn add-num
-  [[d1 d2 d3 d4 :as q] d]
-  [d2 d3 d4 d]
-  #_(mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
+  [s d]
+  (mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
 
 (defn part2
   [input]
