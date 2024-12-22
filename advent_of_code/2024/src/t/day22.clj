@@ -100,8 +100,7 @@ true
 
 (defn to-single-num
   [[d1 d2 d3 d4]]
-  (into mtq [d1 d2 d3 d4])
-  #_[d1 d2 d3 d4]
+  [d1 d2 d3 d4]
   #_(reduce (fn [acc el]
             (+ (* acc 20) 10 el))
           0
@@ -109,8 +108,7 @@ true
 
 (defn add-num
   [[d1 d2 d3 d4 :as q] d]
-  (pop (conj q d))
-  #_[d2 d3 d4 d]
+  [d2 d3 d4 d]
   #_(mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
 
 (defn part2
@@ -166,7 +164,7 @@ true
 4265
 
   (lib/bench #(part2 @puzzle))
-"20241222.2044.c2b7da14:  5,84 ±  0,00 [ 5,82  5,86]"
+"20241222.2044.c2b7da14:  5,10 ±  0,00 [ 5,07  5,28]"
 "20241222.1622.1b5abc0c:  4,27 ±  0,00 [ 4,24  4,30]"
 
   )
