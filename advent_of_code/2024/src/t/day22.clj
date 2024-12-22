@@ -48,17 +48,12 @@
                                             acc
                                             (assoc acc s p)))
                                         {})))))]
-    (loop [to-try all-seqs
-           best-so-far 0]
-      (if (empty? to-try)
-        best-so-far
-        (let [[s & to-try] to-try
-              result (reduce (fn [acc vendor]
-                               (+ acc (get vendor s 0)))
-                             0
-                             by-seq)]
-          (recur to-try
-                 (max best-so-far result)))))))
+    (->> by-seq
+         (reduce (fn [acc el]
+                   (merge-with + acc el)))
+         (sort-by (fn [[k v]] (- v)))
+         first
+         second)))
 
 (lib/check
   [part1 sample] 37327623
