@@ -113,44 +113,43 @@ true
 (defn part2
   [input]
   (->> input
-       (map (fn step1 [x]
-              (let [div (* 20 20 20 20)
-                    n 5
-                    secret (nth (iterate next-random x)
-                                (- n 2))
-                    prev (mod secret 10)
-                    secret (next-random secret)
-                    p (mod secret 10)
-                    secret (next-random secret)
-                    last-4 (->> (iterate next-random x)
-                                (take n)
-                                (partition 2 1)
-                                (map (fn [[a b]] (- (mod b 10) (mod a 10))))
-                                to-single-num)
-                    bs (BitSet. div)
-                    m {last-4 p}]
-                (.set bs last-4)
-                (loop [n n
-                       p p
-                       prev prev
-                       secret secret
-                       last-4 last-4
-                       m m]
-                  (if (= 2000 n)
-                    m
-                    (let [n (inc n)
-                          prev p
-                          p (mod secret 10)
-                          secret (next-random secret)
-                          d (- p prev)
-                          last-4 (add-num last-4 d)
-                          m (if (.get bs last-4)
-                              m
-                              (assoc m last-4 p))]
-                      (.set bs last-4)
-                      (recur n p prev secret last-4 m)))))))
-       (reduce (fn step2 [acc el]
-                 (merge-with + acc el)))
+       (reduce (fn [tot vendor]
+                 (let [div (* 20 20 20 20)
+                       n 5
+                       secret (nth (iterate next-random vendor)
+                                   (- n 2))
+                       prev (mod secret 10)
+                       secret (next-random secret)
+                       p (mod secret 10)
+                       secret (next-random secret)
+                       last-4 (->> (iterate next-random vendor)
+                                   (take n)
+                                   (partition 2 1)
+                                   (map (fn [[a b]] (- (mod b 10) (mod a 10))))
+                                   to-single-num)
+                       bs (BitSet. div)
+                       tot (update tot last-4 (fnil + 0) p)]
+                   (.set bs last-4)
+                   (loop [n n
+                          p p
+                          prev prev
+                          secret secret
+                          last-4 last-4
+                          m tot]
+                     (if (= 2000 n)
+                       m
+                       (let [n (inc n)
+                             prev p
+                             p (mod secret 10)
+                             secret (next-random secret)
+                             d (- p prev)
+                             last-4 (add-num last-4 d)
+                             m (if (.get bs last-4)
+                                 m
+                                 (update m last-4 (fnil + 0) p))]
+                         (.set bs last-4)
+                         (recur n p prev secret last-4 m))))))
+               {})
        (sort-by (fn step3 [[k v]] (- v)))
        first
        second))
