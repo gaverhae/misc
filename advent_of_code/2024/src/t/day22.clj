@@ -38,9 +38,7 @@
                    (map (fn [[prev cur]] [cur (- cur prev)]))
                    (partition 4 1)
                    (map (fn [[[_ p1] [_ p2] [_ p3] [cur p4]]]
-                          [cur [p1 p2 p3 p4]])))))
-       (map (fn [vendor]
-              (->> vendor
+                          [cur [p1 p2 p3 p4]]))
                    (reduce (fn [acc [p s]]
                              (if (contains? acc s)
                                acc
