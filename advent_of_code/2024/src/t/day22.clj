@@ -6,15 +6,15 @@
             [t.lib :as lib :refer [->long]]))
 
 (defn mix-prune
-  [a b]
-  (mod (bit-xor a b) 16777216))
+  [a op]
+  (mod (bit-xor a (op a)) 16777216))
 
 (defn next-random
   [n]
   (-> n
-      (mix-prune (* 64 n))
-      (mix-prune (quot n 32))
-      (mix-prune (* 2048 n))))
+      (mix-prune #(* 64 %))
+      (mix-prune #(quot % 32))
+      (mix-prune #(* 2048 %))))
 
 (clojure.test/deftest secret-numbers
   (clojure.test/is (= [123
@@ -28,7 +28,7 @@
                        12249484
                        7753432
                        5908254]
-                      (take 10 (iterate next-random 123)))))
+                      (take 11 (iterate next-random 123)))))
 
 (defn parse
   [lines]
@@ -36,7 +36,7 @@
 
 (defn part1
   [input]
-  (->> lines
+  (->> input
        (map (fn [x] (nth (iterate next-random x)
                          2000)))
        (reduce + 0)))
@@ -47,6 +47,6 @@
 
 (lib/check
   [part1 sample] 37327623
-  #_#_[part1 puzzle] 0
+  [part1 puzzle] 19150344884
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
