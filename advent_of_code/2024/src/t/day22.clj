@@ -76,17 +76,6 @@
         count))
 true
 
-(defn to-single-num
-  [[d1 d2 d3 d4]]
-  (reduce (fn [acc el]
-            (+ (* acc 20) 10 el))
-          0
-          [d1 d2 d3 d4]))
-
-(defn add-num
-  [s d]
-  (mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
-
 (to-single-num [1 2 3 4])
 93074
 (to-single-num [2 3 4 5])
@@ -108,6 +97,19 @@ true
 
 )
 
+(defn to-single-num
+  [[d1 d2 d3 d4]]
+  [d2 d3 d3 d4]
+  #_(reduce (fn [acc el]
+            (+ (* acc 20) 10 el))
+          0
+          [d1 d2 d3 d4]))
+
+(defn add-num
+  [[d1 d2 d3 d4] d]
+  [d2 d3 d4 d]
+  #_(mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
+
 (defn part2
   [input]
   (->> input
@@ -124,9 +126,7 @@ true
                                 (take n)
                                 (partition 2 1)
                                 (map (fn [[a b]] (- (mod b 10) (mod a 10))))
-                                (reduce (fn [acc el]
-                                          (+ (* acc 20) (+ 10 el)))
-                                        0))
+                                to-single-num)
                     m {last-4 p}]
                 (loop [n n
                        p p
@@ -141,7 +141,7 @@ true
                           p (mod secret 10)
                           secret (next-random secret)
                           d (- p prev)
-                          last-4 (mod (+ (* 20 last-4) (+ 10 p)) div)
+                          last-4 (add-num last-4 p)
                           m (cond-> m
                               (nil? (m last-4)) (assoc last-4 p))]
                       (recur n p prev secret last-4 m)))))))
