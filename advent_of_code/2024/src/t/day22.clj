@@ -94,20 +94,23 @@ true
        [d1 d2 d3 d4 d5]))
 ()
 
-
 )
+
+(def mtq clojure.lang.PersistentQueue/EMPTY)
 
 (defn to-single-num
   [[d1 d2 d3 d4]]
-  [d2 d3 d3 d4]
+  (into mtq)
+  #_[d1 d2 d3 d4]
   #_(reduce (fn [acc el]
             (+ (* acc 20) 10 el))
           0
           [d1 d2 d3 d4]))
 
 (defn add-num
-  [[d1 d2 d3 d4] d]
-  [d2 d3 d4 d]
+  [[d1 d2 d3 d4 :as q] d]
+  (pop (conj q d))
+  #_[d2 d3 d4 d]
   #_(mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
 
 (defn part2
