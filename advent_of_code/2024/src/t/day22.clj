@@ -3,7 +3,8 @@
             [clojure.set :as set]
             [clojure.string :as string]
             [instaparse.core :refer [parser]]
-            [t.lib :as lib :refer [->long]]))
+            [t.lib :as lib :refer [->long]])
+  (:import (java.util BitSet)))
 
 (defn parse
   [lines]
@@ -126,7 +127,9 @@ true
                                 (partition 2 1)
                                 (map (fn [[a b]] (- (mod b 10) (mod a 10))))
                                 to-single-num)
+                    bs (BitSet. div)
                     m {last-4 p}]
+                (.set bs last-4)
                 (loop [n n
                        p p
                        prev prev
@@ -141,8 +144,10 @@ true
                           secret (next-random secret)
                           d (- p prev)
                           last-4 (add-num last-4 d)
-                          m (cond-> m
-                              (nil? (m last-4)) (assoc last-4 p))]
+                          m (if (.get bs last-4)
+                              m
+                              (assoc m last-4 p))]
+                      (.set bs last-4)
                       (recur n p prev secret last-4 m)))))))
        (reduce (fn step2 [acc el]
                  (merge-with + acc el)))
