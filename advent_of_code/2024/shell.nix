@@ -10,5 +10,6 @@ pkgs.mkShell {
     curl
     jq
     leiningen
+    visualvm
   ];
 }

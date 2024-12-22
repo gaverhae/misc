@@ -13,12 +13,12 @@
   [a op]
   (mod (bit-xor a (op a)) 16777216))
 
-(def next-random
-  (memoize (fn [n]
-             (-> n
-                 (mix-prune #(* 64 %))
-                 (mix-prune #(quot % 32))
-                 (mix-prune #(* 2048 %))))))
+(defn next-random
+  [n]
+  (-> n
+      (mix-prune #(* 64 %))
+      (mix-prune #(quot % 32))
+      (mix-prune #(* 2048 %))))
 
 (defn part1
   [input]
@@ -32,7 +32,7 @@
 (defn part2
   [input]
   (->> input
-       (map (fn [x]
+       (map (fn step1 [x]
               (let [n 5
                     secret (nth (iterate next-random x)
                                 (- n 2))
@@ -63,9 +63,9 @@
                           m (cond-> m
                               (nil? (m last-4)) (assoc last-4 p))]
                       (recur n p prev secret last-4 m)))))))
-       (reduce (fn [acc el]
+       (reduce (fn step2 [acc el]
                  (merge-with + acc el)))
-       (sort-by (fn [[k v]] (- v)))
+       (sort-by (fn step3 [[k v]] (- v)))
        first
        second))
 
