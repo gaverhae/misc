@@ -30,10 +30,22 @@
 
 (defn part2
   [input]
-  input)
+  (loop [cs (keys input)
+         connected #{}]
+    (if (empty? cs)
+      (->> connected (sort-by count) last sort (interpose ",") (apply str))
+      (let [[c & cs] cs]
+        (recur cs
+               (->> (cons #{c}
+                          (->> connected
+                               (map (fn [s]
+                                      (if (= s (set/intersection s (get input c)))
+                                        (conj s c)
+                                        s)))))
+                    set))))))
 
 (lib/check
   [part1 sample] 7
   [part1 puzzle] 1599
   [part2 sample] "co,de,ka,ta"
-  #_#_[part2 puzzle] 0)
+  [part2 puzzle] "av,ax,dg,di,dw,fa,ge,kh,ki,ot,qw,vz,yw")
