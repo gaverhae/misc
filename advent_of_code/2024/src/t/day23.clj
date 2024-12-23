@@ -18,7 +18,7 @@
   input)
 
 (lib/check
-  [part1 sample] 0
+  [part1 sample] 7
   #_#_[part1 puzzle] 0
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
