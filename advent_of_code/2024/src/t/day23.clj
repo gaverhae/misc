@@ -35,5 +35,5 @@
 (lib/check
   [part1 sample] 7
   [part1 puzzle] 1599
-  #_#_[part2 sample] 0
+  [part2 sample] "co,de,ka,ta"
   #_#_[part2 puzzle] 0)
