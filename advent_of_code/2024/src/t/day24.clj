@@ -101,6 +101,38 @@
               [op in1 in2] (concat (! in1) (! in2))))]
     (f (wires [:z z-idx]))))
 
+(defn make-genetic
+  [make-sol fitness crossover mutate]
+  (let [carousel (fn [p] (let [maxi (reduce max (map first p))
+                               inverted (map (fn [[f i]] [(- maxi f) f i]) p)
+                               total (reduce + (map first inverted))
+                               roll (rand total)]
+                           (loop [r roll
+                                  [[f' f s] & p] inverted]
+                             (if (<= r f')
+                               [f s]
+                               (recur (- r f') p)))))]
+    (fn
+      ([] (genetic (->> (repeatedly 100 make-sol)
+                        (map (fn [i] [(fitness i) i]))
+                        sort)))
+      ([init-pop]
+       (loop [population (sort init-pop)
+              step 0]
+         (if (== step 1000)
+           population
+           (recur (let [survivors (concat (take 10 population)
+                                          (take 3 (reverse population)))
+                        children (repeatedly
+                                   87
+                                   #(let [[_ parent1] (carousel population)
+                                          [_ parent2] (carousel population)
+                                          child (mutate (crossover parent1
+                                                                   parent2))]
+                                      [(fitness child) child]))]
+                    (sort (concat survivors children)))
+                  (inc step))))))))
+
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
