@@ -49,37 +49,30 @@
        bits-to-num))
 
 (defn part2
-  [{:keys [wires output] :as input} f]
-  (let [x (->> wires
-               (filter (fn [[k v]] (= \x (first k))))
-               sort
-               (map (fn [[k [_ v]]] v))
-               bits-to-num)
-        y (->> wires
-               (filter (fn [[k v]] (= \y (first k))))
-               sort
-               (map (fn [[k [_ v]]] v))
-               bits-to-num)
-        expected-z (->> (num-to-bits (f x y))
+  [{:keys [wires output] :as input} expected-f req-swaps]
+  (let [len (fn [f] (->> wires (filter (fn [[k v]] (= \x (first k)))) count))
+        to-wires (fn [k n]
+                   (->> (num-to-bits n)
                         reverse
-                        (map-indexed (fn [idx b]
-                                       [(format "z%02d" idx) b]))
-                        (into {}))
-        actual-z (->> (part1 input)
-                      num-to-bits
-                      reverse
-                      (map-indexed (fn [idx b]
-                                     [(format "z%02d" idx) b]))
-                      (into {}))
-        wrong-z (->> actual-z
-                     (remove (fn [[k v]] (= v (get expected-z k))))
-                     (into {}))]
-
-    [x y expected-z actual-z wrong-z]))
+                        (map-indexed (fn [idx b] [(format (str k "%02d") idx) [:lit b]]))
+                        (into {})))
+        max-x (long (Math/pow 2 (len \x)))
+        max-y (long (Math/pow 2 (len \y)))]
+    (loop [x 0
+           y 0
+           swaps {}]
+      (if (= (* 2 req-swaps) (count swaps))
+        (->> swaps keys sort (interpose ",") (apply str))
+        (let [expected-z (expected-f x y)
+              actual-z (part1 {:output output
+                               :wires (merge wires (to-wires "x" x) (to-wires "y" y))})]
+          (if (= expected-z actual-z)
+            (recur (long (rand-int max-x)) (long (rand-int max-y)) swaps)
+            (println x y expected-z actual-z)))))))
 
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
-  [part2 sample2 bit-and] "z00,z01,z02,z05"
-  #_#_[part2 puzzle +] 0)
+  [part2 sample2 bit-and 2] "z00,z01,z02,z05"
+  #_#_[part2 puzzle + 4] 0)
