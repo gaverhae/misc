@@ -60,23 +60,35 @@
        bits-to-num))
 
 (defn find-swaps
-  [swaps {:keys [wires output]} actual expected max-swaps]
+  [swaps {:keys [wires output] :as input} actual expected max-swaps]
   ;; let's assume this all works out for the best
-  (let [wires (->> wires (map (fn [[k _]] k)) (remove (fn [k] (#{\x \y} (first k)))))
-        wrong-bits (->> (map vector (num-to-bits actual) (num-to-bits expected))
-                        reverse
-                        (map-indexed vector)
-                        (filter (fn [[idx actual expected]] (not= actual expected)))
-                        (map (fn [[idx]] (format "z%02d" idx))))
-        _ (prn [:wrong wrong-bits])
+  (let [actual-bits (->> (num-to-bits actual) reverse (map-indexed vector) (into {}))
+        expected-bits (->> (num-to-bits expected) reverse (map-indexed vector) (into {}))
+        wrong-bits (for [idx (->> (concat (keys actual-bits) (keys expected-bits))
+                                  set)
+                         :when (not= (get actual-bits idx) (get expected-bits idx))]
+                     (format "z%02d" idx))
         wires-on-wrong-path (->> wrong-bits
                                  (mapcat (fn ! [w]
                                            (match (get wires (swaps w w))
                                              [:lit n] []
                                              [_ in1 in2] (concat [in1 in2] (! in1) (! in2)))))
                                  set)]
-
-    (prn wires-on-wrong-path)))
+    (loop [try1 wires-on-wrong-path
+           try2 (rest try1)
+           swaps swaps]
+      (if (empty? try1)
+        (throw (ex-info "something went wrong somewhere; we should have found a solution"
+                        {}))
+        (if (empty? try2)
+          (recur (rest try1) (rest (rest try1)) swaps)
+          (let [t1 (first try1)
+                [t2 & try2] try2
+                try-swaps (-> swaps (assoc t1 t2) (assoc t2 t1))
+                new-actual (run-with-swaps try-swaps input)]
+            (if (= new-actual actual)
+              try-swaps
+              (recur try1 try2 swaps))))))))
 
 (defn part2
   [{:keys [wires output] :as input} expected-f req-swaps]
@@ -112,4 +124,4 @@
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
   [part2 sample2 bit-and 2] "z00,z01,z02,z05"
-  [part2 puzzle + 4] 0)
+  #_#_[part2 puzzle + 4] 0)
