@@ -65,23 +65,29 @@
                 [:and in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
-;; bit-add is
-;; z = (bit-xor (bit-xor x y) carry)
-
 (defn part2
-  [{:keys [wires output] :as input}]
-  [(->> output
-       (mapcat (fn ! [w]
-                 (match (get wires w)
-                   [:lit n] []
-                   [_ in1 in2] (concat [in1 in2] (! in1) (! in2)))))
-       set
-       count)
-   (count wires)]
-  )
+  [{:keys [wires output] :as input} f]
+  (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
+        max-input (long (Math/pow 2 (inc input-size)))
+        rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
+        exprs (->> output
+                   (map (fn ! [w]
+                          (match w
+                            [:z z] [z (! (wires w))]
+                            [:x x] [:x x]
+                            [:y y] [:y y]
+                            [:inner i] (! (wires w))
+                            [op in1 in2] [op (! in1) (! in2)]))))
+        eval-expr (fn [e x y] false)
+        valid-expr? (fn [[n expr]]
+                      (->> (repeatedly 1000 rand-input)
+                           (every? (fn [[x y]] (eval-expr expr x y)))))]
+    (->> exprs
+         (remove valid-expr?)
+         (map first))))
 
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
-  [part2 puzzle] 0)
+  [part2 puzzle +] 0)
