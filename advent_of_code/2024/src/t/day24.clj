@@ -132,7 +132,7 @@
                   (inc step))))))))
 
 (defn has-cycle?
-  [wires]
+  [wires outputs]
   (let [cycle? (fn !
                  ([w] (! #{} w))
                  ([seen? w]
@@ -144,9 +144,7 @@
                         [_ _] (! s (wires w))
                         [op arg1 arg2] (or (! s arg1)
                                            (! s arg2)))))))]
-    (->> wires
-         keys
-         (filter (fn [[out]] (= out :z)))
+    (->> outputs
          (reduce (fn [acc el]
                    (or acc (cycle? el)))
                  false))))
@@ -188,12 +186,12 @@
                           sw (->> wires
                                   (map (fn [[out v]] [(swaps out out) v]))
                                   (into {}))
-
-                          ]
-                      (if (has-cycle? sw)
+                          ;; not sure about this one
+                          outs (map (fn [o] (swaps o o)) output)]
+                      (if (has-cycle? sw outs)
                         max-score
                         (->> (for [[x y z] test-inputs
-                                   :let [result (run sw output x y)]
+                                   :let [result (run sw outs x y)]
                                    idx (range (count z))
                                    :when (= (get z idx) (get result idx))]
                                1)
