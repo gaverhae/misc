@@ -49,7 +49,14 @@
        bits-to-num))
 
 (defn run-with-swaps
-  [swaps {:keys [wires output]}])
+  [swaps {:keys [wires output]}]
+  (->> output
+       (map (fn ! [w]
+              [:lit n] n
+              ["XOR" in1 in2] (bit-xor (! (swaps in1 in1) (swaps in2 in2)))
+              ["OR" in1 in2] (bit-or (! (swaps in1 in1) (swaps in2 in2)))
+              ["AND" in1 in2] (bit-and (! (swaps in1 in1) (swaps in2 in2)))))
+       bits-to-num))
 
 (defn find-swaps
   [swaps {:keys [wires output]} expected])
