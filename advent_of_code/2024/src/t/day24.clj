@@ -151,27 +151,24 @@
                    (or acc (cycle? el)))
                  false))))
 
-(defn machine-runner
-  [wires]
-  (let [cmpl (fn ! [w]
-               (match w
-                 [:x x] `(get ~'x-bits ~x 0)
-                 [:y y] `(get ~'y-bits ~y 0)
-                 [_ _] (! (wires w))
-                 [op a1 a2] `(~(case op :or bit-or :xor bit-xor :and bit-and)
-                                     ~(! a1)
-                                     ~(! a2))))
-        fns (->> wires
-                 keys
-                 (filter (fn [[out]] (= out :z)))
-                 sort
-                 reverse
-                 (mapv (fn [o]
-                         (eval `(fn [~'x-bits ~'y-bits]
-                                  ~(cmpl (wires o)))))))]
-    (fn [x-bits y-bits]
-      (->> fns
-           (map (fn [f] (f x-bits y-bits)))))))
+(defn run
+  [wires x-bits y-bits]
+  (let [f (fn [rec w]
+            (match w
+              [:x x] (get x-bits x 0)
+              [:y y] (get y-bits y 0)
+              [_ _] (rec rec (wires w))
+              [op a1 a2] ((case op :or bit-or :xor bit-xor :and bit-and)
+                          (rec rec a1)
+                          (rec rec a2))))
+        memo-f (memoize f)]
+    (->> wires
+         keys
+         (filter (fn [[out]] (= out :z)))
+         sort
+         reverse
+         (mapv (fn [o]
+                 (memo-f memo-f o))))))
 
 (defn part2
   [{:keys [wires output] :as input}]
@@ -196,13 +193,12 @@
                                   (into {}))]
                       (if (has-cycle? sw)
                         max-score
-                        (let [run (machine-runner sw)]
-                          (->> (for [[x y z] test-inputs
-                                     :let [result (run x y)]
-                                     idx (range (count z))
-                                     :when (= (get z idx) (get result idx))]
-                                 1)
-                               (reduce - max-score)))))))
+                        (->> (for [[x y z] test-inputs
+                                   :let [result (run sw x y)]
+                                   idx (range (count z))
+                                   :when (= (get z idx) (get result idx))]
+                               1)
+                             (reduce - max-score))))))
         make-sol (fn [] (->> swappable shuffle (take 8) vec))
         crossover (fn [i1 i2]
                     (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
