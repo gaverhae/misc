@@ -140,11 +140,13 @@
                     true
                     (let [s (conj seen? w)]
                       (match w
-                        [_ _] false
-                        [op arg1 arg2] (or (! s (wires arg1))
-                                           (! s (wires arg2))))))))]
+                        [:lit _] false
+                        [_ _] (! s (wires w))
+                        [op arg1 arg2] (or (! s arg1)
+                                           (! s arg2)))))))]
     (->> wires
-         (filter (fn [[[out]]] (= out :z)))
+         keys
+         (filter (fn [[out]] (= out :z)))
          (reduce (fn [acc el]
                    (or acc (cycle? el)))
                  false))))
@@ -166,13 +168,10 @@
                  reverse
                  (mapv (fn [o]
                          (eval `(fn [~'x-bits ~'y-bits]
-                                  (prn [~'x-bits ~'y-bits ~(cmpl (wires o))])
                                   ~(cmpl (wires o)))))))]
-    (fn [x y]
-      (let [x-bits (vec (num-to-bits x))
-            y-bits (vec (num-to-bits y))]
-        (bits-to-num (->> fns
-                          (map (fn [f] (f x-bits y-bits)))))))))
+    (fn [x-bits y-bits]
+      (->> fns
+           (map (fn [f] (f x-bits y-bits)))))))
 
 (defn part2
   [{:keys [wires output] :as input}]
@@ -180,41 +179,31 @@
         swappable (->> wires keys (remove (fn [[t]] (or (= t :x) (= t :y)))))
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
-        wires-to-exprs (fn [wires]
-                         (->> output
-                              (keep (fn [w]
-                                      (let [no-loop (fn ! [w seen?]
-                                                      (when (seen? w)
-                                                        (throw (ex-info "loop" {})))
-                                                      (match w
-                                                        [:z z] [z (! (wires w) (conj seen? w))]
-                                                        [:x x] [:x x]
-                                                        [:y y] [:y y]
-                                                        [:inner i] (! (wires w) (conj seen? w))
-                                                        [op in1 in2] [op (! in1 (conj seen? w)) (! in2 (conj seen? w))]))]
-                                        (try (no-loop w #{})
-                                          (catch Throwable _ nil)))))
-                              (sort-by first)))
-        valid-expr? (fn [[n expr]]
-                      (->> (repeatedly 100 rand-input)
-                           (every? (fn [[x y]] (= (nth (reverse (num-to-bits (+ x y)))
-                                                       n 0)
-                                                  (eval-expr expr x y))))))
-        num-good-out-bits (fn [swaps]
-                            (let [kvs (->> swaps (partition 2) (map vec))
-                                  vks (->> swaps (map reverse) (map vec))
-                                  swaps (into {} (concat kvs vks))
-                                  swapped-wires (->> wires
-                                                     (map (fn [[out v]] [(swaps out out) v]))
-                                                     (into {}))]
-                              (if (has-cycle? swapped-wires)
-                                0
-                                (->> swapped-wires
-                                     wires-to-exprs
-                                     (filter valid-expr?)
-                                     count))))
+        test-inputs (->> (repeatedly 100 rand-input)
+                         (mapv (fn [[x y]]
+                                 [(vec (num-to-bits x))
+                                  (vec (num-to-bits y))
+                                  (vec (num-to-bits (+ x y)))])))
+        max-score (->> test-inputs (map (fn [[x y z]] (count z))) (reduce + 0))
+        fitness (fn [swaps]
+                  (if (not= 8 (count (set swaps)))
+                    max-score
+                    (let [kvs (->> swaps (partition 2) (map vec))
+                          vks (->> kvs (map reverse) (map vec))
+                          swaps (into {} (concat kvs vks))
+                          sw (->> wires
+                                  (map (fn [[out v]] [(swaps out out) v]))
+                                  (into {}))]
+                      (if (has-cycle? sw)
+                        max-score
+                        (let [run (machine-runner sw)]
+                          (->> (for [[x y z] test-inputs
+                                     :let [result (run x y)]
+                                     idx (range (count z))
+                                     :when (= (get z idx) (get result idx))]
+                                 1)
+                               (reduce - max-score)))))))
         make-sol (fn [] (->> swappable shuffle (take 8) vec))
-        fitness (fn [swaps] (- 46 (num-good-out-bits swaps)))
         crossover (fn [i1 i2]
                     (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
         mutate (fn [i]
@@ -223,26 +212,10 @@
                        new-p (rand-int 8)]
                    (assoc i new-p new-e)))
         gen (make-genetic make-sol fitness crossover mutate)]
-    (ffirst (gen))))
+    #_(ffirst (gen))))
 
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
   [part2 puzzle] 0)
-
-(comment
-
-(bits-to-num [1 1 1 1 1 0 0 0 0 0 1 0 0 0 1 1 0 0 0 0 1 1 1 1 0 1 1 1 1 0 1 0 0 1 0 1 0 1 1 0 0 0 0 1 1])
-34103683402435
-(bits-to-num [1 0 0 1 1 1 0 0 1 1 0 1 0 1 1 0 1 1 1 1 1 0 0 1 0 1 1 0 1 0 0 0 1 0 1 1 1 1 0 0 1 1 0 1 1])
-21555890165659
-  (part1 @puzzle)
-57344080719736
-
-((machine-runner (:wires @puzzle))
-34103683402435
-21555890165659)
-57344080719736
-
-)
