@@ -153,7 +153,7 @@
                                           (catch Throwable _ nil)))))
                               (sort-by first)))
         valid-expr? (fn [[n expr]]
-                      (->> (repeatedly 1000 rand-input)
+                      (->> (repeatedly 100 rand-input)
                            (every? (fn [[x y]] (= (nth (reverse (num-to-bits (+ x y)))
                                                        n 0)
                                                   (eval-expr expr x y))))))
