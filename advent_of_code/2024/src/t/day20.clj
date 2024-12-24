@@ -35,23 +35,23 @@
 
 (defn cheating-paths
   [max-cheats no-cheat-path start end max-cost]
-  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (:cost x) (:cost y))))]
-    (.add to-visit [start 0 false])
-    (loop [min-cost {}]
-      (if (.isEmpty to-visit)
-        (->> min-cost
-             (filter (fn [[[pos cheated?] c]] (= pos end)))
-             (map (fn [[[pos cheated?] c]] [cheated? c]))
-             (into {}))
-        (let [[pos cost cheated?] (.poll to-visit)]
-          (if (or (> cost (min-cost [pos cheated?] max-cost))
-                  (> cost (min-cost [pos false] max-cost)))
-            (recur min-cost)
-            (do (doseq [[pos cost cheated? :as nxt-state] (generate-moves max-cheats no-cheat-path pos cheated? cost)]
-                  (when (and (<= cost (min-cost [pos cheated?] max-cost))
-                             (<= cost (min-cost [pos false] max-cost)))
-                    (.add to-visit nxt-state)))
-                (recur (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))))
+  (loop [to-visit [[start 0 false]]
+         min-cost {}]
+    (if (empty? to-visit)
+      (->> min-cost
+           (filter (fn [[[pos cheated?] c]] (= pos end)))
+           (map (fn [[[pos cheated?] c]] [cheated? c]))
+           (into {}))
+      (let [[[pos cost cheated?] & to-visit] to-visit]
+        (if (or (> cost (min-cost [pos cheated?] max-cost))
+                (> cost (min-cost [pos false] max-cost)))
+          (recur to-visit min-cost)
+          (recur (concat (for [[pos cost cheated? :as nxt-state] (generate-moves max-cheats no-cheat-path pos cheated? cost)
+                            :when (and (<= cost (min-cost [pos cheated?] max-cost))
+                                       (<= cost (min-cost [pos false] max-cost)))]
+                           nxt-state)
+                         to-visit)
+                 (update min-cost [pos cheated?] (fnil min Long/MAX_VALUE) cost)))))))
 
 (defn trace-moves
   [valid-pos? [[y x :as state] cost]]
