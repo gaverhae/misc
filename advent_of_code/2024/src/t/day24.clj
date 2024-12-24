@@ -201,57 +201,17 @@
              (or (and (equiv a1 a2) (equiv b1 b2))
                  (and (equiv a1 b2) (equiv b1 a2)))))))
 
-(equiv (expected 0)
-       [:xor [:x 0] [:y 0]])
-true
-(equiv (expected 0)
-       [:xor [:y 0] [:x 0]])
-true
-
-(expected 1)
-[:xor [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]]
-
-(expected 2)
-[:xor [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]]
-
-
-(expected 3)
-[:xor [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]]
-
-(expected 4)
-[:xor [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]] [:and [:x 3] [:y 3]]]]
-
-(equiv (expected 4)
-       [:xor [:xor [:x 4] [:y 4]] [:or [:and [:x 3] [:y 3]] [:and [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]] [:xor [:x 3] [:y 3]]]]])
-true
-
-
-[5 [:xor
-    [:or
-     [:and [:x 4] [:y 4]]
-     [:and
-      [:or
-       [:and [:x 3] [:y 3]]
-       [:and
-        [:or
-         [:and
-          [:xor [:y 2] [:x 2]]
-          [:or
-           [:and
-            [:and [:x 0] [:y 0]]
-            [:xor [:x 1] [:y 1]]]
-           [:and [:y 1] [:x 1]]]]
-         [:and [:y 2] [:x 2]]]
-        [:xor [:x 3] [:y 3]]]]
-      [:xor [:x 4] [:y 4]]]]
-    [:and [:y 5] [:x 5]]]]
+(expected 5)
+[:xor [:xor [:x 5] [:y 5]] [:or [:and [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]] [:and [:x 3] [:y 3]]]] [:and [:x 4] [:y 4]]]]
+[:xor [:or [:and [:x 4] [:y 4]] [:and [:or [:and [:x 3] [:y 3]] [:and [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]] [:xor [:x 3] [:y 3]]]] [:xor [:x 4] [:y 4]]]] [:and [:y 5] [:x 5]]] [:xor [:xor [:x 5] [:y 5]] [:or [:and [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]] [:and [:x 3] [:y 3]]]] [:and [:x 4] [:y 4]]]]
 
 
 (defn part2
   [{:keys [wires output] :as input}]
   (->> output
        (map (fn [[_ n]]
-              [n (to-formula wires n)]))
+              [n (to-formula wires n) (expected n)]))
+       (remove (fn [[_ actual expected]] (equiv actual expected)))
        (mapv prn))
   #_(let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
         swappable (->> wires keys)
