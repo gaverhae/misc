@@ -155,6 +155,7 @@
   [wires x-bits y-bits]
   (let [f (fn [rec w]
             (match w
+              [:lit n] n
               [:x x] (get x-bits x 0)
               [:y y] (get y-bits y 0)
               [_ _] (rec rec (wires w))
@@ -173,7 +174,7 @@
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
-        swappable (->> wires keys (remove (fn [[t]] (or (= t :x) (= t :y)))))
+        swappable (->> wires keys)
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
         test-inputs (->> (repeatedly 100 rand-input)
@@ -208,7 +209,7 @@
                        new-p (rand-int 8)]
                    (assoc i new-p new-e)))
         gen (make-genetic make-sol fitness crossover mutate)]
-    #_(ffirst (gen))))
+    (ffirst (gen))))
 
 (lib/check
   [part1 sample] 4
