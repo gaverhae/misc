@@ -185,6 +185,9 @@
     1 [:xor
        [:and [:x 0] [:y 0]]
        [:xor [:x 1] [:y 1]]]
+    45 [:or
+        (assoc (expected 44) 0 :and)
+        [:and [:x 44] [:y 44]]]
     [:xor
      [:xor [:x n] [:y n]]
      [:or
