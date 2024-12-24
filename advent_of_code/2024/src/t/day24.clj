@@ -230,17 +230,25 @@
 
 (defn part2
   [{:keys [wires output] :as input}]
-  (let [wires (apply-swaps wires {[:inner "svm"] [:inner "nbc"]
-                                  [:z 15] [:inner "kqk"]
-                                  [:z 39] [:inner "fnr"]})]
-    (->> output
-         (map (fn [[_ n]]
-                [n (to-formula wires n) (expected n)]))
-         (remove (fn [[_ actual expected]] (equiv actual expected)))
-         first
-         ((fn [[n actual expected]]
-            (prn [n actual expected])
-            (prn [:reduce (find-smaller-diff actual expected)])))))
+  (let [swaps {[:inner "svm"] [:inner "nbc"]
+               [:z 15] [:inner "kqk"]
+               [:z 39] [:inner "fnr"]
+               [:z 23] [:inner "cgq"]}
+        wires (apply-swaps wires swaps)
+        failed (->> output
+                    (map (fn [[_ n]]
+                           [n (to-formula wires n) (expected n)]))
+                    (remove (fn [[_ actual expected]] (equiv actual expected)))
+                    (map (fn [[n actual expected]]
+                           [n actual expected (find-smaller-diff actual expected)]))
+                    first)]
+    (prn failed)
+    (assert (nil? failed))
+    (->> swaps
+         (mapcat identity)
+         (map (fn [[k v]] (if (= :z k) (format "z%02d" v) v)))
+         (interpose ",")
+         (apply str)))
   #_(let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
         swappable (->> wires keys)
         max-input (long (Math/pow 2 (inc input-size)))
@@ -291,6 +299,10 @@
   [part2 puzzle] 0)
 
 (comment
+
+[:xor "cgq" [:or "kph" [:and "jcb" [:xor "smn" [:x 22] [:y 22]] [:or "nnw" [:and "brb" [:x 21] [:y 21]] [:and "rjf" [:xor "mkw" [:y 21] [:x 21]] [:or "cqf" [:and "bvw" [:or "shj" [:and "qrs" [:y 19] [:x 19]] [:and "wnw" [:xor "dtn" [:y 19] [:x 19]] [:or "bbc" [:and "djp" [:x 18] [:y 18]] [:and "fwn" [:xor "tcb" [:y 18] [:x 18]] [:or "dbd" [:and "bdv" [:or "gcc" [:and "bbm" [:xor "rbr" [:x 16] [:y 16]] [:or "kqk" [:and "dkk" [:y 15] [:x 15]] [:and "pbd" [:or "cpv" [:and "wfh" [:x 14] [:y 14]] [:and "wth" [:xor "mdg" [:y 14] [:x 14]] [:or "tdb" [:and "dhr" [:x 13] [:y 13]] [:and "phn" [:xor "ttw" [:y 13] [:x 13]] [:or "ckr" [:and "qnv" [:or "kjr" [:and "fpb" [:x 11] [:y 11]] [:and "rpr" [:xor "kng" [:y 11] [:x 11]] [:or "rjg" [:and "rwv" [:x 10] [:y 10]] [:and "wvf" [:or "vws" [:and "pdh" [:y 9] [:x 9]] [:and "tjk" [:or "jfn" [:and "vjc" [:x 8] [:y 8]] [:and "hdf" [:xor "ktj" [:y 8] [:x 8]] [:or "npf" [:and "rhs" [:y 7] [:x 7]] [:and "hdk" [:or "cqp" [:and "kwc" [:x 6] [:y 6]] [:and "fcv" [:or "pdf" [:and "skn" [:xor "svm" [:y 5] [:x 5]] [:or "rgq" [:and "ppw" [:x 4] [:y 4]] [:and "brg" [:or "nfp" [:and "bhr" [:x 3] [:y 3]] [:and "bbq" [:or "prb" [:and "wdv" [:xor "msc" [:y 2] [:x 2]] [:or "vnc" [:and "kwk" [:and "wbd" [:x 0] [:y 0]] [:xor "dqq" [:x 1] [:y 1]]] [:and "mhb" [:y 1] [:x 1]]]] [:and "mcc" [:y 2] [:x 2]]] [:xor "rvw" [:x 3] [:y 3]]]] [:xor "rcw" [:x 4] [:y 4]]]]] [:and "nbc" [:y 5] [:x 5]]] [:xor "wcw" [:x 6] [:y 6]]]] [:xor "rnc" [:y 7] [:x 7]]]]]] [:xor "fmc" [:y 9] [:x 9]]]] [:xor "tbk" [:x 10] [:y 10]]]]]] [:xor "dnq" [:y 12] [:x 12]]] [:and "kkq" [:y 12] [:x 12]]]]]]] [:xor "fwr" [:x 15] [:y 15]]]]] [:and "qbc" [:y 16] [:x 16]]] [:xor "dhd" [:x 17] [:y 17]]] [:and "grk" [:x 17] [:y 17]]]]]]] [:xor "wdd" [:x 20] [:y 20]]] [:and "gdg" [:y 20] [:x 20]]]]]] [:and "dwt" [:x 22] [:y 22]]] [:xor "hpw" [:y 23] [:x 23]]]
+
+[:and "" [:x 23] [:y 23]]
 
 
 
