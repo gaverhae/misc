@@ -191,24 +191,40 @@
       (assoc (expected (dec n)) 0 :and)
       [:and [:x (dec n)] [:y (dec n)]]]]))
 
-(expected 0)
-[:xor [:x 0] [:y 0]]
+(defn equiv
+  [f1 f2]
+  (or (= f1 f2)
+      (let [[op1 a1 b1] f1
+            [op2 a2 b2] f2]
+        (and (= (count f1) (count f2) 3)
+             (= op1 op2)
+             (or (and (equiv a1 a2) (equiv b1 b2))
+                 (and (equiv a1 b2) (equiv b1 a2)))))))
+
+(equiv (expected 0)
+       [:xor [:x 0] [:y 0]])
+true
+(equiv (expected 0)
+       [:xor [:y 0] [:x 0]])
+true
 
 (expected 1)
 [:xor [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]]
 
 (expected 2)
 [:xor [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]]
-[:xor [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]]
 
 
 (expected 3)
 [:xor [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]]
-[:xor [:xor [:x 3] [:y 3]] [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]]]
 
 (expected 4)
 [:xor [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]] [:and [:x 3] [:y 3]]]]
-[:xor [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]] ] [:and [:x 3] [:y 3]]]]
+
+(equiv (expected 4)
+       [:xor [:xor [:x 4] [:y 4]] [:or [:and [:x 3] [:y 3]] [:and [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]] [:xor [:x 3] [:y 3]]]]])
+true
+
 
 [5 [:xor
     [:or
