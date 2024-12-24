@@ -112,8 +112,8 @@
                              (if (<= r f')
                                [f s]
                                (recur (- r f') p)))))]
-    (fn
-      ([] (genetic (->> (repeatedly 100 make-sol)
+    (fn !
+      ([] (! (->> (repeatedly 100 make-sol)
                         (map (fn [i] [(fitness i) i]))
                         sort)))
       ([init-pop]
@@ -136,6 +136,7 @@
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
+        swappable (->> wires keys (remove (fn [[t]] (or (= t :x) (= t :y)))))
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
         wires-to-exprs (fn [wires]
@@ -159,8 +160,30 @@
                               (into {})
                               wires-to-exprs
                               (remove valid-expr?)
-                              ffirst))]
-    (first-bad-expr {})))
+                              ffirst))
+        make-sol (fn [] (let [kvs (->> swappable shuffle (take 8) (partition 2) (map vec))
+                              vks (->> kvs (map (fn [[k v]] [v k])))]
+                          (into {} (concat kvs vks))))
+        fitness (fn [swaps] (- 50 (first-bad-expr swaps)))
+        crossover (fn [i1 i2]
+                    (->> (for [i (range 4)]
+                           (nth (if (> 0.5 (rand)) i1 i2) i))
+                         (into {})))
+        mutate (fn [i]
+                 (let [[new-k new-v] (->> swappable
+                                          (remove (set (keys i)))
+                                          (remove (set (vals i)))
+                                          shuffle)
+                       [old-k old-v] (->> i
+                                          shuffle
+                                          first)]
+                   (-> i
+                       (assoc new-k new-v)
+                       (assoc new-v new-k)
+                       (dissoc old-k)
+                       (dissoc old-v))))
+        gen (make-genetic make-sol fitness crossover mutate)]
+    (gen)))
 
 (lib/check
   [part1 sample] 4
