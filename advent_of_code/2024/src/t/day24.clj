@@ -60,10 +60,23 @@
        bits-to-num))
 
 (defn find-swaps
-  [swaps {:keys [wires output]} expected]
+  [swaps {:keys [wires output]} actual expected max-swaps]
   ;; let's assume this all works out for the best
-  (let [wires (->> wires (map (fn [[k _]] k)) (remove (fn [k] (#{\x \y} (first k)))))]
-    (prn wires)))
+  (let [wires (->> wires (map (fn [[k _]] k)) (remove (fn [k] (#{\x \y} (first k)))))
+        wrong-bits (->> (map vector (num-to-bits actual) (num-to-bits expected))
+                        reverse
+                        (map-indexed vector)
+                        (filter (fn [[idx actual expected]] (not= actual expected)))
+                        (map (fn [[idx]] (format "z%02d" idx))))
+        _ (prn [:wrong wrong-bits])
+        wires-on-wrong-path (->> wrong-bits
+                                 (mapcat (fn ! [w]
+                                           (match (get wires (swaps w w))
+                                             [:lit n] []
+                                             [_ in1 in2] (concat [in1 in2] (! in1) (! in2)))))
+                                 set)]
+
+    (prn wires-on-wrong-path)))
 
 (defn part2
   [{:keys [wires output] :as input} expected-f req-swaps]
@@ -78,7 +91,6 @@
     (loop [x 0
            y 0
            swaps {}]
-      (Thread/sleep 1000)
       (if (= (* 2 req-swaps) (count swaps))
         (->> swaps keys sort (interpose ",") (apply str))
         (let [expected-z (expected-f x y)
@@ -91,7 +103,9 @@
                    (find-swaps swaps
                                {:output output
                                 :wires (merge wires (to-wires "x" x) (to-wires "y" y))}
-                               expected-z))))))))
+                               actual-z
+                               expected-z
+                               req-swaps))))))))
 
 (lib/check
   [part1 sample] 4
