@@ -73,6 +73,7 @@
                                            (match (get wires (swaps w w))
                                              [:lit n] []
                                              [_ in1 in2] (concat [in1 in2] (! in1) (! in2)))))
+                                 (remove (fn [[c]] (#{\x \y} c)))
                                  set)]
     (loop [try1 wires-on-wrong-path
            try2 (rest try1)
@@ -108,13 +109,13 @@
         (let [expected-z (expected-f x y)
               actual-z (run-with-swaps swaps
                                        {:output output
-                                        :wires (merge wires (to-wires "x" x) (to-wires "y" y))})]
+                                        :wires wires #_(merge wires (to-wires "x" x) (to-wires "y" y))})]
           (recur (long (rand max-x)) (long (rand max-y))
                  (if (= expected-z actual-z)
                    swaps
                    (find-swaps swaps
                                {:output output
-                                :wires (merge wires (to-wires "x" x) (to-wires "y" y))}
+                                :wires wires #_(merge wires (to-wires "x" x) (to-wires "y" y))}
                                actual-z
                                expected-z
                                req-swaps))))))))
