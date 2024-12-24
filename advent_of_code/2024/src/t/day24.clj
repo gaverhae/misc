@@ -24,7 +24,14 @@
                   (into {}))
         gates (->> gates
                    (map (fn [s] (re-matches #"(...) ([^ ]*) (...) -> (...)" s)))
-                   (map (fn [[_ in1 op in2 out]] [(gate-name out) [op (gate-name in1) (gate-name in2)]]))
+                   (map (fn [[_ in1 op in2 out]]
+                          [(gate-name out)
+                           [(case op
+                              "AND" :and
+                              "OR" :or
+                              "XOR" :xor)
+                            (gate-name in1)
+                            (gate-name in2)]]))
                    (into {}))]
     {:wires (merge init gates)
      :output (->> (merge init gates)
@@ -53,9 +60,9 @@
        (map (fn ! [w]
               (match (get wires w)
                 [:lit n] n
-                ["XOR" in1 in2] (bit-xor (! in1) (! in2))
-                ["OR" in1 in2] (bit-or (! in1) (! in2))
-                ["AND" in1 in2] (bit-and (! in1) (! in2)))))
+                [:xor in1 in2] (bit-xor (! in1) (! in2))
+                [:or in1 in2] (bit-or (! in1) (! in2))
+                [:and in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
 (defn part2
