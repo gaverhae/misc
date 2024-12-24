@@ -167,7 +167,7 @@
 
 (defn part2
   [{:keys [wires output] :as input}]
-  (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
+  #_(let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
         swappable (->> wires keys)
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
