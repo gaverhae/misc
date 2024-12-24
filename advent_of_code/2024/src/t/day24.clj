@@ -77,6 +77,36 @@
 ;; We should double-check that no output bit depends on "higher" input bits,
 ;; but that's probably too obvious.
 
+(defn eval-expr
+  [e x y]
+  (let [bit-x (vec (num-to-bits x))
+        bit-y (vec (num-to-bits y))
+        bit-z (vec (num-to-bits (+ x y)))
+        ev (fn ! [e]
+             (match e
+               [:x x'] (get bit-x x' 0)
+               [:y y'] (get bit-y y' 0)
+               [:and e1 e2] (bit-and (! e1) (! e2))
+               [:or e1 e2] (bit-or (! e1) (! e2))
+               [:xor e1 e2] (bit-xor (! e1) (! e2))))]
+    (ev e)))
+
+(comment
+
+  (->> (repeatedly 1000 (fn [] [(long (rand 1024)) (long (rand 1024))]))
+       (remove (fn [[x y]] (= (eval-expr [:xor [:x 0] [:y 0]] x y)
+                              (first (num-to-bits (+ x y))))))
+       first)
+(eval-expr [:xor [:x 0] [:y 0]] 802 243)
+0
+
+(vec (num-to-bits 802))
+[1 1 0 0 1 0 0 0 1 0]
+
+
+
+)
+
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
@@ -96,10 +126,22 @@
                                    [:x x] (<= x n)
                                    [:y y] (<= y n)
                                    [_ a b] (and (! [n a]) (! [n b])))))))
-        eval-expr (fn [e x y] false)
+        eval-expr (fn [e n x y]
+                    (let [bit-x (vec (num-to-bits x))
+                          bit-y (vec (num-to-bits y))
+                          bit-z (vec (num-to-bits (+ x y)))
+                          ev (fn ! [e]
+                               (match e
+                                 [:x x'] (get bit-x x' 0)
+                                 [:y y'] (get bit-y y' 0)
+                                 [:and e1 e2] (bit-and (! e1) (! e2))
+                                 [:or e1 e2] (bit-or (! e1) (! e2))
+                                 [:xor e1 e2] (bit-xor (! e1) (! e2))))]
+                      (= (get bit-z n 0)
+                         (ev e))))
         valid-expr? (fn [[n expr]]
                       (->> (repeatedly 1000 rand-input)
-                           (every? (fn [[x y]] (eval-expr expr x y)))))]
+                           (every? (fn [[x y]] (eval-expr expr n x y)))))]
     (->> exprs
          (remove valid-expr?)
          (map first))))
