@@ -130,13 +130,13 @@
            population
            (recur (let [survivors (concat (take 10 population)
                                           (take 3 (reverse population)))
-                        children (repeatedly
-                                   87
-                                   #(let [[_ parent1] (carousel population)
-                                          [_ parent2] (carousel population)
-                                          child (mutate (crossover parent1
-                                                                   parent2))]
-                                      [(fitness child) child]))]
+                        children (->> (range 87)
+                                      (pmap (fn [_]
+                                              (let [[_ parent1] (carousel population)
+                                                    [_ parent2] (carousel population)
+                                                    child (mutate (crossover parent1
+                                                                             parent2))]
+                                                [(fitness child) child]))))]
                     (sort (concat survivors children)))
                   (inc step))))))))
 
@@ -178,7 +178,7 @@
                                    (filter valid-expr?)
                                    count)))
         make-sol (fn [] (->> swappable shuffle (take 8) vec))
-        fitness (fn [swaps] (- 50 (num-good-out-bits swaps)))
+        fitness (fn [swaps] (- 46 (num-good-out-bits swaps)))
         crossover (fn [i1 i2]
                     (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
         mutate (fn [i]
