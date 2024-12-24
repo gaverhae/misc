@@ -102,7 +102,7 @@
                                [f s]
                                (recur (- r f') p)))))]
     (fn !
-      ([] (! (->> (repeatedly 100 make-sol)
+      ([] (! (->> (repeatedly 1000 make-sol)
                   (map (fn [i] [(fitness i) i]))
                   sort)))
       ([init-pop]
@@ -115,13 +115,13 @@
                                      sort
                                      (interpose ",")
                                      (apply str))])
-         (if (== step 1000)
+         (if false #_(== step 1000)
            population
            (recur (let [survivors (concat (take 10 population)
                                           (take 3 (reverse population)))
                         spontaneous (->> (repeatedly 7 make-sol)
                                          (map (fn [s] [(fitness s) s])))
-                        children (->> (range 80)
+                        children (->> (range 980)
                                       (pmap (fn [_]
                                               (let [[_ parent1] (carousel population)
                                                     [_ parent2] (carousel population)
