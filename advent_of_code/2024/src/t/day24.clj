@@ -170,7 +170,12 @@
                                 (remove valid-expr?)
                                 ffirst)))
         make-sol (fn [] (->> swappable shuffle (take 8) vec))
-        fitness (fn [swaps] (- 50 (first-bad-expr swaps)))
+        fitness (fn [swaps]
+                  (let [f (first-bad-expr swaps)]
+                    (if (nil? f)
+                      (do (prn [:solution? swaps])
+                          0)
+                      (- 50 f))))
         crossover (fn [i1 i2]
                     (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
         mutate (fn [i]
@@ -179,7 +184,7 @@
                        new-p (rand-int 8)]
                    (assoc i new-p new-e)))
         gen (make-genetic make-sol fitness crossover mutate)]
-    (gen)))
+    (ffirst (gen))))
 
 (lib/check
   [part1 sample] 4
