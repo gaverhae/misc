@@ -52,14 +52,18 @@
   [swaps {:keys [wires output]}]
   (->> output
        (map (fn ! [w]
-              [:lit n] n
-              ["XOR" in1 in2] (bit-xor (! (swaps in1 in1) (swaps in2 in2)))
-              ["OR" in1 in2] (bit-or (! (swaps in1 in1) (swaps in2 in2)))
-              ["AND" in1 in2] (bit-and (! (swaps in1 in1) (swaps in2 in2)))))
+              (match (get wires (swaps w w))
+                [:lit n] n
+                ["XOR" in1 in2] (bit-xor (! in1) (! in2))
+                ["OR" in1 in2] (bit-or (! in1) (! in2))
+                ["AND" in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
 (defn find-swaps
-  [swaps {:keys [wires output]} expected])
+  [swaps {:keys [wires output]} expected]
+  ;; let's assume this all works out for the best
+  (let [wires (->> wires (map (fn [[k _]] k)) (remove (fn [k] (#{\x \y} (first k)))))]
+    (prn wires)))
 
 (defn part2
   [{:keys [wires output] :as input} expected-f req-swaps]
@@ -74,6 +78,7 @@
     (loop [x 0
            y 0
            swaps {}]
+      (Thread/sleep 1000)
       (if (= (* 2 req-swaps) (count swaps))
         (->> swaps keys sort (interpose ",") (apply str))
         (let [expected-z (expected-f x y)
