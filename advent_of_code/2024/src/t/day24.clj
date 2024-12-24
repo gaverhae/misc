@@ -131,6 +131,24 @@
                     (sort (concat survivors children)))
                   (inc step))))))))
 
+(defn has-cycle?
+  [wires]
+  (let [cycle? (fn !
+                 ([w] (! #{} w))
+                 ([seen? w]
+                  (if (seen? w)
+                    true
+                    (let [s (conj seen? w)]
+                      (match w
+                        [_ _] false
+                        [op arg1 arg2] (or (! s (wires arg1))
+                                           (! s (wires arg2))))))))]
+    (->> wires
+         (filter (fn [[[out]]] (= out :z)))
+         (reduce (fn [acc el]
+                   (or acc (cycle? el)))
+                 false))))
+
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
@@ -164,10 +182,12 @@
                                   swapped-wires (->> wires
                                                      (map (fn [[out v]] [(swaps out out) v]))
                                                      (into {}))]
-                              (->> swapped-wires
-                                   wires-to-exprs
-                                   (filter valid-expr?)
-                                   count)))
+                              (if (has-cycle? swapped-wires)
+                                0
+                                (->> swapped-wires
+                                     wires-to-exprs
+                                     (filter valid-expr?)
+                                     count))))
         make-sol (fn [] (->> swappable shuffle (take 8) vec))
         fitness (fn [swaps] (- 46 (num-good-out-bits swaps)))
         crossover (fn [i1 i2]
