@@ -119,6 +119,13 @@
       ([init-pop]
        (loop [population (sort init-pop)
               step 0]
+         (prn [:step step :best (ffirst population)
+               (->> (first population)
+                                     second
+                                     (map (fn [[a b]] (if (= a :inner) b (format "z%02d" b))))
+                                     sort
+                                     (interpose ",")
+                                     (apply str))])
          (if (== step 1000)
            population
            (recur (let [survivors (concat (take 10 population)
