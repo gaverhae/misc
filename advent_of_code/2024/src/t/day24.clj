@@ -79,9 +79,8 @@
 
 (defn eval-expr
   [e x y]
-  (let [bit-x (vec (num-to-bits x))
-        bit-y (vec (num-to-bits y))
-        bit-z (vec (num-to-bits (+ x y)))
+  (let [bit-x (vec (reverse (num-to-bits x)))
+        bit-y (vec (reverse (num-to-bits y)))
         ev (fn ! [e]
              (match e
                [:x x'] (get bit-x x' 0)
@@ -95,15 +94,10 @@
 
   (->> (repeatedly 1000 (fn [] [(long (rand 1024)) (long (rand 1024))]))
        (remove (fn [[x y]] (= (eval-expr [:xor [:x 0] [:y 0]] x y)
-                              (first (num-to-bits (+ x y))))))
+                              (nth (reverse (num-to-bits (+ x y)))
+                                   0 0))))
        first)
-(eval-expr [:xor [:x 0] [:y 0]] 802 243)
-0
-
-(vec (num-to-bits 802))
-[1 1 0 0 1 0 0 0 1 0]
-
-
+nil
 
 )
 
@@ -126,22 +120,11 @@
                                    [:x x] (<= x n)
                                    [:y y] (<= y n)
                                    [_ a b] (and (! [n a]) (! [n b])))))))
-        eval-expr (fn [e n x y]
-                    (let [bit-x (vec (num-to-bits x))
-                          bit-y (vec (num-to-bits y))
-                          bit-z (vec (num-to-bits (+ x y)))
-                          ev (fn ! [e]
-                               (match e
-                                 [:x x'] (get bit-x x' 0)
-                                 [:y y'] (get bit-y y' 0)
-                                 [:and e1 e2] (bit-and (! e1) (! e2))
-                                 [:or e1 e2] (bit-or (! e1) (! e2))
-                                 [:xor e1 e2] (bit-xor (! e1) (! e2))))]
-                      (= (get bit-z n 0)
-                         (ev e))))
         valid-expr? (fn [[n expr]]
                       (->> (repeatedly 1000 rand-input)
-                           (every? (fn [[x y]] (eval-expr expr n x y)))))]
+                           (every? (fn [[x y]] (= (nth (reverse (num-to-bits (+ x y)))
+                                                       n 0)
+                                                  (eval-expr expr x y))))))]
     (->> exprs
          (remove valid-expr?)
          (map first))))
