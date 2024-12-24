@@ -22,8 +22,30 @@
      :output (->> (merge init gates)
                   keys
                   (filter (fn [k] (= \z (first k))))
-                  sort
-                  reverse)}))
+                  sort)}))
+
+(defn bits-to-num
+  [bits]
+  (->> bits
+       reverse
+       (reduce (fn [acc el] (+ (* 2 acc) el)) 0)))
+
+(defn num-to-bits
+  [n]
+  (loop [n n
+         bits ()]
+    (if (zero? n)
+      bits
+      (recur (quot n 2)
+             (cons (rem n 2) bits)))))
+
+(comment
+(num-to-bits 5)
+(1 0 1)
+
+(bits-to-num (num-to-bits 17))
+17
+)
 
 (defn part1
   [{:keys [output wires]}]
@@ -34,15 +56,22 @@
                 ["XOR" in1 in2] (bit-xor (! in1) (! in2))
                 ["OR" in1 in2] (bit-or (! in1) (! in2))
                 ["AND" in1 in2] (bit-and (! in1) (! in2)))))
-       (reduce (fn [acc el] (+ (* 2 acc) el)) 0)))
+       bits-to-num))
 
 (defn part2
-  [input]
-  input)
+  [{:keys [wires output]}]
+  (let [x (->> wires
+               (filter (fn [[k v]] (= \x (first k))))
+               sort)
+        y (->> wires
+               (filter (fn [[k v]] (= \y (first k))))
+               sort)]
+    (assert (every? (fn [[_ [op]]] (= :lit op)) (concat x y)))
+    [x y]))
 
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part2 sample2] "z00,z01,z02,z05"
+  [part2 puzzle] 0)
