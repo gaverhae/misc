@@ -90,44 +90,34 @@
                [:xor e1 e2] (bit-xor (! e1) (! e2))))]
     (ev e)))
 
-(comment
-
-  (->> (repeatedly 1000 (fn [] [(long (rand 1024)) (long (rand 1024))]))
-       (remove (fn [[x y]] (= (eval-expr [:xor [:x 0] [:y 0]] x y)
-                              (nth (reverse (num-to-bits (+ x y)))
-                                   0 0))))
-       first)
-nil
-
-)
-
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
-        exprs (->> output
-                   (map (fn ! [w]
-                          (match w
-                            [:z z] [z (! (wires w))]
-                            [:x x] [:x x]
-                            [:y y] [:y y]
-                            [:inner i] (! (wires w))
-                            [op in1 in2] [op (! in1) (! in2)]))))
-        _ (assert (->> exprs
-                       (every? (fn ! [[n e]]
-                                 (match e
-                                   [:x x] (<= x n)
-                                   [:y y] (<= y n)
-                                   [_ a b] (and (! [n a]) (! [n b])))))))
+        wires-to-exprs (fn [wires]
+                         (->> output
+                              (map (fn ! [w]
+                                     (match w
+                                       [:z z] [z (! (wires w))]
+                                       [:x x] [:x x]
+                                       [:y y] [:y y]
+                                       [:inner i] (! (wires w))
+                                       [op in1 in2] [op (! in1) (! in2)])))
+                              (sort-by first)))
         valid-expr? (fn [[n expr]]
                       (->> (repeatedly 1000 rand-input)
                            (every? (fn [[x y]] (= (nth (reverse (num-to-bits (+ x y)))
                                                        n 0)
                                                   (eval-expr expr x y))))))]
-    (->> exprs
-         (remove valid-expr?)
-         (map first))))
+    (loop [exprs (wires-to-exprs wires)
+           swaps {}]
+      (if (= 8 (count swaps))
+        (->> swaps keys sort (interpose ",") (apply str))
+        (let [[e & exprs] exprs]
+          (if (valid-expr? e)
+            (recur exprs swaps)
+            (prn e)))))))
 
 (lib/check
   [part1 sample] 4
