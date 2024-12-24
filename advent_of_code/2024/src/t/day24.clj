@@ -7,11 +7,27 @@
 
 (defn parse
   [lines]
-  lines)
+  (let [[init [_ & gates]] (split-with #(not= "" %) lines)
+        init (->> init
+                  (map (fn [s] (re-matches #"(...): (\d)" s)))
+                  (map (fn [[_ k v]] [k [:lit (parse-long v)]]))
+                  (into {}))
+        gates (->> gates
+                   (map (fn [s] (re-matches #"(...) ([^ ]*) (...) -> (...)" s)))
+                   (map (fn [[_ in1 op in2 out]] [out [op in1 in2]]))
+                   (into {}))]
+    (assert (= #{} (set/intersection (set (keys init))
+                                     (set (keys gates)))))
+    {:wires (merge init gates)
+     :output (->> (merge init gates)
+                  keys
+                  (filter (fn [k] (= \z (first k))))
+                  sort
+                  reverse)}))
 
 (defn part1
   [input]
-  input)
+  (->> input))
 
 (defn part2
   [input]
