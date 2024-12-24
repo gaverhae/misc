@@ -5,21 +5,31 @@
             [instaparse.core :refer [parser]]
             [t.lib :as lib :refer [->long]]))
 
+(defn gate-name
+  [s]
+  (let [k (first s)
+        d (subs s 1)]
+    (case k
+      \x [:x (parse-long d)]
+      \y [:y (parse-long d)]
+      \z [:z (parse-long d)]
+      [:inner s])))
+
 (defn parse
   [lines]
   (let [[init [_ & gates]] (split-with #(not= "" %) lines)
         init (->> init
-                  (map (fn [s] (re-matches #"(...): (\d)" s)))
-                  (map (fn [[_ k v]] [k [:lit (parse-long v)]]))
+                  (map (fn [s] (re-matches #"(...): (.)" s)))
+                  (map (fn [[_ k v]] [(gate-name k) [:lit (parse-long v)]]))
                   (into {}))
         gates (->> gates
                    (map (fn [s] (re-matches #"(...) ([^ ]*) (...) -> (...)" s)))
-                   (map (fn [[_ in1 op in2 out]] [out [op in1 in2]]))
+                   (map (fn [[_ in1 op in2 out]] [(gate-name out) [op (gate-name in1) (gate-name in2)]]))
                    (into {}))]
     {:wires (merge init gates)
      :output (->> (merge init gates)
                   keys
-                  (filter (fn [k] (= \z (first k))))
+                  (filter (fn [k] (= :z (first k))))
                   sort
                   reverse)}))
 
