@@ -149,6 +149,27 @@
                    (or acc (cycle? el)))
                  false))))
 
+(defn compile-machine
+  [wires]
+  (let [cmpl (fn ! [w]
+               (match w
+                 [:x x] `(get ~'x-bits ~x)
+                 [:y y] `(get ~'y-bits ~y)
+                 [_ _] (! (wires w))
+                 [op a1 a2] `(~(case op :or bit-or :xor bit-xor :and bit-and)
+                                     ~(! a1)
+                                     ~(! a2))))]
+    (eval `(fn [~'x ~'y]
+             (let [~'x-bits (num-to-bits ~'x)
+                   ~'y-bits (num-to-bits ~'y)]
+               (bits-to-num [~@(->> wires
+                                    keys
+                                    (filter (fn [[out]] (= out :z)))
+                                    sort
+                                    reverse
+                                    (map (fn [o]
+                                           (cmpl (wires o)))))]))))))
+
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
@@ -205,3 +226,17 @@
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
   [part2 puzzle] 0)
+
+(comment
+
+(bits-to-num (reverse [1 1 1 1 1 0 0 0 0 0 1 0 0 0 1 1 0 0 0 0 1 1 1 1 0 1 1 1 1 0 1 0 0 1 0 1 0 1 1 0 0 0 0 1 1]))
+26845138437151
+(bits-to-num (reverse [1 0 0 1 1 1 0 0 1 1 0 1 0 1 1 0 1 1 1 1 1 0 0 1 0 1 1 0 1 0 0 0 1 0 1 1 1 1 0 0 1 1 0 1 1]))
+29949186501433
+  (part1 @puzzle)
+57344080719736
+
+(compile-machine (:wires @puzzle))
+
+
+         )
