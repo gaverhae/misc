@@ -48,7 +48,7 @@
                 ["AND" in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
-(defn run-with-swaps
+#_(defn run-with-swaps
   [swaps {:keys [wires output]}]
   (->> output
        (map (fn ! [w]
@@ -59,7 +59,7 @@
                 ["AND" in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
-(defn find-swaps
+#_(defn find-swaps
   [swaps {:keys [wires output] :as input} actual expected max-swaps]
   ;; let's assume this all works out for the best
   (let [actual-bits (->> (num-to-bits actual) reverse (map-indexed vector) (into {}))
@@ -93,7 +93,22 @@
 
 (defn part2
   [{:keys [wires output] :as input} expected-f req-swaps]
-  (let [len (fn [f] (->> wires (filter (fn [[k v]] (= \x (first k)))) count))
+  (->> wires
+       (filter (fn [[out in]] (= \z (first out))))
+       (map (fn [[out in]] [(->> out (re-matches #"z(\d\d)") second (parse-long)) in]))
+       (remove (fn [[idx in]]
+                 (let [before (fn before [w]
+                                (match w
+                                  [:lit _] true
+                                  [_ w1 w2] (and (before w1) (before w2))
+                                  s (if (#{\x \y} (first s))
+                                      (let [[_ n] (re-matches #".(..)" s)
+                                            n (parse-long n)]
+                                        (<= n idx))
+                                      (before (wires s)))))]
+                   (before in))))
+       (map (fn [[idx in]] (format "z%02d" idx))))
+  #_(let [len (fn [f] (->> wires (filter (fn [[k v]] (= \x (first k)))) count))
         to-wires (fn [k n]
                    (->> (num-to-bits n)
                         reverse
