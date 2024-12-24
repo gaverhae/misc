@@ -110,11 +110,12 @@
               step 0]
          (prn [(java.util.Date.) :step step :best (ffirst population)
                (->> (first population)
-                                     second
-                                     (map (fn [[a b]] (if (= a :inner) b (format "z%02d" b))))
-                                     sort
-                                     (interpose ",")
-                                     (apply str))])
+                    second
+                    first
+                    (map (fn [[a b]] (if (= a :inner) b (format "z%02d" b))))
+                    sort
+                    (interpose ",")
+                    (apply str))])
          (if false #_(== step 1000)
            population
            (recur (let [survivors (concat (take 10 population)
@@ -167,7 +168,7 @@
 
 (defn part2
   [{:keys [wires output] :as input}]
-  #_(let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
+  (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
         swappable (->> wires keys)
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
@@ -177,7 +178,7 @@
                                   (vec (num-to-bits y))
                                   (vec (num-to-bits (+ x y)))])))
         max-score (->> test-inputs (map (fn [[x y z]] (count z))) (reduce + 0))
-        fitness (fn [swaps]
+        fitness (fn [[swaps swap-output?]]
                   (if (not= 8 (count (set swaps)))
                     max-score
                     (let [kvs (->> swaps (partition 2) (map vec))
@@ -186,8 +187,9 @@
                           sw (->> wires
                                   (map (fn [[out v]] [(swaps out out) v]))
                                   (into {}))
-                          ;; not sure about this one
-                          outs (map (fn [o] (swaps o o)) output)]
+                          outs (if swap-output?
+                                 (map (fn [o] (swaps o o)) output)
+                                 output)]
                       (if (has-cycle? sw outs)
                         max-score
                         (->> (for [[x y z] test-inputs
@@ -196,14 +198,16 @@
                                    :when (= (get z idx) (get result idx))]
                                1)
                              (reduce - max-score))))))
-        make-sol (fn [] (->> swappable shuffle (take 8) vec))
-        crossover (fn [i1 i2]
-                    (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
-        mutate (fn [i]
+        make-sol (fn [] [(->> swappable shuffle (take 8) vec) (> (rand) 0.5)])
+        crossover (fn [[i1 o1] [i2 o2]]
+                    [(mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2)
+                     (if (> (rand) 0.5) o1 o2)])
+        mutate (fn [[i o]]
                  (let [i (if (> (rand) 0.9) (vec (shuffle i)) i)
+                       o (if (> (rand) 0.9) (not o) o)
                        new-e (->> swappable (remove (set i)) shuffle first)
                        new-p (rand-int 8)]
-                   (assoc i new-p new-e)))
+                   [(assoc i new-p new-e) o]))
         gen (make-genetic make-sol fitness crossover mutate)]
     (ffirst (gen))))
 
