@@ -90,17 +90,6 @@
                [:xor e1 e2] (bit-xor (! e1) (! e2))))]
     (ev e)))
 
-(defn inner-wires
-  [wires z-idx]
-  (prn (wires [:z z-idx]))
-  (let [f (fn ! [w]
-            (match w
-              [:x _] []
-              [:y _] []
-              [:inner inner] (cons inner (! (wires w)))
-              [op in1 in2] (concat (! in1) (! in2))))]
-    (f (wires [:z z-idx]))))
-
 (defn make-genetic
   [make-sol fitness crossover mutate]
   (let [carousel (fn [p] (let [maxi (reduce max (map first p))
