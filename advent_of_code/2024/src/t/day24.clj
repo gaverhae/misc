@@ -174,31 +174,32 @@
               [:x x] [:x x]
               [:y y] [:y y]
               [:z z] [:z z]
-              [:inner l] (! (wires w))
+              [:inner l] (let [[op a b] (! (wires w))]
+                           [op l a b])
               [op a b] [op (! a) (! b)]))]
     (f (get wires [:z n]))))
 
 (defn expected
   [^long n]
   (case n
-    0 [:xor [:x 0] [:y 0]]
-    1 [:xor
-       [:and [:x 0] [:y 0]]
-       [:xor [:x 1] [:y 1]]]
-    45 [:or
+    0 [:xor "" [:x 0] [:y 0]]
+    1 [:xor ""
+       [:and "" [:x 0] [:y 0]]
+       [:xor "" [:x 1] [:y 1]]]
+    45 [:or ""
         (assoc (expected 44) 0 :and)
-        [:and [:x 44] [:y 44]]]
-    [:xor
-     [:xor [:x n] [:y n]]
-     [:or
+        [:and "" [:x 44] [:y 44]]]
+    [:xor ""
+     [:xor "" [:x n] [:y n]]
+     [:or ""
       (assoc (expected (dec n)) 0 :and)
-      [:and [:x (dec n)] [:y (dec n)]]]]))
+      [:and "" [:x (dec n)] [:y (dec n)]]]]))
 
 (defn equiv
   [f1 f2]
   (or (= f1 f2)
-      (let [[op1 a1 b1] f1
-            [op2 a2 b2] f2]
+      (let [[op1 _ a1 b1] f1
+            [op2 _ a2 b2] f2]
         (and (= (count f1) (count f2) 3)
              (= op1 op2)
              (or (and (equiv a1 a2) (equiv b1 b2))
@@ -213,7 +214,6 @@
   (->> wires
        (map (fn [[g ins]] [(swaps g g) ins]))
        (into {}))))
-
 
 (defn part2
   [{:keys [wires output] :as input}]
@@ -275,20 +275,6 @@
   [part2 puzzle] 0)
 
 (comment
-
-[:or
- [:and [:y 15] [:x 15]]
- [:and
-  [:or
-   [:and [:x 14] [:y 14]]
-   [:and
-    [:xor [:y 14] [:x 14]]
-    [:or [:and [:x 13] [:y 13]] [:and [:xor [:y 13] [:x 13]] [:or [:and [:or [:and [:x 11] [:y 11]] [:and [:xor [:y 11] [:x 11]] [:or [:and [:x 10] [:y 10]] [:and [:or [:and [:y 9] [:x 9]] [:and [:or [:and [:x 8] [:y 8]] [:and [:xor [:y 8] [:x 8]] [:or [:and [:y 7] [:x 7]] [:and [:or [:and [:x 6] [:y 6]] [:and [:or [:and [:xor [:y 5] [:x 5]] [:or [:and [:x 4] [:y 4]] [:and [:or [:and [:x 3] [:y 3]] [:and [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]] [:xor [:x 3] [:y 3]]]] [:xor [:x 4] [:y 4]]]]] [:and [:y 5] [:x 5]]] [:xor [:x 6] [:y 6]]]] [:xor [:y 7] [:x 7]]]]]] [:xor [:y 9] [:x 9]]]] [:xor [:x 10] [:y 10]]]]]] [:xor [:y 12] [:x 12]]] [:and [:y 12] [:x 12]]]]]]]
-  [:xor [:x 15] [:y 15]]]]
-
-[:xor
- [:xor [:x 15] [:y 15]]
- [:or [:and [:xor [:x 14] [:y 14]] [:or [:and [:xor [:x 13] [:y 13]] [:or [:and [:xor [:x 12] [:y 12]] [:or [:and [:xor [:x 11] [:y 11]] [:or [:and [:xor [:x 10] [:y 10]] [:or [:and [:xor [:x 9] [:y 9]] [:or [:and [:xor [:x 8] [:y 8]] [:or [:and [:xor [:x 7] [:y 7]] [:or [:and [:xor [:x 6] [:y 6]] [:or [:and [:xor [:x 5] [:y 5]] [:or [:and [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]] [:and [:x 3] [:y 3]]]] [:and [:x 4] [:y 4]]]] [:and [:x 5] [:y 5]]]] [:and [:x 6] [:y 6]]]] [:and [:x 7] [:y 7]]]] [:and [:x 8] [:y 8]]]] [:and [:x 9] [:y 9]]]] [:and [:x 10] [:y 10]]]] [:and [:x 11] [:y 11]]]] [:and [:x 12] [:y 12]]]] [:and [:x 13] [:y 13]]]] [:and [:x 14] [:y 14]]]]
 
 
 
