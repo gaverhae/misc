@@ -70,6 +70,14 @@
 
 (defn part2
   [{:keys [wires output] :as input}]
+  [(->> output
+       (mapcat (fn ! [w]
+                 (match (get wires w)
+                   [:lit n] []
+                   [_ in1 in2] (concat [in1 in2] (! in1) (! in2)))))
+       set
+       count)
+   (count wires)]
   )
 
 (lib/check
