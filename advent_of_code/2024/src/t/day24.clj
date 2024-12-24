@@ -120,17 +120,15 @@
                       (->> (repeatedly 1000 rand-input)
                            (every? (fn [[x y]] (= (nth (reverse (num-to-bits (+ x y)))
                                                        n 0)
-                                                  (eval-expr expr x y))))))]
-    (loop [exprs (wires-to-exprs wires)
-           swaps {}]
-      (if (= 8 (count swaps))
-        (->> swaps keys sort (interpose ",") (apply str))
-        (let [[e & exprs] exprs]
-          (if (valid-expr? e)
-            (recur exprs swaps)
-            (let [bad-z (first e)
-                  bad-wires (inner-wires wires bad-z)]
-              bad-wires)))))))
+                                                  (eval-expr expr x y))))))
+        first-bad-expr (fn [swaps]
+                         (->> wires
+                              (map (fn [[out v]] [(swaps out out) v]))
+                              (into {})
+                              wires-to-exprs
+                              (remove valid-expr?)
+                              ffirst))]
+    (first-bad-expr {})))
 
 (lib/check
   [part1 sample] 4
