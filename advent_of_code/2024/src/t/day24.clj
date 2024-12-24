@@ -26,8 +26,15 @@
                   reverse)}))
 
 (defn part1
-  [input]
-  (->> input))
+  [{:keys [output wires]}]
+  (->> output
+       (map (fn ! [w]
+              (match (get wires w)
+                [:lit n] n
+                ["XOR" in1 in2] (bit-xor (! in1) (! in2))
+                ["OR" in1 in2] (bit-or (! in1) (! in2))
+                ["AND" in1 in2] (bit-and (! in1) (! in2)))))
+       (reduce (fn [acc el] (+ (* 2 acc) el)) 0)))
 
 (defn part2
   [input]
@@ -36,6 +43,6 @@
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
-  #_#_[part1 puzzle] 0
+  [part1 puzzle] 57344080719736
   #_#_[part2 sample] 0
   #_#_[part2 puzzle] 0)
