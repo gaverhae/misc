@@ -108,7 +108,7 @@
       ([init-pop]
        (loop [population (sort init-pop)
               step 0]
-         (prn [:step step :best (ffirst population)
+         (prn [(java.util.Date.) :step step :best (ffirst population)
                (->> (first population)
                                      second
                                      (map (fn [[a b]] (if (= a :inner) b (format "z%02d" b))))
