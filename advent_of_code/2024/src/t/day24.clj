@@ -141,13 +141,18 @@
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
         wires-to-exprs (fn [wires]
                          (->> output
-                              (map (fn ! [w]
-                                     (match w
-                                       [:z z] [z (! (wires w))]
-                                       [:x x] [:x x]
-                                       [:y y] [:y y]
-                                       [:inner i] (! (wires w))
-                                       [op in1 in2] [op (! in1) (! in2)])))
+                              (keep (fn [w]
+                                      (let [no-loop (fn ! [w seen?]
+                                                      (when (seen? w)
+                                                        (throw (ex-info "loop" {})))
+                                                      (match w
+                                                        [:z z] [z (! (wires w) (conj seen? w))]
+                                                        [:x x] [:x x]
+                                                        [:y y] [:y y]
+                                                        [:inner i] (! (wires w) (conj seen? w))
+                                                        [op in1 in2] [op (! in1 (conj seen? w)) (! in2 (conj seen? w))]))]
+                                        (try (no-loop w #{})
+                                          (catch Throwable _ nil)))))
                               (sort-by first)))
         valid-expr? (fn [[n expr]]
                       (->> (repeatedly 1000 rand-input)
