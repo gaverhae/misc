@@ -166,9 +166,78 @@
          (mapv (fn [o]
                  (memo-f memo-f o))))))
 
+(defn to-formula
+  [wires n]
+  (let [f (fn ! [w]
+            (match w
+              [:lit n] n
+              [:x x] [:x x]
+              [:y y] [:y y]
+              [:z z] [:z z]
+              [:inner l] (! (wires w))
+              [op a b] [op (! a) (! b)]))]
+    (f (get wires [:z n]))))
+
+(defn expected
+  [^long n]
+  (case n
+    0 [:xor [:x 0] [:y 0]]
+    1 [:xor
+       [:and [:x 0] [:y 0]]
+       [:xor [:x 1] [:y 1]]]
+    [:xor
+     [:xor [:x n] [:y n]]
+     [:or
+      (assoc (expected (dec n)) 0 :and)
+      [:and [:x (dec n)] [:y (dec n)]]]]))
+
+(expected 0)
+[:xor [:x 0] [:y 0]]
+
+(expected 1)
+[:xor [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]]
+
+(expected 2)
+[:xor [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]]
+[:xor [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]]
+
+
+(expected 3)
+[:xor [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]]
+[:xor [:xor [:x 3] [:y 3]] [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]]]
+
+(expected 4)
+[:xor [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:x 2] [:y 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:x 1] [:y 1]]]] [:and [:x 2] [:y 2]]]] [:and [:x 3] [:y 3]]]]
+[:xor [:xor [:x 4] [:y 4]] [:or [:and [:xor [:x 3] [:y 3]] [:or [:and [:xor [:y 2] [:x 2]] [:or [:and [:and [:x 0] [:y 0]] [:xor [:x 1] [:y 1]]] [:and [:y 1] [:x 1]]]] [:and [:y 2] [:x 2]]] ] [:and [:x 3] [:y 3]]]]
+
+[5 [:xor
+    [:or
+     [:and [:x 4] [:y 4]]
+     [:and
+      [:or
+       [:and [:x 3] [:y 3]]
+       [:and
+        [:or
+         [:and
+          [:xor [:y 2] [:x 2]]
+          [:or
+           [:and
+            [:and [:x 0] [:y 0]]
+            [:xor [:x 1] [:y 1]]]
+           [:and [:y 1] [:x 1]]]]
+         [:and [:y 2] [:x 2]]]
+        [:xor [:x 3] [:y 3]]]]
+      [:xor [:x 4] [:y 4]]]]
+    [:and [:y 5] [:x 5]]]]
+
+
 (defn part2
   [{:keys [wires output] :as input}]
-  (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
+  (->> output
+       (map (fn [[_ n]]
+              [n (to-formula wires n)]))
+       (mapv prn))
+  #_(let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
         swappable (->> wires keys)
         max-input (long (Math/pow 2 (inc input-size)))
         rand-input (fn [] [(long (rand max-input)) (long (rand max-input))])
