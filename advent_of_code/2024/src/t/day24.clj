@@ -48,6 +48,12 @@
                 ["AND" in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
+(defn run-with-swaps
+  [swaps {:keys [wires output]}])
+
+(defn find-swaps
+  [swaps {:keys [wires output]} expected])
+
 (defn part2
   [{:keys [wires output] :as input} expected-f req-swaps]
   (let [len (fn [f] (->> wires (filter (fn [[k v]] (= \x (first k)))) count))
@@ -64,15 +70,20 @@
       (if (= (* 2 req-swaps) (count swaps))
         (->> swaps keys sort (interpose ",") (apply str))
         (let [expected-z (expected-f x y)
-              actual-z (part1 {:output output
-                               :wires (merge wires (to-wires "x" x) (to-wires "y" y))})]
-          (if (= expected-z actual-z)
-            (recur (long (rand-int max-x)) (long (rand-int max-y)) swaps)
-            (println x y expected-z actual-z)))))))
+              actual-z (run-with-swaps swaps
+                                       {:output output
+                                        :wires (merge wires (to-wires "x" x) (to-wires "y" y))})]
+          (recur (long (rand max-x)) (long (rand max-y))
+                 (if (= expected-z actual-z)
+                   swaps
+                   (find-swaps swaps
+                               {:output output
+                                :wires (merge wires (to-wires "x" x) (to-wires "y" y))}
+                               expected-z))))))))
 
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
   [part2 sample2 bit-and 2] "z00,z01,z02,z05"
-  #_#_[part2 puzzle + 4] 0)
+  [part2 puzzle + 4] 0)
