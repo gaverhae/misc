@@ -107,7 +107,8 @@
                                         (<= n idx))
                                       (before (wires s)))))]
                    (before in))))
-       (map (fn [[idx in]] (format "z%02d" idx))))
+       (map (fn [[idx in]] (format "z%02d" idx)))
+       (count))
   #_(let [len (fn [f] (->> wires (filter (fn [[k v]] (= \x (first k)))) count))
         to-wires (fn [k n]
                    (->> (num-to-bits n)
@@ -139,5 +140,5 @@
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
-  [part2 sample2 bit-and 2] "z00,z01,z02,z05"
-  #_#_[part2 puzzle + 4] 0)
+  [part2 sample2 bit-and 2] 2 #_"z00,z01,z02,z05"
+  [part2 puzzle + 4] 4 #_0)
