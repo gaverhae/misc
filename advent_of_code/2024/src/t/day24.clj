@@ -49,18 +49,23 @@
        bits-to-num))
 
 (defn part2
-  [{:keys [wires output]}]
+  [{:keys [wires output]} f]
   (let [x (->> wires
                (filter (fn [[k v]] (= \x (first k))))
-               sort)
+               sort
+               (map (fn [[k [_ v]]] v))
+               bits-to-num)
         y (->> wires
                (filter (fn [[k v]] (= \y (first k))))
-               sort)]
-    [x y]))
+               sort
+               (map (fn [[k [_ v]]] v))
+               bits-to-num)
+        z-expected (num-to-bits (f x y))]
+    [x y z-expected]))
 
 (lib/check
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
-  [part2 sample2] "z00,z01,z02,z05"
-  [part2 puzzle] 0)
+  [part2 sample2 bit-and] "z00,z01,z02,z05"
+  [part2 puzzle +] 0)
