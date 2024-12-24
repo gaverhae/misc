@@ -152,7 +152,7 @@
                  false))))
 
 (defn run
-  [wires x-bits y-bits]
+  [wires outputs x-bits y-bits]
   (let [f (fn [rec w]
             (match w
               [:lit n] n
@@ -163,11 +163,7 @@
                           (rec rec a1)
                           (rec rec a2))))
         memo-f (memoize f)]
-    (->> wires
-         keys
-         (filter (fn [[out]] (= out :z)))
-         sort
-         reverse
+    (->> outputs
          (mapv (fn [o]
                  (memo-f memo-f o))))))
 
@@ -191,11 +187,13 @@
                           swaps (into {} (concat kvs vks))
                           sw (->> wires
                                   (map (fn [[out v]] [(swaps out out) v]))
-                                  (into {}))]
+                                  (into {}))
+
+                          ]
                       (if (has-cycle? sw)
                         max-score
                         (->> (for [[x y z] test-inputs
-                                   :let [result (run sw x y)]
+                                   :let [result (run sw output x y)]
                                    idx (range (count z))
                                    :when (= (get z idx) (get result idx))]
                                1)
