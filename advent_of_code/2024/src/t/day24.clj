@@ -119,7 +119,9 @@
            population
            (recur (let [survivors (concat (take 10 population)
                                           (take 3 (reverse population)))
-                        children (->> (range 87)
+                        spontaneous (->> (repeatedly 7 make-sol)
+                                         (map (fn [s] [(fitness s) s])))
+                        children (->> (range 80)
                                       (pmap (fn [_]
                                               (let [[_ parent1] (carousel population)
                                                     [_ parent2] (carousel population)
