@@ -16,8 +16,6 @@
                    (map (fn [s] (re-matches #"(...) ([^ ]*) (...) -> (...)" s)))
                    (map (fn [[_ in1 op in2 out]] [out [op in1 in2]]))
                    (into {}))]
-    (assert (= #{} (set/intersection (set (keys init))
-                                     (set (keys gates)))))
     {:wires (merge init gates)
      :output (->> (merge init gates)
                   keys
@@ -39,14 +37,6 @@
       (recur (quot n 2)
              (cons (rem n 2) bits)))))
 
-(comment
-(num-to-bits 5)
-(1 0 1)
-
-(bits-to-num (num-to-bits 17))
-17
-)
-
 (defn part1
   [{:keys [output wires]}]
   (->> output
@@ -66,7 +56,6 @@
         y (->> wires
                (filter (fn [[k v]] (= \y (first k))))
                sort)]
-    (assert (every? (fn [[_ [op]]] (= :lit op)) (concat x y)))
     [x y]))
 
 (lib/check
