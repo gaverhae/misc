@@ -90,6 +90,17 @@
                [:xor e1 e2] (bit-xor (! e1) (! e2))))]
     (ev e)))
 
+(defn inner-wires
+  [wires z-idx]
+  (prn (wires [:z z-idx]))
+  (let [f (fn ! [w]
+            (match w
+              [:x _] []
+              [:y _] []
+              [:inner inner] (cons inner (! (wires w)))
+              [op in1 in2] (concat (! in1) (! in2))))]
+    (f (wires [:z z-idx]))))
+
 (defn part2
   [{:keys [wires output] :as input}]
   (let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
@@ -117,7 +128,9 @@
         (let [[e & exprs] exprs]
           (if (valid-expr? e)
             (recur exprs swaps)
-            (prn e)))))))
+            (let [bad-z (first e)
+                  bad-wires (inner-wires wires bad-z)]
+              bad-wires)))))))
 
 (lib/check
   [part1 sample] 4
