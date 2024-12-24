@@ -65,6 +65,9 @@
                 [:and in1 in2] (bit-and (! in1) (! in2)))))
        bits-to-num))
 
+;; bit-add is
+;; z = (bit-xor (bit-xor x y) carry)
+
 (defn part2
   [{:keys [wires output] :as input}]
   )
