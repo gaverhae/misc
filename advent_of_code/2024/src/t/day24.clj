@@ -112,7 +112,7 @@
                (->> (first population)
                     second
                     first
-                    (map (fn [[a b]] (if (= a :inner) b (format "z%02d" b))))
+                    (map (fn [[a b]] (if (= a :inner) b (format "%s%02d" (name a) b))))
                     sort
                     (interpose ",")
                     (apply str))])
