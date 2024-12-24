@@ -159,23 +159,19 @@
                            (every? (fn [[x y]] (= (nth (reverse (num-to-bits (+ x y)))
                                                        n 0)
                                                   (eval-expr expr x y))))))
-        first-bad-expr (fn [swaps]
-                         (let [kvs (->> swaps (partition 2) (map vec))
-                               vks (->> swaps (map reverse) (map vec))
-                               swaps (into {} (concat kvs vks))]
-                           (->> wires
-                                (map (fn [[out v]] [(swaps out out) v]))
-                                (into {})
-                                wires-to-exprs
-                                (remove valid-expr?)
-                                ffirst)))
+        num-good-out-bits (fn [swaps]
+                            (let [kvs (->> swaps (partition 2) (map vec))
+                                  vks (->> swaps (map reverse) (map vec))
+                                  swaps (into {} (concat kvs vks))
+                                  swapped-wires (->> wires
+                                                     (map (fn [[out v]] [(swaps out out) v]))
+                                                     (into {}))]
+                              (->> swapped-wires
+                                   wires-to-exprs
+                                   (filter valid-expr?)
+                                   count)))
         make-sol (fn [] (->> swappable shuffle (take 8) vec))
-        fitness (fn [swaps]
-                  (let [f (first-bad-expr swaps)]
-                    (if (nil? f)
-                      (do (prn [:solution? swaps])
-                          0)
-                      (- 50 f))))
+        fitness (fn [swaps] (- 50 (num-good-out-bits swaps)))
         crossover (fn [i1 i2]
                     (mapv (fn [x1 x2] (if (> 0.5 (rand)) x1 x2)) i1 i2))
         mutate (fn [i]
