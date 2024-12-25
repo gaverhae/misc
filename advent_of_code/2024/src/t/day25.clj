@@ -14,11 +14,17 @@
               [(if (= (ffirst kol) \#) :lock :key)
                (->> kol lib/transpose (map (fn [col] (->> col (filter #{\#}) count dec))))]))
        (group-by first)
-       (map (fn [[k vs]] [k (->> vs (map second) (map vec))]))))
+       (map (fn [[k vs]] [k (->> vs (map second) (map vec))]))
+       (into {})))
 
 (defn part1
-  [input]
-  input)
+  [{:keys [lock key]}]
+  (->> (for [l lock
+             k key
+             :when (->> (map + l k)
+                        (every? (fn [x] (< x 6))))]
+         1)
+       count))
 
 (defn part2
   [input]
@@ -26,6 +32,4 @@
 
 (lib/check
   [part1 sample] 3
-  #_#_[part1 puzzle] 0
-  #_#_[part2 sample] 0
-  #_#_[part2 puzzle] 0)
+  [part1 puzzle] 2854)
