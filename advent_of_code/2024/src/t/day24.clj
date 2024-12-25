@@ -247,6 +247,7 @@
     (->> swaps
          (mapcat identity)
          (map (fn [[k v]] (if (= :z k) (format "z%02d" v) v)))
+         sort
          (interpose ",")
          (apply str)))
   #_(let [input-size (->> wires keys (filter (comp #{:x :y :z} first)) (map second) (apply max))
@@ -296,7 +297,7 @@
   [part1 sample] 4
   [part1 sample1] 2024
   [part1 puzzle] 57344080719736
-  [part2 puzzle] 0)
+  [part2 puzzle] "cgq,fnr,kqk,nbc,svm,z15,z23,z39")
 
 (comment
 
