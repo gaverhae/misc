@@ -7,7 +7,14 @@
 
 (defn parse
   [lines]
-  lines)
+  (->> lines
+       (partition-by #{""})
+       (remove #{[""]})
+       (map (fn [kol]
+              [(if (= (ffirst kol) \#) :lock :key)
+               (->> kol lib/transpose (map (fn [col] (->> col (filter #{\#}) count dec))))]))
+       (group-by first)
+       (map (fn [[k vs]] [k (->> vs (map second) (map vec))]))))
 
 (defn part1
   [input]
