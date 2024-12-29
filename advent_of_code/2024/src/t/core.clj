@@ -76,11 +76,35 @@
       (System/exit 1))
     v))
 
-(defn -main
-  [& args]
+(defn leaderboard
+  []
   (let [board-id (get-env "LEADERBOARD_ID")
         user-ids (-> (get-env "USER_IDS")
                      (string/split #" "))
         data (get-leaderboard-data board-id)]
     (doseq [u user-ids]
       (format-times (get-in data ["members" (str u)])))))
+
+(defn times
+  []
+  (doseq [d (map inc (range 25))]
+    (let [input (slurp (format "data/puzzle/day%02d" d))
+          day-ns (format "t.day%02d" d)
+          _ (require [(symbol day-ns)])
+          parse (resolve (symbol day-ns "parse"))
+          part1 (resolve (symbol day-ns "part1"))
+          part2 (resolve (symbol day-ns "part2"))
+          part1 (fn []
+                  (part1 (-> input string/split-lines parse)))
+          part2 (fn []
+                  (part2 (-> input string/split-lines parse)))]
+      (println (format "Day %2d: %8.2f, %8.2f"
+                       d
+                       (double (/ (lib/timed (part1)) 1000))
+                       (double (/ (lib/timed (part2)) 1000)))))))
+
+(defn -main
+  [topic & args]
+  (case topic
+    "lb" (leaderboard)
+    "ts" (times)))
