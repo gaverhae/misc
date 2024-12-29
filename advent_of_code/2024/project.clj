@@ -10,7 +10,7 @@
                  [org.clojure/data.json "2.5.1"]]
   :global-vars {*warn-on-reflection* true}
   :main ^:skip-aot t.core
-  :jvm-opts ["-Xverify:none"]
+  :jvm-opts ["-Xverify:none" "-XX:+EnableDynamicAgentLoading"]
   :target-path "target/%s"
   :plugins [[com.jakemccrary/lein-test-refresh "0.25.0"]]
   :test-refresh {:quiet true
