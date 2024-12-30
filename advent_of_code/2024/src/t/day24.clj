@@ -196,6 +196,18 @@
       (assoc (expected (dec n)) 0 :and)
       [:and "" [:x (dec n)] [:y (dec n)]]]]))
 
+(comment
+
+  (clojure.walk/postwalk
+    (fn [v] (cond (vector? v) (reduce + 0 v)
+                  (keyword? v) 1
+                  :else 0))
+    (expected 45))
+355
+
+
+  )
+
 (defn equiv
   [f1 f2]
   (or (= f1 f2)
