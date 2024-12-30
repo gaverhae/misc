@@ -23,11 +23,12 @@
                          :else [(* 2024 s)]))))))
 
 (defn part1
-  [stones n]
-  (->> (iterate step stones)
-       (drop n)
-       first
-       count))
+  ([stones] (part1 stones 25))
+  ([stones n]
+   (->> (iterate step stones)
+        (drop n)
+        first
+        count)))
 
 (defn memo-walk
   [memo stone n]
@@ -42,18 +43,19 @@
           [(assoc memo [stone n] c) c])))
 
 (defn part2
-  [stones n]
-  (->> stones
-       (reduce (fn [[m tot] stone]
-                 (let [[m c] (memo-walk m stone n)]
-                   [m (+ c tot)]))
-               [{} 0])
-       second))
+  ([stones] (part2 stones 75))
+  ([stones n]
+   (->> stones
+        (reduce (fn [[m tot] stone]
+                  (let [[m c] (memo-walk m stone n)]
+                    [m (+ c tot)]))
+                [{} 0])
+        second)))
 
 (lib/check
   [part1 sample 1] 7
   [part1 sample1 6] 22
-  [part1 sample1 25] 55312
+  [part1 sample1] 55312
   [part1 puzzle 25] 217812
   [part2 puzzle 25] 217812
-  [part2 puzzle 75] 259112729857522)
+  [part2 puzzle] 259112729857522)
