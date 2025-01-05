@@ -165,15 +165,24 @@
             (-> d (quot 1000) (quot 60) (mod 60))
             (-> d (quot 1000) (mod 60)))))
 
-(defn bench
+(defn bench-data
   [f]
   (let [res (crit/benchmark (f) {})
         cur-ver (-> (sh "git" "show" "-q" "--format=%cd.%h" "--date=format:%Y%m%d.%H%M" "--abbrev=8")
                     :out
                     string/trim)]
+    {:version cur-ver
+     :mean (-> res :mean first)
+     :variance (-> res :variance first)
+     :lower-q (-> res :lower-q first)
+     :upper-q (-> res :upper-q first)}))
+
+(defn bench
+  [f]
+  (let [res (bench-data f)]
     (format "%s: %5.2f ± %5.2f [%5.2f %5.2f]"
-            cur-ver
-            (-> res :mean first)
-            (-> res :variance first)
-            (-> res :lower-q first)
-            (-> res :upper-q first))))
+            (res :version)
+            (res :mean)
+            (res :variance)
+            (res :lower-q)
+            (res :upper-q))))
