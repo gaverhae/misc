@@ -28,13 +28,6 @@
                          2000)))
        (reduce + 0)))
 
-(defn to-single-num
-  [[d1 d2 d3 d4]]
-  (reduce (fn [acc el]
-            (+ (* acc 20) 10 el))
-          0
-          [d1 d2 d3 d4]))
-
 (defn add-num
   [s d]
   (mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
@@ -63,7 +56,9 @@
                                (take n)
                                (partition 2 1)
                                (map (fn [[a b]] (- (mod b 10) (mod a 10))))
-                               to-single-num)
+                               (reduce (fn [acc el]
+                                         (+ (* acc 20) 10 el))
+                                       0))
                    bs (BitSet. div)]
                (aset tot last-4 (long (+ (aget tot last-4) p)))
                (.set bs last-4)
@@ -97,6 +92,8 @@
 4265
 
   (lib/bench #(part2 @puzzle))
+"20250105.1917.ea38073e:  0.20 ±  0.00 [ 0.20  0.20]"
+
 "20241222.2354.0efbf1ff:  0,15 ±  0,00 [ 0,15  0,15]"
 "20241222.2342.d21717cf:  0,21 ±  0,00 [ 0,21  0,21]"
 "20241222.2314.af0eca60:  0,26 ±  0,00 [ 0,26  0,26]"
