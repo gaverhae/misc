@@ -10,16 +10,16 @@
   [lines]
   (->> lines (map parse-long)))
 
-(defn mix-prune
-  [a op]
-  (mod (bit-xor a (op a)) 16777216))
+(defmacro mix-prune
+  [a f b]
+  `(mod (bit-xor ~a (~f ~a ~b)) 16777216))
 
 (defn next-random
   [n]
   (-> n
-      (mix-prune #(* 64 %))
-      (mix-prune #(quot % 32))
-      (mix-prune #(* 2048 %))))
+      (mix-prune * 64)
+      (mix-prune quot 32)
+      (mix-prune * 2048)))
 
 (defn part1
   [input]
