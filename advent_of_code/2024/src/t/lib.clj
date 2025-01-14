@@ -101,22 +101,27 @@
      (def ~'sample (delay (-> (format "data/sample/day%02d" ~'day)
                               slurp
                               string/split-lines
+                              vec
                               ~'parse)))
      (def ~'sample1 (delay (-> (format "data/sample/day%02d-1" ~'day)
                                slurp
                                string/split-lines
+                               vec
                                ~'parse)))
      (def ~'sample2 (delay (-> (format "data/sample/day%02d-2" ~'day)
                                slurp
                                string/split-lines
+                               vec
                                ~'parse)))
      (def ~'sample3 (delay (-> (format "data/sample/day%02d-3" ~'day)
                                slurp
                                string/split-lines
+                               vec
                                ~'parse)))
      (def ~'sample4 (delay (-> (format "data/sample/day%02d-4" ~'day)
                                slurp
                                string/split-lines
+                               vec
                                ~'parse)))
      (def ~'puzzle (delay
                      (let [file# (format "data/puzzle/day%02d" ~'day)]
@@ -131,6 +136,7 @@
                        (-> file#
                            slurp
                            string/split-lines
+                           vec
                            ~'parse))))
      (deftest ~'check
        ~@(->> specs
