@@ -13,9 +13,9 @@
          (reduce (fn [acc p]
                    (case (get-in lines p)
                      \. acc
-                     \# (update acc :obstacles conj p)
-                     \^ (assoc acc :guard p)))
-                 {:width w, :height h, :obstacles #{}}))))
+                     \# (update acc 2 conj p)
+                     \^ (assoc acc 3 p)))
+                 [w h #{} nil]))))
 
 (def turn
   (->> [[-1 0] [0 1] [1 0] [0 -1]]
@@ -33,26 +33,30 @@
     (and (<= 0 x) (< x w) (<= 0 y) (< y h))))
 
 (defn find-path
-  [w h obs g]
+  [w h obs g d]
   (loop [p g
-         d [-1 0]
-         visited? #{[p d]}]
+         d d
+         visited? #{[p d]}
+         path [p]]
     (let [nxt (step p d), v [nxt d]]
       (cond
         (visited? v) :loop
-        (contains? obs nxt) (recur p (turn d) visited?)
-        (inside? nxt w h) (recur nxt d (conj visited? v))
-        :else (into #{} (map first) visited?)))))
+        (contains? obs nxt) (recur p (turn d) visited? path)
+        (inside? nxt w h) (recur nxt d (conj visited? v) (conj path nxt))
+        :else path))))
 
 (defn part1
-  [{:keys [width height obstacles guard]}]
-  (count (find-path width height obstacles guard)))
+  [[w h o g]]
+  (count (into #{} (find-path w h o g [-1 0]))))
 
 (defn part2
-  [{:keys [width height obstacles guard]}]
-  (->> (find-path width height obstacles guard)
-       (filter (fn [obs]
-                 (= :loop (find-path width height (conj obstacles obs) guard))))
+  [[w h o g]]
+  (->> (find-path w h o g [-1 0])
+       (partition 2 1)
+       (filter (fn [[g n]]
+                 (let [dy (- (get n 0) (get g 0))
+                       dx (- (get n 1) (get g 1))]
+                   (= :loop (find-path w h (conj o n) g [dy dx])))))
        count))
 
 (lib/check
