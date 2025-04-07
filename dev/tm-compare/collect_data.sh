@@ -14,7 +14,7 @@ BUS=(/Volumes/.timemachine/*/*/*.backup)
 tmp=$(mktemp)
 
 for i in $(seq 1 $((${#BUS[@]} - 2))); do
-    target_file=cumul/$(basename ${BUS[$i]})_$(basename ${BUS[i+1]}).txt.gz
+    target_file=data/$(basename ${BUS[$i]})_$(basename ${BUS[i+1]}).txt.gz
     if [ -f "$target_file" ]; then
         echo "$target_file exists; skipping"
     else
