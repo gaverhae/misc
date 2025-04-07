@@ -98,10 +98,11 @@
                   (part1 (-> input string/split-lines parse)))
           part2 (fn []
                   (part2 (-> input string/split-lines parse)))]
-      (println (format "Day %2d: %8.2f, %8.2f"
+
+      (println (format "Day %2d: %7.3f  %7.3f"
                        d
-                       (double (/ (lib/timed (part1)) 1000))
-                       (double (/ (lib/timed (part2)) 1000)))))))
+                       (:mean (lib/bench-data part1))
+                       (:mean (lib/bench-data part2)))))))
 
 (defn -main
   [topic & args]
