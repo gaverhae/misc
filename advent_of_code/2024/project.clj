@@ -4,7 +4,7 @@
                  [hato "1.0.0"]
                  [instaparse "1.5.0"]
                  [org.clojure/clojure "1.12.0"]
-                 [org.clojure/core.async "1.7.701"]
+                 [org.clojure/core.async "1.8.735"]
                  [org.clojure/core.match "1.1.0"]
                  [org.clojure/data.int-map "1.3.0"]
                  [org.clojure/data.json "2.5.1"]]
