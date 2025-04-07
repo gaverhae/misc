@@ -121,7 +121,15 @@
                  (shortest-length c iters))))
        (reduce + 0)))
 
+(defn part1
+  [input]
+  (solve input 2))
+
+(defn part2
+  [input]
+  (solve input 25))
+
 (lib/check
-  [solve sample 2] 126384
-  [solve puzzle 2] 219366
-  [solve puzzle 25] 271631192020464)
+  [part1 sample] 126384
+  [part1 puzzle] 219366
+  [part2 puzzle] 271631192020464)

@@ -38,16 +38,17 @@
        (reduce + 0)))
 
 (defn part2
-  [input offset]
-  (->> input
-       (map (fn [[ax ay bx by px py]]
-              [ax ay bx by (+ px offset) (+ py offset)]))
-       (keep solve)
-       (reduce + 0)))
+  ([input] (part2 input 10000000000000))
+  ([input offset]
+   (->> input
+        (map (fn [[ax ay bx by px py]]
+               [ax ay bx by (+ px offset) (+ py offset)]))
+        (keep solve)
+        (reduce + 0))))
 
 (lib/check
   [part1 sample] 480
   [part1 puzzle] 34393
   [part2 sample 0] 480
   [part2 puzzle 0] 34393
-  [part2 puzzle 10000000000000] 83551068361379)
+  [part2 puzzle] 83551068361379)

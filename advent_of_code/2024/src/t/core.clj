@@ -87,7 +87,9 @@
 
 (defn times
   []
-  (doseq [d (map inc (range 25))]
+  (doseq [d (map inc (range 25))
+          :when (not= d 14)
+          :when (not= d 24)]
     (let [input (slurp (format "data/puzzle/day%02d" d))
           day-ns (format "t.day%02d" d)
           _ (require [(symbol day-ns)])
