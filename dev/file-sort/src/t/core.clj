@@ -1,8 +1,11 @@
 (ns t.core
   (:require [clojure.java.io :as io]
+            [clojure.set :as set]
             [clojure.string :as string])
   (:import (java.io File)
-           (java.nio.file Files
+           (java.nio.file attribute.FileAttribute
+                          CopyOption
+                          Files
                           LinkOption
                           Path
                           Paths)
@@ -51,48 +54,32 @@
         (prn cs)
         (println (->> cs vals (reduce + 0)))))))
 
-(comment
-
-  (require '[clojure.set :as set])
-  (import '(java.nio.file CopyOption
-                          attribute.FileAttribute))
-
+(let [no-copy-opt (make-array CopyOption 0)
+      no-file-attr (make-array FileAttribute 0)
+      no-string (make-array String 0)
+      p (fn [d s] (Paths/get (str d s) no-string))
+      ds? (fn [s] (= ".DS_Store" (subs s (- (count s) 9) (count s))))]
   (defn merge-dirs
-    [d1 d2 dest]
-    (let [p (fn [d s] (Paths/get (str d s) (make-array String 0)))
-          files-under-d1 (->> (all-files-under d1) (map (fn [s] (subs s (count d1)))))
-          files-under-d2 (->> (all-files-under d2) (map (fn [s] (subs s (count d2)))))
-          same-files (->> (set/intersection (set files-under-d1)
-                                            (set files-under-d2))
-                          (filter (fn [f]
-                                    (= -1 (Files/mismatch (p d1 f)
-                                                          (p d2 f))))))]
-      (doseq [f same-files]
-        (Files/createDirectories (Path/.getParent (p dest f)) (make-array FileAttribute 0))
-        (Files/move (p d1 f) (p dest f) (make-array CopyOption 0))
-        (Files/delete (p d2 f)))))
-
-  (merge-dirs "/Volumes/to_sort/mbp/Library1" "/Volumes/to_sort/mbp/Library3" "/Volumes/to_sort/mbp/Library")
-
-  (defn merge-dirs-safe
-    [d1 d2 dest]
-    (let [p (fn [d s] (Paths/get (str d s) (make-array String 0)))
-          files-under-d1 (->> (all-files-under d1) (map (fn [s] (subs s (count d1)))) set)
-          files-under-d2 (->> (all-files-under d2) (map (fn [s] (subs s (count d2)))) set)
-          same-paths (set/intersection files-under-d1 files-under-d2)
-          only-in-d1 (set/difference files-under-d1 files-under-d2)]
-      ; safety check
-      (doseq [f same-paths]
-        (when (not= -1 (Files/mismatch (p d1 f)
-                                       (p d2 f)))
-          (prn [:files-differ p])))
-      (doseq [[d f] (concat (->> only-in-d1 (map (fn [f] [d1 f])))
-                            (->> files-under-d2 (map (fn [f] [d2 f]))))]
-        (Files/createDirectories (Path/.getParent (p dest f)) (make-array FileAttribute 0))
-        (Files/copy (p d f) (p dest f) (make-array CopyOption 0)))))
-
-  (merge-dirs-safe "/Volumes/Macintosh HD - Données" "/Volumes/Macintosh HD 1" "/Volumes/Hama/2024-10-26-backup-jess")
-
-
-
-)
+    ([d1 d2 dest] (merge-dirs d1 d2 dest false))
+    ([d1 d2 dest delete?]
+     (let [files-under-d1 (->> (all-files-under d1) (map (fn [s] (subs s (count d1)))) (remove ds?) set)
+           files-under-d2 (->> (all-files-under d2) (map (fn [s] (subs s (count d2)))) (remove ds?) set)
+           all-files (set/union files-under-d1 files-under-d2)
+           common-paths (set/intersection files-under-d1 files-under-d2)
+           same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
+           copy (fn [from to] (Files/copy from to no-copy-opt))
+           create-parents (fn [path] (Files/createDirectories (Path/.getParent path) no-file-attr))
+           move (if delete?
+                  (fn [from to] (Files/move from to no-copy-opt))
+                  copy)
+           delete (if delete?
+                    (fn [path] (Files/delete path))
+                    (fn [path] :do-nothing))]
+       (doseq [f (sort all-files)]
+         (create-parents (p dest f))
+         (cond (contains? common-paths f) (do (move (p d1 f) (p dest f))
+                                              (if (same-files? (p dest f) (p d2 f))
+                                                (delete (p d2 f))
+                                                (move (p d2 f) (p dest (str f "__" (random-uuid))))))
+               (contains? files-under-d1 f) (move (p d1 f) (p dest f))
+               (contains? files-under-d2 f) (move (p d2 f) (p dest f))))))))
