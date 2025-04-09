@@ -27,10 +27,13 @@
                                        (lazy-seq (mapcat all-files-under children)))
           :else [(-> path Path/.toAbsolutePath str)])))
 
-(defn count-files
+(defn file-stats
   [root]
-  (->> (all-files-under root)
-       count))
+  (let [files (all-files-under root)]
+    {:count (count files)
+     :total-size (->> files
+                      (map (fn [s] (Files/size (Paths/get s (make-array String 0)))))
+                      (reduce + 0))}))
 
 (defn now
   []
@@ -46,13 +49,18 @@
     (if (nil? env_roots)
       (do (println "You need to set FILE_ROOTS. The expected value is a space-separated")
           (println "list of paths to folders to analyze and track."))
-      (let [cs (->> (string/split env_roots #" ")
-                    (map (fn [s] [s (count-files s)]))
-                    (into {}))
+      (let [cs {:version 1
+                :data (->> (string/split env-roots #" ")
+                           (map (fn [s] [s (file-stats s)]))
+                           (into {}))}
             n (now)]
         (spit (str "_data/" n ".edn") (pr-str cs))
         (prn cs)
-        (println (->> cs vals (reduce + 0)))))))
+        (println (format "Total files: %d" (->> cs :data vals (map :count) (reduce + 0))))
+        (println (format "Total size (GB): %.2f" (-> cs :data vals
+                                                     (->> (map :total-size)
+                                                          (reduce + 0))
+                                                     (/ 1.0 1000 1000 1000))))))))
 
 (let [no-copy-opt (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
