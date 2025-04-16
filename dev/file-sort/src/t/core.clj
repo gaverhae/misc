@@ -94,7 +94,8 @@
       no-file-attr (make-array FileAttribute 0)
       no-string (make-array String 0)
       p (fn [d s] (Paths/get (str d s) no-string))
-      ds? (fn [s] (= ".DS_Store" (subs s (- (count s) 9) (count s))))
+      ds? (fn [s] (and (>= (count s) 9)
+                       (= ".DS_Store" (subs s (- (count s) 9) (count s)))))
       under (fn [f d]
               (->> (f d) (map (fn [s] (subs s (count d)))) (remove ds?) set))
       same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
