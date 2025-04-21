@@ -10,6 +10,10 @@
                       ZoneId))
   (:gen-class))
 
+;; for the first time, my JVM seems aware of my locale, which I really don't
+;; like, so I reset it:
+(java.util.Locale/setDefault java.util.Locale/ROOT)
+
 (let [formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH'Z'")]
   (defn current-hour
     []
