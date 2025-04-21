@@ -19,28 +19,30 @@
          (map (fn [p] [p (inc cost)])))))
 
 (defn part1
-  [input size num-bytes]
-  (let [grid (->> input
-                  (take num-bytes)
-                  (reduce (fn [acc el] (assoc acc (vec el) :wall)) {}))]
-    (lib/dijkstra-search
-      [0 0]
-      (fn [[x y]] (= (dec size) x y))
-      (generate-moves grid size))))
+  ([input] (part1 input 71 1024))
+  ([input size num-bytes]
+   (let [grid (->> input
+                   (take num-bytes)
+                   (reduce (fn [acc el] (assoc acc (vec el) :wall)) {}))]
+     (lib/dijkstra-search
+       [0 0]
+       (fn [[x y]] (= (dec size) x y))
+       (generate-moves grid size)))))
 
 (defn part2
-  [input size start]
-  (loop [num-bytes start]
-    (if (try (part1 input size num-bytes)
-          true
-          (catch Exception e false))
-      (recur (inc num-bytes))
-      (->> (nth input (dec num-bytes))
-           (interpose ",")
-           (apply str)))))
+  ([input] (part2 input 71 1024))
+  ([input size start]
+   (loop [num-bytes start]
+     (if (try (part1 input size num-bytes)
+           true
+           (catch Exception e false))
+       (recur (inc num-bytes))
+       (->> (nth input (dec num-bytes))
+            (interpose ",")
+            (apply str))))))
 
 (lib/check
   [part1 sample 7 12] 22
-  [part1 puzzle 71 1024] 316
+  [part1 puzzle] 316
   [part2 sample 7 12] "6,1"
-  [part2 puzzle 71 1024] "45,18")
+  [part2 puzzle] "45,18")

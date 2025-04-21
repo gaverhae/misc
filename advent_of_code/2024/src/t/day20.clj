@@ -79,16 +79,18 @@
                (conj visited state))))))
 
 (defn part1
-  [{:keys [valid-pos? start end] :as input} saves-at-least]
-  (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
-        max-cost (- no-cheat-cost saves-at-least)]
-    (count (cheating-paths 2 no-cheat-path start end max-cost))))
+  ([input] (part1 input 100))
+  ([{:keys [valid-pos? start end] :as input} saves-at-least]
+   (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
+         max-cost (- no-cheat-cost saves-at-least)]
+     (count (cheating-paths 2 no-cheat-path start end max-cost)))))
 
 (defn part2
-  [{:keys [valid-pos? start end] :as input} saves-at-least]
-  (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
-        max-cost (- no-cheat-cost saves-at-least)]
-    (count (cheating-paths 20 no-cheat-path start end max-cost))))
+  ([input] (part2 input 100))
+  ([{:keys [valid-pos? start end] :as input} saves-at-least]
+   (let [[no-cheat-cost no-cheat-path] (trace-no-cheat-path start end valid-pos?)
+         max-cost (- no-cheat-cost saves-at-least)]
+     (count (cheating-paths 20 no-cheat-path start end max-cost)))))
 
 (lib/check
   [part1 sample 2] 44
@@ -102,7 +104,7 @@
   [part1 sample 38] 3
   [part1 sample 40] 2
   [part1 sample 64] 1
-  [part1 puzzle 100] 1323
+  [part1 puzzle] 1323
   [part2 sample 76] 3
   [part2 sample 74] 7
   [part2 sample 72] 29
@@ -117,4 +119,4 @@
   [part2 sample 54] 222
   [part2 sample 52] 253
   [part2 sample 50] 285
-  [part2 puzzle 100] 983905)
+  [part2 puzzle] 983905)
