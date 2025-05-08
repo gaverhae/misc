@@ -68,7 +68,7 @@
     (do (println "You need to set FILE_ROOTS. The expected value is a space-separated")
         (println "list of paths to folders to analyze and track."))
     (let [cs {:version 1
-              :data (->> (string/split env-roots #" ")
+              :data (->> env-roots
                          (map (fn [s] [s (file-stats s)]))
                          (into {}))}
           n (now)]
@@ -112,11 +112,30 @@
               (contains? files-under-d1 f) (move (p d1 f) (p dest f))
               (contains? files-under-d2 f) (move (p d2 f) (p dest f)))))))
 
+(defn find-dups
+  [env-roots]
+  (->> env-roots
+       (mapcat all-files-under)
+       (map (fn [s]
+              (let [p (Paths/get s (make-array String 0))]
+                {:file s
+                 :path p
+                 :size (Files/size p)})))
+       (reduce (fn [acc f]
+                 (update acc (:size f) (fnil conj []) f)))
+       (filter (fn [[s fs]]
+                 (>= (count fs) 2)))
+       (sort-by key)
+       reverse
+       (take 10)
+       prn))
+
 (defn -main
   [& args]
   (when-let [lang (System/getenv "LANG")]
     (Locale/setDefault (Locale. lang)))
-  (let [env-roots (System/getenv "FILE_ROOTS")
+  (let [env-roots (-> (System/getenv "FILE_ROOTS")
+                      (string/split #" "))
         save-result (System/getenv "SAVE_RESULT")]
     (cond (empty? args)
           (count-files env-roots save-result)
@@ -125,6 +144,9 @@
                (= 3 (count (rest args))))
           (let [[_ d1 d2 dest] args]
             (merge-dirs d1 d2 dest))
+
+          (= ["dups"] args)
+          (find-dups env-roots)
 
           :else
           (println "Unknown command: " (pr-str args)))))
