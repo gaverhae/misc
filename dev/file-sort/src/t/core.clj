@@ -43,26 +43,31 @@
         (string/replace "T" "-")
         (string/replace ":" "-"))))
 
+(defn count-files
+  [env-roots save-result]
+  (if (nil? env-roots)
+    (do (println "You need to set FILE_ROOTS. The expected value is a space-separated")
+        (println "list of paths to folders to analyze and track."))
+    (let [cs {:version 1
+              :data (->> (string/split env-roots #" ")
+                         (map (fn [s] [s (file-stats s)]))
+                         (into {}))}
+          n (now)]
+      (when (= "true" save-result)
+        (spit (str "_data/" n ".edn") (pr-str cs)))
+      (prn cs)
+      (println (format "Total files: %d" (->> cs :data vals (map :count) (reduce + 0))))
+      (println (format "Total size (GB): %.2f" (-> cs :data vals
+                                                   (->> (map :total-size)
+                                                        (reduce + 0))
+                                                   (/ 1.0 1000 1000 1000)))))))
+
 (defn -main
   [& args]
   (let [env-roots (System/getenv "FILE_ROOTS")
         save-result (System/getenv "SAVE_RESULT")]
-    (if (nil? env-roots)
-      (do (println "You need to set FILE_ROOTS. The expected value is a space-separated")
-          (println "list of paths to folders to analyze and track."))
-      (let [cs {:version 1
-                :data (->> (string/split env-roots #" ")
-                           (map (fn [s] [s (file-stats s)]))
-                           (into {}))}
-            n (now)]
-        (when (= "true" save-result)
-          (spit (str "_data/" n ".edn") (pr-str cs)))
-        (prn cs)
-        (println (format "Total files: %d" (->> cs :data vals (map :count) (reduce + 0))))
-        (println (format "Total size (GB): %.2f" (-> cs :data vals
-                                                     (->> (map :total-size)
-                                                          (reduce + 0))
-                                                     (/ 1.0 1000 1000 1000))))))))
+    (cond (empty? args) (count-files env-roots save-result)
+          :else (println "Unknown command: " (pr-str args)))))
 
 (let [no-copy-opt (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
