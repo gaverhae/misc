@@ -79,6 +79,7 @@
       (println (format "Total size (GB): %.2f" (-> cs :data vals
                                                    (->> (map :total-size)
                                                         (reduce + 0))
+                                                   long
                                                    (/ 1.0 1000 1000 1000)))))))
 
 (defn -main
