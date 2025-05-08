@@ -82,7 +82,7 @@
                                                    long
                                                    (/ 1.0 1000 1000 1000)))))))
 
-(let [no-copy-opt (make-array CopyOption 0)
+(let [no-copy-opt ^"[Ljava.nio.file.CopyOption;" (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
       no-string (make-array String 0)
       p (fn [d s] (Paths/get (str d s) no-string))
@@ -91,7 +91,7 @@
       under (fn [f d]
               (->> (f d) (map (fn [s] (subs s (count d)))) (remove ds?) set))
       same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
-      copy (fn [from to] (Files/copy from to no-copy-opt))
+      copy (fn [^Path from ^Path to] (Files/copy from to no-copy-opt))
       create-path (fn [path] (Files/createDirectories path no-file-attr))]
   (defn merge-dirs
     [d1 d2 dest]
