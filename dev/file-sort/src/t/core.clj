@@ -9,6 +9,7 @@
                           LinkOption
                           Path
                           Paths)
+           (java.security MessageDigest)
            (java.util Locale)
            (java.util.stream Stream))
   (:gen-class))
@@ -112,6 +113,29 @@
               (contains? files-under-d1 f) (move (p d1 f) (p dest f))
               (contains? files-under-d2 f) (move (p d2 f) (p dest f)))))))
 
+(defn bytes-to-hex
+  [^bytes bs]
+  (->> bs
+       (map (fn [b]
+              (format "%02x" b)))
+       (apply str)))
+
+(defn hashes
+  [m]
+  (let [buffer-size (* 64 1024)
+        buffer (byte-array buffer-size)
+        md5 (MessageDigest/getInstance "md5")
+        sha1 (MessageDigest/getInstance "sha1")]
+    (with-open [is (io/input-stream (:file m))]
+      (loop []
+        (let [n (.read is buffer)]
+          (.update md5 buffer 0 n)
+          (.update sha1 buffer 0 n)
+          (if (= n buffer-size)
+            (recur)
+            (assoc m :md5 (bytes-to-hex (.digest md5))
+                     :sha1 (bytes-to-hex (.digest sha1)))))))))
+
 (defn find-dups
   [env-roots]
   (->> env-roots
@@ -122,12 +146,16 @@
                  :path p
                  :size (Files/size p)})))
        (reduce (fn [acc f]
-                 (update acc (:size f) (fnil conj []) f)))
+                 (update acc (:size f) (fnil conj []) f))
+               {})
        (filter (fn [[s fs]]
                  (>= (count fs) 2)))
        (sort-by key)
        reverse
        (take 10)
+       (mapcat val)
+       (map hashes)
+       (group-by (juxt :md5 :sha1 :size))
        prn))
 
 (defn -main
