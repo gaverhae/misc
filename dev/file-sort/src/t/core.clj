@@ -152,10 +152,15 @@
                  (>= (count fs) 2)))
        (sort-by key)
        reverse
-       (take 10)
+       (take 100)
        (mapcat val)
        (map hashes)
        (group-by (juxt :md5 :sha1 :size))
+       (filter (fn [[[md5 sha1 size] fs]]
+                 (>= (count fs) 2)))
+       (sort-by (fn [[[md5 sha1 size] fs]]
+                  size))
+       reverse
        (map (fn [[[md5 sha1 size] fs]]
               (println)
               (println "MD5: " md5)
