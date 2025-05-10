@@ -129,8 +129,9 @@
     (with-open [is (io/input-stream (:file m))]
       (loop []
         (let [n (.read is buffer)]
-          (.update md5 buffer 0 n)
-          (.update sha1 buffer 0 n)
+          (when (pos? n)
+            (.update md5 buffer 0 n)
+            (.update sha1 buffer 0 n))
           (if (= n buffer-size)
             (recur)
             (assoc m :md5 (bytes-to-hex (.digest md5))
