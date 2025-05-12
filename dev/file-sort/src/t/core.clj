@@ -1,10 +1,14 @@
 (ns t.core
   (:require [clojure.java.io :as io]
+            [clojure.java.shell :refer [sh]]
             [clojure.set :as set]
             [clojure.string :as string])
   (:import (java.io File)
-           (java.nio.file attribute.FileAttribute
+           (java.nio.file attribute.BasicFileAttributes
+                          attribute.FileAttribute
                           CopyOption
+                          FileVisitor
+                          FileVisitResult
                           Files
                           LinkOption
                           Path
@@ -93,16 +97,33 @@
               (->> (f d) (map (fn [s] (subs s (count d)))) (remove ds?) set))
       same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
       copy (fn [^Path from ^Path to] (Files/copy from to no-copy-opt))
-      create-path (fn [path] (Files/createDirectories path no-file-attr))]
+      create-path (fn [path] (Files/createDirectories path no-file-attr))
+      move (fn [from to] (Files/move from to no-copy-opt))
+      delete (fn [path] (Files/delete path))
+      remove-dir-tree (fn [d]
+                        (Files/walkFileTree
+                          (p d "")
+                          (reify FileVisitor
+                            (visitFile [_ path attrs]
+                              (if (and (BasicFileAttributes/.isRegularFile attrs)
+                                       (Path/.endsWith path ".DS_Store"))
+                                (do (delete path)
+                                    FileVisitResult/CONTINUE)
+                                (throw (ex-info "Unexpected path." {:path path}))))
+                            (preVisitDirectory [_ _ _]
+                              FileVisitResult/CONTINUE)
+                            (postVisitDirectory [_ path e]
+                              (when e
+                                (throw (ex-info "Error." {:exception e})))
+                              (delete path)
+                              FileVisitResult/CONTINUE))))]
   (defn merge-dirs
     [d1 d2 dest]
     (let [files-under-d1 (under all-files-under d1)
           files-under-d2 (under all-files-under d2)
           all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
           all-files (set/union files-under-d1 files-under-d2)
-          common-paths (set/intersection files-under-d1 files-under-d2)
-          move (fn [from to] (Files/move from to no-copy-opt))
-          delete (fn [path] (Files/delete path))]
+          common-paths (set/intersection files-under-d1 files-under-d2)]
       (doseq [d all-dirs]
         (create-path (p dest d)))
       (doseq [f (sort all-files)]
@@ -111,7 +132,9 @@
                                                (delete (p d2 f))
                                                (move (p d2 f) (p dest (str f "__" (random-uuid))))))
               (contains? files-under-d1 f) (move (p d1 f) (p dest f))
-              (contains? files-under-d2 f) (move (p d2 f) (p dest f)))))))
+              (contains? files-under-d2 f) (move (p d2 f) (p dest f))))
+      (remove-dir-tree d1)
+      (remove-dir-tree d2))))
 
 (defn bytes-to-hex
   [^bytes bs]
