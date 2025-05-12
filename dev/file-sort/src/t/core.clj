@@ -165,7 +165,7 @@
        (map (fn [[[md5 sha1 size] fs]]
               (println)
               (println (format "%8.2f GB / %s / %s"
-                               (/ size (* 1.0 1024 1024 1024))
+                               (/ (long size) (* 1.0 1024 1024 1024))
                                md5 sha1))
               (->> fs (map :file) sort (map println) doall)
               (println)))
