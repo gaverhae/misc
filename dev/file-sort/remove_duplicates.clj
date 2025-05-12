@@ -3,11 +3,6 @@
 (defn rm [abs-path]
   (clojure.java.shell/sh "rm" "-f" abs-path))
 
-(defn mime-type [abs-path]
-  (-> (clojure.java.shell/sh "file" "--mime-type" "-b" abs-path)
-      :out
-      clojure.string/trim))
-
 (defn md5 [abs-path]
   (-> (clojure.java.shell/sh "md5sum" abs-path)
       :out
