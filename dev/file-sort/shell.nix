@@ -1,6 +1,5 @@
 let
   pkgs = import ./nix/nixpkgs.nix;
-  getFlake = url: (builtins.getFlake url).packages.${pkgs.system}.default;
   jdk = pkgs.openjdk21_headless;
 in
 pkgs.mkShell {
