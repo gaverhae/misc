@@ -28,10 +28,6 @@
                          2000)))
        (reduce + 0)))
 
-(defn add-num
-  [s d]
-  (mod (+ (* 20 s) 10 d) (* 20 20 20 20)))
-
 (defn part2
   [input]
   (->> (let [div (* 20 20 20 20)
@@ -73,7 +69,8 @@
                          p (mod secret 10)
                          secret (next-random secret)
                          d (- p prev)
-                         last-4 (add-num last-4 d)]
+                         last-4 (mod (+ (* 20 last-4) 10 d)
+                                     div)]
                      (when (not (.get bs last-4))
                        (aset tot last-4 (long (+ (aget tot last-4) p))))
                      (.set bs last-4)
@@ -92,6 +89,9 @@
 4265
 
   (lib/bench #(part2 @puzzle))
+"202505131226.2213.a2fe89bb:  0.20 ±  0.00 [ 0.20  0.20]"
+"20250513.1220.2cf5641b:  0.15 ±  0.00 [ 0.15  0.15]"
+
 "20250421.2017.7d0f0dac:  0.14 ±  0.00 [ 0.14  0.14]"
 "20250421.1959.8360ffe8:  0.15 ±  0.00 [ 0.15  0.15]"
 

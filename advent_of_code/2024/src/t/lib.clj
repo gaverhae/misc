@@ -168,10 +168,13 @@
 (defn bench-data
   [f]
   (let [res (crit/benchmark (f) {})
-        cur-ver (-> (sh "git" "show" "-q" "--format=%cd.%h" "--date=format:%Y%m%d.%H%M" "--abbrev=8")
+        cur-ver (-> (sh "git" "show" "-q" "--format=%cd.%%s.%h" "--date=format:%Y%m%d%H%M" "--abbrev=8")
                     :out
-                    string/trim)]
-    {:version cur-ver
+                    string/trim)
+        num-commits (-> (sh "git" "rev-list" "--count" "HEAD")
+                        :out
+                        string/trim)]
+    {:version (format cur-ver num-commits)
      :mean (-> res :mean first)
      :variance (-> res :variance first)
      :lower-q (-> res :lower-q first)
