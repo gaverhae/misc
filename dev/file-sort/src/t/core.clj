@@ -42,15 +42,17 @@
 
 (defn -main
   [& args]
-  (let [env_roots (System/getenv "FILE_ROOTS")]
-    (if (nil? env_roots)
+  (let [env-roots (System/getenv "FILE_ROOTS")
+        save-result (System/getenv "SAVE_RESULT")]
+    (if (nil? env-roots)
       (do (println "You need to set FILE_ROOTS. The expected value is a space-separated")
           (println "list of paths to folders to analyze and track."))
       (let [cs (->> (string/split env_roots #" ")
                     (map (fn [s] [s (count-files s)]))
                     (into {}))
             n (now)]
-        (spit (str "_data/" n ".edn") (pr-str cs))
+        (when (= "true" save-result)
+          (spit (str "_data/" n ".edn") (pr-str cs)))
         (prn cs)
         (println (->> cs vals (reduce + 0)))))))
 
