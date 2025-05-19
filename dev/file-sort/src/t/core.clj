@@ -28,6 +28,24 @@
                                        (lazy-seq (mapcat all-files-under children)))
           :else [(-> path Path/.toAbsolutePath str)])))
 
+(let [no-link-opt (make-array LinkOption 0)
+      no-string (make-array String 0)]
+  (defn all-dirs-under
+    "Returns a lazy list of all the dirs under the given path. Only reports
+    regular dirs; does not traverse symlinks."
+    [path]
+    (cond (string? path) (all-dirs-under (Paths/get path no-string))
+          ;; do not traverse symbolic links at all
+          (Files/isSymbolicLink path) []
+          ;; silently ignore files we can't read
+          (not (Files/isReadable path)) []
+          (Files/isDirectory path no-link-opt)
+          (let [children (with-open [stream (Files/list path)]
+                           (-> stream Stream/.iterator iterator-seq vec))]
+            (cons (-> path Path/.toAbsolutePath str)
+                  (lazy-seq (mapcat all-dirs-under children))))
+          :else [])))
+
 (defn file-stats
   [root]
   (let [files (all-files-under root)]
@@ -71,25 +89,29 @@
       no-file-attr (make-array FileAttribute 0)
       no-string (make-array String 0)
       p (fn [d s] (Paths/get (str d s) no-string))
-      ds? (fn [s] (= ".DS_Store" (subs s (- (count s) 9) (count s))))]
+      ds? (fn [s] (= ".DS_Store" (subs s (- (count s) 9) (count s))))
+      under (fn [f d]
+              (->> (f d) (map (fn [s] (subs s (count d)))) (remove ds?) set))
+      same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
+      copy (fn [from to] (Files/copy from to no-copy-opt))
+      create-path (fn [path] (Files/createDirectories path no-file-attr))]
   (defn merge-dirs
     ([d1 d2 dest] (merge-dirs d1 d2 dest false))
     ([d1 d2 dest delete?]
-     (let [files-under-d1 (->> (all-files-under d1) (map (fn [s] (subs s (count d1)))) (remove ds?) set)
-           files-under-d2 (->> (all-files-under d2) (map (fn [s] (subs s (count d2)))) (remove ds?) set)
+     (let [files-under-d1 (under all-files-under d1)
+           files-under-d2 (under all-files-under d2)
+           all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
            all-files (set/union files-under-d1 files-under-d2)
            common-paths (set/intersection files-under-d1 files-under-d2)
-           same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
-           copy (fn [from to] (Files/copy from to no-copy-opt))
-           create-parents (fn [path] (Files/createDirectories (Path/.getParent path) no-file-attr))
            move (if delete?
                   (fn [from to] (Files/move from to no-copy-opt))
                   copy)
            delete (if delete?
                     (fn [path] (Files/delete path))
                     (fn [path] :do-nothing))]
+       (doseq [d all-dirs]
+         (create-path (p dest d)))
        (doseq [f (sort all-files)]
-         (create-parents (p dest f))
          (cond (contains? common-paths f) (do (move (p d1 f) (p dest f))
                                               (if (same-files? (p dest f) (p d2 f))
                                                 (delete (p d2 f))
