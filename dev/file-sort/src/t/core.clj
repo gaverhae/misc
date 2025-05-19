@@ -9,6 +9,7 @@
                           LinkOption
                           Path
                           Paths)
+           (java.util Locale)
            (java.util.stream Stream))
   (:gen-class))
 
@@ -45,6 +46,8 @@
 
 (defn -main
   [& args]
+  (when-let [lang (System/getenv "LANG")]
+    (Locale/setDefault (Locale. lang)))
   (let [env-roots (System/getenv "FILE_ROOTS")
         save-result (System/getenv "SAVE_RESULT")]
     (if (nil? env-roots)
