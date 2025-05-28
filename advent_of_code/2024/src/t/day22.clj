@@ -10,16 +10,16 @@
   [lines]
   (->> lines (map parse-long)))
 
-(defn mix-prune
-  [a op]
-  (mod (bit-xor a (op a)) 16777216))
+(defmacro mix-prune
+  [a f b]
+  `(mod (bit-xor ~a (~f ~a ~b)) 16777216))
 
 (defn next-random
   [n]
   (-> n
-      (mix-prune #(* 64 %))
-      (mix-prune #(quot % 32))
-      (mix-prune #(* 2048 %))))
+      (mix-prune * 64)
+      (mix-prune quot 32)
+      (mix-prune * 2048)))
 
 (defn part1
   [input]
@@ -89,6 +89,11 @@
 4265
 
   (lib/bench #(part2 @puzzle))
+"202505282235.2220.ea75fe02:  0.40 ±  0.00 [ 0.40  0.41]"
+"202501121834.2194.956ceb1d:  0.42 ±  0.00 [ 0.42  0.43]"
+"202501121756.2192.b8be9379:  0.23 ±  0.00 [ 0.23  0.24]"
+"20250111.1718.5a669073:  0.22 ±  0.00 [ 0.22  0.22]"
+
 "202505131226.2213.a2fe89bb:  0.20 ±  0.00 [ 0.20  0.20]"
 "20250513.1220.2cf5641b:  0.15 ±  0.00 [ 0.15  0.15]"
 
