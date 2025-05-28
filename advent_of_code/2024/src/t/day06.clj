@@ -27,7 +27,7 @@
    [1 0] [0 -1]
    [0 -1] [-1 0]})
 
-(defn part1
+(defn find-path
   [{m :map, [p d] :guard}]
   (loop [[y0 x0] p
          [dy dx] d
@@ -36,7 +36,11 @@
       (case (get-in m [y x] :out)
         true (recur [y x] [dy dx] (conj cells [y x]))
         false (recur [y0 x0] (turn [dy dx]) cells)
-        :out (count cells)))))
+        :out cells))))
+
+(defn part1
+  [input]
+  (count (find-path input)))
 
 (defn part2
   [{m :map, [p d] :guard}]
