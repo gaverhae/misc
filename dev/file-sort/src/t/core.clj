@@ -233,6 +233,11 @@
                             (fn [[typ path]]
                               (and (= :dirs typ)
                                    (= () (children path))))
+                            [:file file-name]
+                            (fn [[typ path]]
+                              (and (= :files typ)
+                                   (= file-name
+                                      (str (Path/.getFileName path)))))
                             [:under partial-path :file file-name]
                             (fn [[typ path]]
                               (and (= :files typ)
