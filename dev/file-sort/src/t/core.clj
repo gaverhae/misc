@@ -25,39 +25,27 @@
   [^String s]
   (Path/.toAbsolutePath (Paths/get s no-string)))
 
-(defn all-files-under
-  "Returns a list of all the files under the given path. Only reports regular
-   files; does not traverse symlinks."
+(defn all-paths-under
+  "List all the paths under the given path. Returns a map with these keys:
+   :dirs, :files, :symlinks, :error."
   [path]
   (cond ;; do not traverse symbolic links at all
-        (Files/isSymbolicLink path) []
+        (Files/isSymbolicLink path) {:symlinks [path]}
         ;; silently ignore files we can't read
-        (not (Files/isReadable path)) []
+        (not (Files/isReadable path)) {:error [path]}
         ;; recur on directories
         (Files/isDirectory path no-link-opt)
         (let [children (with-open [stream (Files/list path)]
                          (-> stream Stream/.iterator iterator-seq vec))]
-          (mapcat all-files-under children))
-        :else [(-> path Path/.toAbsolutePath)]))
-
-(defn all-dirs-under
-  "Returns a list of all the dirs under the given path. Only reports regular
-   dirs; does not traverse symlinks."
-  [path]
-  (cond ;; do not traverse symbolic links at all
-        (Files/isSymbolicLink path) []
-        ;; silently ignore files we can't read
-        (not (Files/isReadable path)) []
-        (Files/isDirectory path no-link-opt)
-        (let [children (with-open [stream (Files/list path)]
-                         (-> stream Stream/.iterator iterator-seq vec))]
-          (cons (-> path Path/.toAbsolutePath)
-                (mapcat all-dirs-under children)))
-        :else []))
+          (->> (map all-paths-under children)
+               (reduce (fn [acc el]
+                         (merge-with #(apply conj %1 %2) acc el))
+                       {:dirs [path]})))
+        :else {:files [path]}))
 
 (defn file-stats
   [root]
-  (let [paths (all-files-under (->path root))]
+  (let [paths (:files (all-paths-under (->path root)))]
     {:count (count paths)
      :total-size (->> paths
                       (map (fn [path] (Files/size path)))
@@ -96,8 +84,8 @@
       p (fn [d s] (->path (str d s)))
       ds? (fn [s] (and (>= (count s) 9)
                        (= ".DS_Store" (subs s (- (count s) 9) (count s)))))
-      under (fn [f d]
-              (->> (f (->path d))
+      under (fn [k f d]
+              (->> (k (f (->path d)))
                    (map (fn [p] (subs (str p) (count (str (->path d))))))
                    (remove ds?)
                    set))
@@ -125,9 +113,9 @@
   (defn merge-dirs
     [dest & ds]
     (reduce (fn [d1 d2]
-              (let [files-under-d1 (under all-files-under d1)
-                    files-under-d2 (under all-files-under d2)
-                    all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
+              (let [files-under-d1 (under :files all-paths-under d1)
+                    files-under-d2 (under :files all-paths-under d2)
+                    all-dirs (set/union (under :dirs all-paths-under d1) (under :dirs all-paths-under d2))
                     common-paths (set/intersection files-under-d1 files-under-d2)]
                 (doseq [d all-dirs]
                   (create-path (p d1 d)))
@@ -170,7 +158,8 @@
   [env-roots]
   (->> env-roots
        (map ->path)
-       (mapcat all-files-under)
+       (map all-paths-under)
+       (mapcat :files)
        (map (fn [p]
               {:path p
                :size (Files/size p)}))
