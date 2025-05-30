@@ -94,7 +94,14 @@
                              true set)]))
                    (into {})))
       exists? (fn [p] (Files/exists p no-follow-symlinks))
-      same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
+      same-files? (fn [p1 p2]
+                    (or (and (Files/isSymbolicLink p1)
+                             (Files/isSymbolicLink p2)
+                             (= (Files/readSymbolicLink p1)
+                                (Files/readSymbolicLink p2)))
+                        (and (Files/isRegularFile p1 no-follow-symlinks)
+                             (Files/isRegularFile p2 no-follow-symlinks)
+                             (= -1 (Files/mismatch p1 p2)))))
       create-path (fn [path] (Files/createDirectories path no-file-attr))
       move (fn [from to] (Files/move from to no-copy-opt))
       delete (fn [path] (Files/delete path))
@@ -121,7 +128,8 @@
               (let [under-d2 (under d2)]
                 (doseq [d (:dirs under-d2)]
                   (create-path (p d1 d)))
-                (doseq [f (sort (:files under-d2))]
+                (doseq [f (sort (set/union (:files under-d2)
+                                           (:symlinks under-d2)))]
                   (if (exists? (p d1 f))
                     (if (same-files? (p d1 f) (p d2 f))
                       (delete (p d2 f))
