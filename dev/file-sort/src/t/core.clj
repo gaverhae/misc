@@ -229,6 +229,10 @@
   (let [ps (all-paths-under (->path root))
         compile-pattern (fn [pat]
                           (match pat
+                            [:empty-dir]
+                            (fn [[typ path]]
+                              (and (= :dirs typ)
+                                   (= () (children path))))
                             [:under partial-path :dir dir-name]
                             (fn [[typ path]]
                               (and (= :dirs typ)
