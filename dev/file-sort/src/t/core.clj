@@ -18,23 +18,23 @@
            (java.util.stream Stream))
   (:gen-class))
 
-(let [a (make-array LinkOption 0)]
-  (defn all-files-under
-    "Returns a lazy list of all the files under the given path. Only reports
-    regular files; does not traverse symlinks."
-    [path]
-    (cond (string? path) (all-files-under (Paths/get path (make-array String 0)))
-          ;; do not traverse symbolic links at all
-          (Files/isSymbolicLink path) []
-          ;; silently ignore files we can't read
-          (not (Files/isReadable path)) []
-          (Files/isDirectory path a) (let [children (with-open [stream (Files/list path)]
-                                                      (-> stream Stream/.iterator iterator-seq vec))]
-                                       (lazy-seq (mapcat all-files-under children)))
-          :else [(-> path Path/.toAbsolutePath str)])))
+(def no-link-opt (make-array LinkOption 0))
 
-(let [no-link-opt (make-array LinkOption 0)
-      no-string (make-array String 0)]
+(defn all-files-under
+  "Returns a lazy list of all the files under the given path. Only reports
+  regular files; does not traverse symlinks."
+  [path]
+  (cond (string? path) (all-files-under (Paths/get path (make-array String 0)))
+        ;; do not traverse symbolic links at all
+        (Files/isSymbolicLink path) []
+        ;; silently ignore files we can't read
+        (not (Files/isReadable path)) []
+        (Files/isDirectory path no-link-opt) (let [children (with-open [stream (Files/list path)]
+                                                    (-> stream Stream/.iterator iterator-seq vec))]
+                                     (lazy-seq (mapcat all-files-under children)))
+        :else [(-> path Path/.toAbsolutePath str)]))
+
+(let [no-string (make-array String 0)]
   (defn all-dirs-under
     "Returns a lazy list of all the dirs under the given path. Only reports
     regular dirs; does not traverse symlinks."
