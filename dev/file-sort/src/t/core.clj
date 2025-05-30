@@ -1,5 +1,7 @@
 (ns t.core
-  (:require [clojure.java.io :as io]
+  (:require [clojure.core.match :refer [match]]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
             [clojure.set :as set]
             [clojure.string :as string])
@@ -25,6 +27,12 @@
   [^String s]
   (Path/.toAbsolutePath (Paths/get s no-string)))
 
+(defn children
+  [path]
+  (when (Files/isDirectory path no-follow-symlinks)
+    (with-open [stream (Files/list path)]
+      (-> stream Stream/.iterator iterator-seq vec))))
+
 (defn all-paths-under
   "List all the paths under the given path. Returns a map with these keys:
    :dirs, :files, :symlinks, :error."
@@ -35,12 +43,11 @@
         (not (Files/isReadable path)) {:error [path]}
         ;; recur on directories
         (Files/isDirectory path no-follow-symlinks)
-        (let [children (with-open [stream (Files/list path)]
-                         (-> stream Stream/.iterator iterator-seq vec))]
-          (->> (map all-paths-under children)
-               (reduce (fn [acc el]
-                         (merge-with #(apply conj %1 %2) acc el))
-                       {:dirs [path]})))
+        (->> (children path)
+             (map all-paths-under)
+             (reduce (fn [acc el]
+                       (merge-with #(apply conj %1 %2) acc el))
+                     {:dirs [path]}))
         :else {:files [path]}))
 
 (defn file-stats
@@ -200,6 +207,35 @@
               (println)))
        doall))
 
+(defn delete-pattern
+  "Deletes all paths that match pattern under given root."
+  [root pattern]
+  (let [ps (all-paths-under (->path root))
+        compile-pattern (fn [pat]
+                          (match pat
+                            [:dir dir-name :under partial-path :containing files]
+                            (fn [[typ path]]
+                              (and (= :dirs typ)
+                                   (= dir-name
+                                      (str (Path/.getFileName path)))
+                                   (Path/.endsWith path (str partial-path "/" dir-name))
+                                   (= (set files)
+                                      (->> (children path)
+                                           (map (fn [child]
+                                                  [(cond (Files/isSymbolicLink child) :symlink
+                                                         (Files/isRegularFile child no-follow-symlinks) :file
+                                                         (Files/isDirectory child no-follow-symlinks) :dir
+                                                         :else :unknown)
+                                                   (str (Path/.getFileName child))]))
+                                           set))))))
+        match? (compile-pattern pattern)
+        to-delete (->> ps
+                       (mapcat (fn [[k vs]]
+                                 (map (fn [v] [k v]) vs)))
+                       (filter match?))]
+    (doseq [f to-delete]
+      (println (str (second f))))))
+
 (defn -main
   [& args]
   (when-let [lang (System/getenv "LANG")]
@@ -216,6 +252,11 @@
 
           (= ["dups"] args)
           (find-dups env-roots)
+
+          (and (= "delete" (first args))
+               (= 3 (count args)))
+          (let [[_ root pat] args]
+            (delete-pattern root (edn/read-string pat)))
 
           :else
           (println "Unknown command: " (pr-str args)))))
