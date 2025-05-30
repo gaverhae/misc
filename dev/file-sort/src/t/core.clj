@@ -103,6 +103,30 @@
                                                    long
                                                    (/ 1.0 1000 1000 1000)))))))
 
+(defn bytes-to-hex
+  [^bytes bs]
+  (->> bs
+       (map (fn [b]
+              (format "%02x" b)))
+       (apply str)))
+
+(defn hashes
+  [f]
+  (let [buffer-size (* 64 1024)
+        buffer (byte-array buffer-size)
+        md5 (MessageDigest/getInstance "md5")
+        sha1 (MessageDigest/getInstance "sha1")]
+    (with-open [is (io/input-stream f)]
+      (loop []
+        (let [n (.read is buffer)]
+          (when (pos? n)
+            (.update md5 buffer 0 n)
+            (.update sha1 buffer 0 n))
+          (if (= n buffer-size)
+            (recur)
+            {:md5 (bytes-to-hex (.digest md5))
+             :sha1 (bytes-to-hex (.digest sha1))}))))))
+
 (let [no-copy-opt ^"[Ljava.nio.file.CopyOption;" (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
       p (fn [d s] (->path (str d s)))
@@ -156,36 +180,18 @@
                   (if (exists? (p d1 f))
                     (if (same-files? (p d1 f) (p d2 f))
                       (delete (p d2 f))
-                      (move (p d2 f) (p d1 (str f "__" (random-uuid)))))
+                      (let [h (hashes (Path/.toFile (p d2 f)))
+                            ext (string/replace (Path/.getFileName (p d2 f)) #".*\." "")
+                            target (str f "__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
+                        (println "Conflict: " f)
+                        (if (exists? (p d1 target))
+                          (delete (p d2 f))
+                          (move (p d2 f) (p d1 target)))))
                     (move (p d2 f) (p d1 f))))
                 (remove-dir-tree d2)
                 d1))
             dest
             ds)))
-
-(defn bytes-to-hex
-  [^bytes bs]
-  (->> bs
-       (map (fn [b]
-              (format "%02x" b)))
-       (apply str)))
-
-(defn hashes
-  [f]
-  (let [buffer-size (* 64 1024)
-        buffer (byte-array buffer-size)
-        md5 (MessageDigest/getInstance "md5")
-        sha1 (MessageDigest/getInstance "sha1")]
-    (with-open [is (io/input-stream f)]
-      (loop []
-        (let [n (.read is buffer)]
-          (when (pos? n)
-            (.update md5 buffer 0 n)
-            (.update sha1 buffer 0 n))
-          (if (= n buffer-size)
-            (recur)
-            {:md5 (bytes-to-hex (.digest md5))
-             :sha1 (bytes-to-hex (.digest sha1))}))))))
 
 (defn find-dups
   [env-roots]
