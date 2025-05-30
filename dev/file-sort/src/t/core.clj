@@ -27,11 +27,28 @@
   [^String s]
   (Path/.toAbsolutePath (Paths/get s no-string)))
 
+(defn is-dir?
+  [path]
+  (Files/isDirectory path no-follow-symlinks))
+
 (defn children
   [path]
-  (when (Files/isDirectory path no-follow-symlinks)
+  (when (is-dir? path)
     (with-open [stream (Files/list path)]
       (-> stream Stream/.iterator iterator-seq vec))))
+
+(defn delete
+  "Deletes the given path. If it is a non-empty directory, throws."
+  [path]
+  (Files/delete path))
+
+(defn delete-rec
+  "Deletes a given path and all its content."
+  [path]
+  (when (is-dir? path)
+    (doseq [child (children path)]
+      (delete-rec child)))
+  (delete path))
 
 (defn all-paths-under
   "List all the paths under the given path. Returns a map with these keys:
@@ -42,7 +59,7 @@
         ;; silently ignore files we can't read
         (not (Files/isReadable path)) {:error [path]}
         ;; recur on directories
-        (Files/isDirectory path no-follow-symlinks)
+        (is-dir? path)
         (->> (children path)
              (map all-paths-under)
              (reduce (fn [acc el]
@@ -111,7 +128,6 @@
                              (= -1 (Files/mismatch p1 p2)))))
       create-path (fn [path] (Files/createDirectories path no-file-attr))
       move (fn [from to] (Files/move from to no-copy-opt))
-      delete (fn [path] (Files/delete path))
       remove-dir-tree (fn [d]
                         (Files/walkFileTree
                           (->path d)
@@ -224,7 +240,7 @@
                                            (map (fn [child]
                                                   [(cond (Files/isSymbolicLink child) :symlink
                                                          (Files/isRegularFile child no-follow-symlinks) :file
-                                                         (Files/isDirectory child no-follow-symlinks) :dir
+                                                         (is-dir? child) :dir
                                                          :else :unknown)
                                                    (str (Path/.getFileName child))]))
                                            set))))))
@@ -232,9 +248,11 @@
         to-delete (->> ps
                        (mapcat (fn [[k vs]]
                                  (map (fn [v] [k v]) vs)))
-                       (filter match?))]
+                       (filter match?)
+                       (map second))]
     (doseq [f to-delete]
-      (println (str (second f))))))
+      (println (str f))
+      (delete-rec f))))
 
 (defn -main
   [& args]
