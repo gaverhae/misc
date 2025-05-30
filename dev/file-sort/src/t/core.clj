@@ -229,7 +229,13 @@
   (let [ps (all-paths-under (->path root))
         compile-pattern (fn [pat]
                           (match pat
-                            [:dir dir-name :under partial-path :containing files]
+                            [:under partial-path :dir dir-name]
+                            (fn [[typ path]]
+                              (and (= :dirs typ)
+                                   (= dir-name
+                                      (str (Path/.getFileName path)))
+                                   (Path/.endsWith path (str partial-path "/" dir-name))))
+                            [:under partial-path :dir dir-name :containing files]
                             (fn [[typ path]]
                               (and (= :dirs typ)
                                    (= dir-name
