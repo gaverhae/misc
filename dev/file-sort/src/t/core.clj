@@ -32,7 +32,7 @@
         (not (Files/isReadable path)) []
         (Files/isDirectory path no-link-opt) (let [children (with-open [stream (Files/list path)]
                                                     (-> stream Stream/.iterator iterator-seq vec))]
-                                     (lazy-seq (mapcat all-files-under children)))
+                                     (mapcat all-files-under children))
         :else [(-> path Path/.toAbsolutePath str)]))
 
 (defn all-dirs-under
@@ -47,8 +47,8 @@
         (Files/isDirectory path no-link-opt)
         (let [children (with-open [stream (Files/list path)]
                          (-> stream Stream/.iterator iterator-seq vec))]
-          (cons (-> path Path/.toAbsolutePath str)
-                (lazy-seq (mapcat all-dirs-under children))))
+          (cons (-> path Path/.toAbsolutePath)
+                (mapcat all-dirs-under children)))
         :else []))
 
 (defn file-stats
