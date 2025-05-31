@@ -185,9 +185,10 @@
                             target (str f "__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
                         (if (exists? (p d1 target))
                           (delete (p d2 f))
-                          (do (println "Conflict: " f)
+                          (do (println "C: " (subs f 1))
                               (move (p d2 f) (p d1 target))))))
-                    (move (p d2 f) (p d1 f))))
+                    (do (println "A: " (subs f 1))
+                        (move (p d2 f) (p d1 f)))))
                 (remove-dir-tree d2)
                 d1))
             dest
