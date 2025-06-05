@@ -3,12 +3,12 @@
 
 (def parse
   (insta/parser
-    "S = <w> (expr | pexpr) <w>
-     pexpr = '(' <w> expr <w> ')'
-     expr = term (<w> '+' <w> (term | pexpr))*
-     term = factor (<w> '*' <w> (factor | pexpr))*
-     factor = num
-     num = #'\\d+'
+    "S = expr
+     <expr> = <w> (int | pexpr | sum | product) <w>
+     <pexpr> = <'('> <w> expr <w> <')'>
+     sum = (int | pexpr | product) (<w> <'+'> <w> (int | pexpr | product))+
+     product = (int | pexpr) (<w> <'*'> <w> (int | pexpr))+
+     int = #'\\d+'
      w = #'\\s'*"))
 
 (defn run
