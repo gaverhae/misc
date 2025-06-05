@@ -14,3 +14,13 @@ clj -X main/run [opts]
 
 where `opts` is an even-numbered sequence of Bash strings that will be passed
 to the `run` function in the `src/main.clj` file as a map of symbol to symbol
+
+## Testing
+
+```
+clj -X:test
+```
+
+`test` is an alias defined in `deps.edn`. This will run all the tests defined
+**using clojure.test** (i.e. `deftest`) and that are **in a namespace ending in
+-test**.
