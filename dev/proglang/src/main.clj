@@ -3,7 +3,9 @@
 
 (def parse
   (insta/parser
-    "S = num '+' num
+    "S = term ('+' term)*
+     term = factor ('*' factor)*
+     factor = num
      num = #'\\d+'"))
 
 (defn run
