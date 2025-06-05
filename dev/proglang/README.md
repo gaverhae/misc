@@ -24,3 +24,15 @@ clj -X:test
 `test` is an alias defined in `deps.edn`. This will run all the tests defined
 **using clojure.test** (i.e. `deftest`) and that are **in a namespace ending in
 -test**.
+
+## Editing
+
+To get a working Vim Fireplace connection, run:
+
+```
+clj -M:cider-clj
+```
+
+This works because of [this global deps.edn][1].
+
+[1]: https://github.com/gaverhae/dotfiles/pull/101
