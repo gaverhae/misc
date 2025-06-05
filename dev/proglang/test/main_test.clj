@@ -1,5 +1,7 @@
 (ns main-test
-  (:require [clojure.test :refer [deftest is]]))
+  (:require [main :as s]
+            [clojure.test :refer [deftest is]]))
 
 (deftest ploup
-  (is (= 1 1)))
+  (is (= [:S [:num "34"] "+" [:num "123"]]
+         (s/parse "34+123"))))
