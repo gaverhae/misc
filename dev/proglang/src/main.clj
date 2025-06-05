@@ -11,6 +11,16 @@
      int = #'\\d+'
      w = #'\\s'*"))
 
+(defn pl-eval
+  [string]
+  (let [p (parse string)
+        t (insta/transform {:int parse-long
+                            :sum (fn [& args] (apply + args))
+                            :product (fn [& args] (apply * args))
+                            :S identity}
+                           p)]
+    t))
+
 (defn run
   [opts]
   (println "Hello!")
