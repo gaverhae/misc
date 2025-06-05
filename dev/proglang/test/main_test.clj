@@ -20,3 +20,10 @@
     "(1 + 2) * 3" [:S [:product [:sum [:int "1"] [:int "2"]] [:int "3"]]]
     "(1 + 2 * 3)" [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
     "(1) + (2 * 3)" [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]))
+
+(deftest pl-eval
+  (are [string result] (= result (s/pl-eval string))
+    "1+2+3" 6
+    "(1) + (2 * 3)" 7
+    " 1  +  2 * 3 " 7
+    "(1  +  2)* 3 " 9))
