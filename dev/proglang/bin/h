@@ -19,7 +19,7 @@ _test() (
 )
 
 _repl() (
-  clj -Sdeps '{:paths ["src" "test"]}' -M:cider-clj
+  clj -M:cider-clj
 )
 
 case $1 in
