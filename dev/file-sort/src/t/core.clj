@@ -212,7 +212,13 @@
        (sort-by key)
        reverse
        (take 100)
-       (mapcat val)
+       (mapcat (fn [[_ ms]]
+                 (for [i (range (count ms))
+                       :let [a (nth ms i)
+                             r (drop (inc i) ms)]
+                       :when (every? (fn [x] (not (Files/isSameFile (:path a) (:path x))))
+                                     r)]
+                   a)))
        (map (fn [m] (merge m (hashes (Path/.toFile (:path m))))))
        (group-by (juxt :md5 :sha1 :size))
        (filter (fn [[[md5 sha1 size] ms]]
