@@ -48,4 +48,5 @@
   (are [path result] (= result (s/run-file (str "test-resources/" path ".pl")))
     "plain-sum" 42
     "parens" 154
-    "multi-line" 12))
+    "multi-line" 12
+    "assign" 42))
