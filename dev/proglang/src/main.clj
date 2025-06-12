@@ -46,4 +46,4 @@
   (case (count args)
     0 (shell)
     1 (run-file (first args))
-    2 (usage)))
+    (usage)))
