@@ -33,7 +33,7 @@
 
 (defn run-file
   [file]
-  (println "WIP."))
+  (eval-expr (slurp file)))
 
 (defn usage
   []
@@ -45,5 +45,5 @@
   [& args]
   (case (count args)
     0 (shell)
-    1 (run-file (first args))
+    1 (println (run-file (first args)))
     (usage)))
