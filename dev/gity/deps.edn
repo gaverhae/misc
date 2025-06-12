@@ -1,0 +1,2 @@
+{:deps
+ {io.github.humbleui/HumbleUI {:git/sha "edcdcd75959d8069a3b54e4f92b7a0ea04068661"}}}
