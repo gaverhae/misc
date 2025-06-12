@@ -81,15 +81,6 @@
                                                         (reduce + 0))
                                                    (/ 1.0 1000 1000 1000)))))))
 
-(defn -main
-  [& args]
-  (when-let [lang (System/getenv "LANG")]
-    (Locale/setDefault (Locale. lang)))
-  (let [env-roots (System/getenv "FILE_ROOTS")
-        save-result (System/getenv "SAVE_RESULT")]
-    (cond (empty? args) (count-files env-roots save-result)
-          :else (println "Unknown command: " (pr-str args)))))
-
 (let [no-copy-opt (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
       no-string (make-array String 0)
@@ -102,25 +93,37 @@
       copy (fn [from to] (Files/copy from to no-copy-opt))
       create-path (fn [path] (Files/createDirectories path no-file-attr))]
   (defn merge-dirs
-    ([d1 d2 dest] (merge-dirs d1 d2 dest false))
-    ([d1 d2 dest delete?]
-     (let [files-under-d1 (under all-files-under d1)
-           files-under-d2 (under all-files-under d2)
-           all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
-           all-files (set/union files-under-d1 files-under-d2)
-           common-paths (set/intersection files-under-d1 files-under-d2)
-           move (if delete?
-                  (fn [from to] (Files/move from to no-copy-opt))
-                  copy)
-           delete (if delete?
-                    (fn [path] (Files/delete path))
-                    (fn [path] :do-nothing))]
-       (doseq [d all-dirs]
-         (create-path (p dest d)))
-       (doseq [f (sort all-files)]
-         (cond (contains? common-paths f) (do (move (p d1 f) (p dest f))
-                                              (if (same-files? (p dest f) (p d2 f))
-                                                (delete (p d2 f))
-                                                (move (p d2 f) (p dest (str f "__" (random-uuid))))))
-               (contains? files-under-d1 f) (move (p d1 f) (p dest f))
-               (contains? files-under-d2 f) (move (p d2 f) (p dest f))))))))
+    [d1 d2 dest]
+    (let [files-under-d1 (under all-files-under d1)
+          files-under-d2 (under all-files-under d2)
+          all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
+          all-files (set/union files-under-d1 files-under-d2)
+          common-paths (set/intersection files-under-d1 files-under-d2)
+          move (fn [from to] (Files/move from to no-copy-opt))
+          delete (fn [path] (Files/delete path))]
+      (doseq [d all-dirs]
+        (create-path (p dest d)))
+      (doseq [f (sort all-files)]
+        (cond (contains? common-paths f) (do (move (p d1 f) (p dest f))
+                                             (if (same-files? (p dest f) (p d2 f))
+                                               (delete (p d2 f))
+                                               (move (p d2 f) (p dest (str f "__" (random-uuid))))))
+              (contains? files-under-d1 f) (move (p d1 f) (p dest f))
+              (contains? files-under-d2 f) (move (p d2 f) (p dest f)))))))
+
+(defn -main
+  [& args]
+  (when-let [lang (System/getenv "LANG")]
+    (Locale/setDefault (Locale. lang)))
+  (let [env-roots (System/getenv "FILE_ROOTS")
+        save-result (System/getenv "SAVE_RESULT")]
+    (cond (empty? args)
+          (count-files env-roots save-result)
+
+          (and (= "merge" (first args))
+               (= 3 (count (rest args))))
+          (let [[_ d1 d2 dest] args]
+            (merge-dirs d1 d2 dest))
+
+          :else
+          (println "Unknown command: " (pr-str args)))))
