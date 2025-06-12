@@ -12,15 +12,14 @@
      int = #'\\d+'
      w = #'\\s'*"))
 
-(defn pl-eval
+(defn eval-expr
   [string]
-  (let [p (parse string)
-        t (insta/transform {:int parse-long
-                            :sum (fn [& args] (apply + args))
-                            :product (fn [& args] (apply * args))
-                            :S identity}
-                           p)]
-    t))
+  (let [ast (parse string)]
+    (insta/transform {:int parse-long
+                      :sum (fn [& args] (apply + args))
+                      :product (fn [& args] (apply * args))
+                      :S identity}
+                     ast)))
 
 (defn run
   [opts]
