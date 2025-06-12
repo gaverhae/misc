@@ -5,12 +5,14 @@
 (def parse
   (insta/parser
     "S = nl* stmt (nl+ stmt)* nl*
-     <stmt> = expr
+     <stmt> = assign | expr
+     assign = identifier ws <'='> ws expr
      <expr> = ws (atom | sum | product) ws
-     <atom> = int | pexpr
+     <atom> = int | pexpr | identifier
      <pexpr> = <'('> ws expr ws <')'>
      sum = (atom | product) (ws <'+'> ws (atom | product))+
      product = atom (ws <'*'> ws atom)+
+     identifier = #'[a-zA-Z_][a-zA-Z0-9_]*'
      int = #'\\d+'
      <nl> = <'\n'>
      <ws> = <' '*>"))

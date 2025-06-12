@@ -21,6 +21,15 @@
     "(1 + 2 * 3)" [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
     "(1) + (2 * 3)" [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]))
 
+(deftest ast
+  (are [strings tree] (= tree (s/parse (->> strings (interpose "\n") (apply str))))
+    ["1 + (2 * 3)"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
+    ["a = 2" "b = 5" "a + b"]
+    [:S
+     [:assign [:identifier "a"] [:int "2"]]
+     [:assign [:identifier "b"] [:int "5"]]
+     [:sum [:identifier "a"] [:identifier "b"]]]))
+
 (deftest pl-eval
   (are [string result] (= result (s/eval-expr string))
     "1+2+3" 6
