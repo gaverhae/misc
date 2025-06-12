@@ -9,11 +9,10 @@ Leiningen.
 ## Run
 
 ```
-clj -M -m main
+clj -M -m main [file-name]
 ```
 
-where `opts` is an even-numbered sequence of Bash strings that will be passed
-to the `run` function in the `src/main.clj` file as a map of symbol to symbol
+Where `file-name` is an optional entrypoint for a proglang program. If none is supplied, this starts an interactive shell.
 
 ## Test
 

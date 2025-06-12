@@ -21,11 +21,23 @@
                       :S identity}
                      ast)))
 
-(defn run
-  [opts]
-  (println "Hello!")
-  (prn opts))
+(defn shell
+  []
+  (println "WIP."))
+
+(defn run-file
+  [file]
+  (println "WIP."))
+
+(defn usage
+  []
+  (println "Usage: proglang [file]")
+  (println)
+  (println "\tIf file is provided, runs it. Otherwise, starts a shell."))
 
 (defn -main
   [& args]
-  (println "Hello from main."))
+  (case (count args)
+    0 (shell)
+    1 (run-file (first args))
+    2 (usage)))
