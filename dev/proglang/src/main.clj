@@ -21,7 +21,7 @@
     (insta/transform {:int parse-long
                       :sum (fn [& args] (apply + args))
                       :product (fn [& args] (apply * args))
-                      :S identity}
+                      :S (fn [& args] (last args))}
                      ast)))
 
 (defn shell

@@ -28,7 +28,15 @@
     " 1  +  2 * 3 " 7
     "(1  +  2)* 3 " 9))
 
+(deftest multiline-expr
+  (are [string result] (= result (s/eval-expr string))
+    "4\n1+2+3" 6
+    "(1+2)\n(1) + (2 * 3)" 7
+    "\n6 * 4 \n\n 1  +  2 * 3 " 7
+    "\n\n(1  +  2)* 3 \n" 9))
+
 (deftest files
-  (are [path result] (= result (s/run-file (str "test-resources/" path ".pg")))
+  (are [path result] (= result (s/run-file (str "test-resources/" path ".pl")))
     "plain-sum" 42
-    "parens" 154))
+    "parens" 154
+    "multi-line" 12))
