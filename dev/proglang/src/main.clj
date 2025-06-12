@@ -5,10 +5,11 @@
 (def parse
   (insta/parser
     "S = expr
-     <expr> = <w> (int | pexpr | sum | product) <w>
+     <expr> = <w> (atom | sum | product) <w>
+     <atom> = int | pexpr
      <pexpr> = <'('> <w> expr <w> <')'>
-     sum = (int | pexpr | product) (<w> <'+'> <w> (int | pexpr | product))+
-     product = (int | pexpr) (<w> <'*'> <w> (int | pexpr))+
+     sum = (atom | product) (<w> <'+'> <w> (atom | product))+
+     product = atom (<w> <'*'> <w> atom)+
      int = #'\\d+'
      w = #'\\s'*"))
 
