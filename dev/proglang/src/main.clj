@@ -17,14 +17,13 @@
      <nl> = <'\n'>
      <ws> = <' '*>"))
 
-(defn eval-expr
-  [string]
-  (let [ast (parse string)]
-    (insta/transform {:int parse-long
-                      :sum (fn [& args] (apply + args))
-                      :product (fn [& args] (apply * args))
-                      :S (fn [& args] (last args))}
-                     ast)))
+(defn eval-pl
+  [ast]
+  (insta/transform {:int parse-long
+                    :sum (fn [& args] (apply + args))
+                    :product (fn [& args] (apply * args))
+                    :S (fn [& args] (last args))}
+                   ast))
 
 (defn shell
   []
@@ -33,12 +32,12 @@
     (flush)
     (let [line (read-line)]
       (when (not= line "quit")
-        (println "    =>" (eval-expr line))
+        (println "    =>" (eval-pl (parse line)))
         (recur)))))
 
 (defn run-file
   [file]
-  (eval-expr (slurp file)))
+  (eval-pl (parse (slurp file))))
 
 (defn usage
   []
