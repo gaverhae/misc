@@ -27,8 +27,9 @@
     (print "> ")
     (flush)
     (let [line (read-line)]
-      (println "    =>" (eval-expr line))
-      (recur))))
+      (when (not= line "quit")
+        (println "    =>" (eval-expr line))
+        (recur)))))
 
 (defn run-file
   [file]
