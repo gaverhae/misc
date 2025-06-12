@@ -22,8 +22,13 @@
     "(1) + (2 * 3)" [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]))
 
 (deftest pl-eval
-  (are [string result] (= result (s/pl-eval string))
+  (are [string result] (= result (s/eval-expr string))
     "1+2+3" 6
     "(1) + (2 * 3)" 7
     " 1  +  2 * 3 " 7
     "(1  +  2)* 3 " 9))
+
+(deftest files
+  (are [path result] (= result (s/run-file (str "test-resources/" path ".pg")))
+    "plain-sum" 42
+    "parens" 154))
