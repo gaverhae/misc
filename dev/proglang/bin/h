@@ -15,7 +15,7 @@ _help() (
 )
 
 _test() (
-  fswatch . | xargs -n 1 bash -c 'clj -X:test'
+  fswatch -o -0 . | xargs -0 -n 1 bash -c 'clj -X:test'
 )
 
 _repl() (
