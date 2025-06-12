@@ -4,14 +4,16 @@
 
 (def parse
   (insta/parser
-    "S = expr
-     <expr> = <w> (atom | sum | product) <w>
+    "S = nl* stmt (nl+ stmt)* nl*
+     <stmt> = expr
+     <expr> = ws (atom | sum | product) ws
      <atom> = int | pexpr
-     <pexpr> = <'('> <w> expr <w> <')'>
-     sum = (atom | product) (<w> <'+'> <w> (atom | product))+
-     product = atom (<w> <'*'> <w> atom)+
+     <pexpr> = <'('> ws expr ws <')'>
+     sum = (atom | product) (ws <'+'> ws (atom | product))+
+     product = atom (ws <'*'> ws atom)+
      int = #'\\d+'
-     w = #'\\s'*"))
+     <nl> = <'\n'>
+     <ws> = <' '*>"))
 
 (defn eval-expr
   [string]
