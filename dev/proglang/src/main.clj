@@ -19,7 +19,7 @@
                       :sum (fn [& args] (apply + args))
                       :product (fn [& args] (apply * args))
                       :S identity}
-                     p)))
+                     ast)))
 
 (defn run
   [opts]
