@@ -23,7 +23,12 @@
 
 (defn shell
   []
-  (println "WIP."))
+  (loop []
+    (print "> ")
+    (flush)
+    (let [line (read-line)]
+      (println "    =>" (eval-expr line))
+      (recur))))
 
 (defn run-file
   [file]
