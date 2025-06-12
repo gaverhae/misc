@@ -10,6 +10,7 @@ pkgs.mkShell {
     clojure
     curl
     fswatch
+    jdk
     jq
   ];
 }

@@ -1,5 +1,6 @@
 (ns main
-  (:require [instaparse.core :as insta]))
+  (:require [instaparse.core :as insta])
+  (:gen-class))
 
 (def parse
   (insta/parser
@@ -15,3 +16,7 @@
   [opts]
   (println "Hello!")
   (prn opts))
+
+(defn -main
+  [& args]
+  (println "Hello from main."))
