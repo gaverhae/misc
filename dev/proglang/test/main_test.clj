@@ -31,14 +31,14 @@
      [:sum [:identifier "a"] [:identifier "b"]]]))
 
 (deftest pl-eval
-  (are [string result] (= result (s/eval-expr string))
+  (are [string result] (= result (s/eval-pl (s/parse string)))
     "1+2+3" 6
     "(1) + (2 * 3)" 7
     " 1  +  2 * 3 " 7
     "(1  +  2)* 3 " 9))
 
 (deftest multiline-expr
-  (are [string result] (= result (s/eval-expr string))
+  (are [string result] (= result (s/eval-pl (s/parse string)))
     "4\n1+2+3" 6
     "(1+2)\n(1) + (2 * 3)" 7
     "\n6 * 4 \n\n 1  +  2 * 3 " 7
