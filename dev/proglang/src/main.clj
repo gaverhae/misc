@@ -7,7 +7,7 @@
     "S = nl* stmt (nl+ stmt)* nl*
      <stmt> = assign | expr
      assign = identifier ws <'='> ws expr
-     <expr> = ws (atom | sum | product) ws
+     <expr> = (atom | sum | product) ws
      <atom> = int | pexpr | identifier
      <pexpr> = <'('> ws expr ws <')'>
      sum = (atom | product) (ws <'+'> ws (atom | product))+

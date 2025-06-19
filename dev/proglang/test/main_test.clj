@@ -10,8 +10,8 @@
 
 (deftest whitespace-ignored
   (are [strings tree] (apply = tree (map s/parse strings))
-    ["34+123" " 34 + 123" "34 +   123"] [:S [:sum [:int "34"] [:int "123"]]]
-    ["1+2*3" "1 + 2 * 3" "       1+2  *  3"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
+    ["34+123" "34 + 123" "34 +   123"] [:S [:sum [:int "34"] [:int "123"]]]
+    ["1+2*3" "1 + 2 * 3" "1+2  *  3"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
     ["2*3+1" "2 * 3 + 1"] [:S [:sum [:product [:int "2"] [:int "3"]] [:int "1"]]]))
 
 (deftest parens
@@ -34,14 +34,14 @@
   (are [string result] (= result (second (s/eval-pl {} (s/parse string))))
     "1+2+3" 6
     "(1) + (2 * 3)" 7
-    " 1  +  2 * 3 " 7
+    "1  +  2 * 3 " 7
     "(1  +  2)* 3 " 9))
 
 (deftest multiline-expr
   (are [string result] (= result (second (s/eval-pl {} (s/parse string))))
     "4\n1+2+3" 6
     "(1+2)\n(1) + (2 * 3)" 7
-    "\n6 * 4 \n\n 1  +  2 * 3 " 7
+    "\n6 * 4 \n\n1  +  2 * 3 " 7
     "\n\n(1  +  2)* 3 \n" 9))
 
 (deftest files
