@@ -18,36 +18,35 @@
      <ws> = <' '*>"))
 
 (defn eval-pl
-  ([ast] (eval-pl ast {}))
-  ([node env]
-   (case (first node)
-     :int (let [[_ i] node]
-            [env (parse-long i)])
-     :sum (let [[_ & terms] node
-                [env vs] (reduce (fn [[env vs] n]
-                                   (let [[env v] (eval-pl n env)]
-                                     [env (conj vs v)]))
-                                 [env []]
-                                 terms)]
-            [env (reduce + 0 vs)])
-     :product (let [[_ & factors] node
-                    [env vs] (reduce (fn [[env vs] n]
-                                       (let [[env v] (eval-pl n env)]
-                                         [env (conj vs v)]))
-                                     [env []]
-                                     factors)]
-                [env (reduce * 1 vs)])
-     :assign (let [[_ [_ n] expr] node
-                   [env v] (eval-pl expr env)]
-               [(assoc env n v) nil])
-     :identifier (let [[_ n] node]
-                   [env (get env n)])
-     :S (let [[_ & stmts] node]
-          (reduce (fn [[env v] stmt]
-                    (let [[env v] (eval-pl stmt env)]
-                      [env v]))
-                  [env nil]
-                  stmts)))))
+  [env node]
+  (case (first node)
+    :int (let [[_ i] node]
+           [env (parse-long i)])
+    :sum (let [[_ & terms] node
+               [env vs] (reduce (fn [[env vs] n]
+                                  (let [[env v] (eval-pl env n)]
+                                    [env (conj vs v)]))
+                                [env []]
+                                terms)]
+           [env (reduce + 0 vs)])
+    :product (let [[_ & factors] node
+                   [env vs] (reduce (fn [[env vs] n]
+                                      (let [[env v] (eval-pl env n)]
+                                        [env (conj vs v)]))
+                                    [env []]
+                                    factors)]
+               [env (reduce * 1 vs)])
+    :assign (let [[_ [_ n] expr] node
+                  [env v] (eval-pl env expr)]
+              [(assoc env n v) nil])
+    :identifier (let [[_ n] node]
+                  [env (get env n)])
+    :S (let [[_ & stmts] node]
+         (reduce (fn [[env v] stmt]
+                   (let [[env v] (eval-pl env stmt)]
+                     [env v]))
+                 [env nil]
+                 stmts))))
 
 (defn shell
   []
@@ -56,12 +55,12 @@
     (flush)
     (let [line (read-line)]
       (when (not= line "quit")
-        (println "    =>" (eval-pl (parse line)))
+        (println "    =>" (eval-pl {} (parse line)))
         (recur)))))
 
 (defn run-file
   [file]
-  (second (eval-pl (parse (slurp file)))))
+  (second (eval-pl {} (parse (slurp file)))))
 
 (defn usage
   []
