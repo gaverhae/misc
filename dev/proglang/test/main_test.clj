@@ -98,6 +98,6 @@
     "multi-line" 12
     "assign" 42
     "thrice" 31
-    #_#_"global-side-effect" 12
+    "global-side-effect" 12
     "global-shadowing" 2
     "global-unaffected" 5))
