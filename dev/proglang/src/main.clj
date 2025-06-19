@@ -50,13 +50,15 @@
 
 (defn shell
   []
-  (loop []
+  (loop [env {}]
     (print "> ")
     (flush)
     (let [line (read-line)]
-      (when (not= line "quit")
-        (println "    =>" (eval-pl {} (parse line)))
-        (recur)))))
+      (when (and (not= line "quit")
+                 (not= line nil))
+        (let [[env v] (eval-pl env (parse line))]
+          (println "    => " (pr-str v))
+          (recur env))))))
 
 (defn run-file
   [file]
