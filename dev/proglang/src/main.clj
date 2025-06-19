@@ -2,10 +2,11 @@
   (:require [instaparse.core :as insta])
   (:gen-class))
 
-(def parse
+(def iparse
   (insta/parser
     "S = nl* stmt*
-     <stmt> = (def | return | assign | expr) nl+
+     stmt = indent (def | return | assign | expr) nl+
+     indent = ' '*
      def = <'def'> ws identifier ws <'('> (identifier (<','> identifier)*)? <')'> ws <':'> ws
      return = <'return'> expr
      assign = identifier ws <'='> ws expr
@@ -18,6 +19,12 @@
      int = #'\\d+'
      <nl> = <'\n'>
      <ws> = <' '*>"))
+
+(defn parse
+  [s]
+  (insta/transform
+    {:stmt (fn [_ s] s)}
+    (iparse s)))
 
 (defn eval-pl
   [env node]
