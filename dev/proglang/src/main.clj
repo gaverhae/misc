@@ -22,7 +22,7 @@
      <ws> = <' '*>"))
 
 (defn parse-blocks
-  [stmts current-indent]
+  [current-indent stmts]
   (if (empty? stmts)
     []
     (let [[[_ indent node] & stmts] stmts]
@@ -32,21 +32,21 @@
                    [block cont] (split-with (fn [[_ i _]] (> i current-indent))
                                             stmts)
                    block-indent (-> block first second)]
-               (cons [:def fn-name arg-names (parse-blocks block block-indent)]
-                     (parse-blocks cont current-indent)))
-        (cons node (parse-blocks stmts current-indent))))))
+               (cons [:def fn-name arg-names (parse-blocks block-indent block)]
+                     (parse-blocks current-indent cont)))
+        (cons node (parse-blocks current-indent stmts))))))
 
 (defn parse
   [s]
-  (insta/transform
-    {:stmt (fn [i s] [:stmt (dec (count i)) s])}
-    (parse-string s)))
+  (->> (parse-string s)
+       (insta/transform {:stmt (fn [i s] [:stmt (dec (count i)) s])})
+       rest
+       (parse-blocks 0)
+       (cons :S)))
 
 (defn eval-pl
   [env node]
   (case (first node)
-    :stmt (let [[_ _ s] node]
-            (eval-pl env s))
     :int (let [[_ i] node]
            [env (parse-long i)])
     :sum (let [[_ & terms] node
