@@ -57,18 +57,18 @@
      "a = 5"
      "def square(x):"
      "  return x * x"
-     "b + 2"]
+     "square(a)"]
     [[:sum [:int "1"] [:int "2"]]
      [:assign [:identifier "a"] [:int "5"]]
      [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
-     [:sum [:identifier "b"] [:int "2"]]]
+     [:app [:identifier "square"] [:identifier "a"]]]
     ["1 + 3"
      "def complex(a, b, c):"
      "  def helper(a, b):"
      "    d = a * c"
      "    return d + 1"
      "  x = 1"
-     "  return 4"
+     "  return helper(x)"
      "complex = 3"]
     [[:sum [:int "1"] [:int "3"]]
      [:def "complex" ["a" "b" "c"]
@@ -76,7 +76,7 @@
         [[:assign [:identifier "d"] [:product [:identifier "a"] [:identifier "c"]]]
          [:return [:sum [:identifier "d"] [:int "1"]]]]]
        [:assign [:identifier "x"] [:int "1"]]
-       [:return [:int "4"]]]]
+       [:return [:app [:identifier "helper"] [:identifier "x"]]]]]
      [:assign [:identifier "complex"] [:int "3"]]]))
 
 (deftest pl-eval
