@@ -2,7 +2,7 @@
   (:require [instaparse.core :as insta])
   (:gen-class))
 
-(def iparse
+(def parse-string
   (insta/parser
     "S = nl* stmt*
      stmt = indent (def | return | assign | expr) nl+
@@ -20,11 +20,26 @@
      <nl> = <'\n'>
      <ws> = <' '*>"))
 
+(defn parse-blocks
+  [stmts current-indent]
+  (if (empty? stmts)
+    []
+    (let [[[_ indent node] & stmts] stmts]
+      (assert (= indent current-indent))
+      (case (first node)
+        :def (let [[fn-name & arg-names] (map second (rest node))
+                   [block cont] (split-with (fn [[_ i _]] (> i current-indent))
+                                            stmts)
+                   block-indent (-> block first second)]
+               (cons [:def fn-name arg-names (parse-blocks block block-indent)]
+                     (parse-blocks cont current-indent)))
+        (cons node (parse-blocks stmts current-indent))))))
+
 (defn parse
   [s]
   (insta/transform
     {:stmt (fn [i s] [:stmt (dec (count i)) s])}
-    (iparse s)))
+    (parse-string s)))
 
 (defn eval-pl
   [env node]
