@@ -7,8 +7,8 @@
     "S = nl* stmt*
      stmt = indent (def | return | assign | expr) nl+
      indent = ' '*
-     def = <'def'> ws identifier ws <'('> (identifier (<','> identifier)*)? <')'> ws <':'> ws
-     return = <'return'> expr
+     def = <'def'> ws identifier ws <'('> (identifier (ws <','> ws identifier)*)? <')'> ws <':'> ws
+     return = <'return'> ws expr
      assign = identifier ws <'='> ws expr
      <expr> = (atom | sum | product) ws
      <atom> = int | pexpr | identifier
