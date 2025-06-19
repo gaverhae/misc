@@ -23,12 +23,14 @@
 (defn parse
   [s]
   (insta/transform
-    {:stmt (fn [_ s] s)}
+    {:stmt (fn [i s] [:stmt (dec (count i)) s])}
     (iparse s)))
 
 (defn eval-pl
   [env node]
   (case (first node)
+    :stmt (let [[_ _ s] node]
+            (eval-pl env s))
     :int (let [[_ i] node]
            [env (parse-long i)])
     :sum (let [[_ & terms] node
