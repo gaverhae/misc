@@ -18,12 +18,31 @@
      <ws> = <' '*>"))
 
 (defn eval-pl
-  [ast]
-  (insta/transform {:int parse-long
-                    :sum (fn [& args] (apply + args))
-                    :product (fn [& args] (apply * args))
-                    :S (fn [& args] (last args))}
-                   ast))
+  ([ast] (eval-pl ast {}))
+  ([node env]
+   (case (first node)
+     :int (let [[_ i] node]
+            [env (parse-long i)])
+     :sum (let [[_ & terms] node
+                [env vs] (reduce (fn [[env vs] n]
+                                   (let [[env v] (eval-pl n env)]
+                                     [env (conj vs v)]))
+                                 [env []]
+                                 terms)]
+            [env (reduce + 0 vs)])
+     :product (let [[_ & factors] node
+                    [env vs] (reduce (fn [[env vs] n]
+                                       (let [[env v] (eval-pl n env)]
+                                         [env (conj vs v)]))
+                                     [env []]
+                                     factors)]
+                [env (reduce * 1 vs)])
+     :S (let [[_ & stmts] node]
+          (reduce (fn [[env v] stmt]
+                    (let [[env v] (eval-pl stmt env)]
+                      [env v]))
+                  [env nil]
+                  stmts)))))
 
 (defn shell
   []
@@ -37,7 +56,7 @@
 
 (defn run-file
   [file]
-  (eval-pl (parse (slurp file))))
+  (second (eval-pl (parse (slurp file)))))
 
 (defn usage
   []
