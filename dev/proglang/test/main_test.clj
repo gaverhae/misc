@@ -94,7 +94,7 @@
     ["" "" "(1  +  2)* 3 "] 9))
 
 (deftest files
-  (are [path result] (= result (s/run-file (str "test-resources/" path ".pl")))
+  (are [path result] (= result (s/run-file (str "test-resources/" path ".py")))
     "plain-sum" 42
     "parens" 154
     "multi-line" 12
