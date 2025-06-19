@@ -77,9 +77,11 @@
     :assign (let [[_ [_ n] expr] node
                   [env v] (eval-pl env expr)]
               [(add-env env n v) nil])
-    :def (let [[_ fn-name args body] node]
-           [(add-env env fn-name [:fn args (cons :S body) env])
-            nil])
+    :def (let [[_ fn-name args body] node
+               ;; for recursion to work, fn needs to know about itself in its own environment
+               env (add-env env fn-name nil)
+               env (add-env env fn-name [:fn args (cons :S body) env])]
+           [env nil])
     :app (let [[_ f & args] node
                [env evaled-f] (eval-pl env f)
                _ (assert (= :fn (first evaled-f)))
