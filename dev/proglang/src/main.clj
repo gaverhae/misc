@@ -52,7 +52,8 @@
 
 (defn shell
   []
-  (loop [env {}]
+  :todo
+  #_(loop [env {}]
     (print "> ")
     (flush)
     (let [line (read-line)]
