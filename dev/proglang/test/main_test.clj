@@ -78,14 +78,14 @@
      [:assign [:identifier "complex"] [:int "3"]]]))
 
 (deftest pl-eval
-  (are [string result] (= result (second (s/eval-pl {} (s/parse (str string "\n")))))
+  (are [string result] (= result (second (second (s/eval-pl {} (s/parse (str string "\n"))))))
     "1+2+3" 6
     "(1) + (2 * 3)" 7
     "1  +  2 * 3 " 7
     "(1  +  2)* 3 " 9))
 
 (deftest multiline-expr
-  (are [strings tree] (= tree (second (s/eval-pl {} (s/parse (->lines strings)))))
+  (are [strings tree] (= tree (second (second (s/eval-pl {} (s/parse (->lines strings))))))
     ["4" "1+2+3"] 6
     ["(1+2)" "(1) + (2 * 3)"] 7
     ["" "6 * 4 " "" "1  +  2 * 3"] 7
@@ -96,4 +96,8 @@
     "plain-sum" 42
     "parens" 154
     "multi-line" 12
-    "assign" 42))
+    "assign" 42
+    "thrice" 31
+    #_#_"global-side-effect" 12
+    "global-shadowing" 2
+    "global-unaffected" 5))
