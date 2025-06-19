@@ -6,6 +6,12 @@ As a first step, I'm taking the opportunity of starting a new, self-contained,
 relatively simple project to (finally!) learn how to do Clojure without
 Leiningen.
 
+## Language
+
+We're starting with developing a Python subset. We're adding features slowly,
+and we may not end up covering all of Python, but any ProgLang program should
+also be a valid Python program, and have identical semantics.
+
 ## Run
 
 ```
