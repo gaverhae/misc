@@ -37,6 +37,11 @@
                                      [env []]
                                      factors)]
                 [env (reduce * 1 vs)])
+     :assign (let [[_ [_ n] expr] node
+                   [env v] (eval-pl expr env)]
+               [(assoc env n v) nil])
+     :identifier (let [[_ n] node]
+                   [env (get env n)])
      :S (let [[_ & stmts] node]
           (reduce (fn [[env v] stmt]
                     (let [[env v] (eval-pl stmt env)]
