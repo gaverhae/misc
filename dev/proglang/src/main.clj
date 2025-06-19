@@ -4,8 +4,10 @@
 
 (def parse
   (insta/parser
-    "S = nl* stmt (nl+ stmt)* nl*
-     <stmt> = assign | expr
+    "S = nl* stmt*
+     <stmt> = (def | return | assign | expr) nl+
+     def = <'def'> ws identifier ws <'('> (identifier (<','> identifier)*)? <')'> ws <':'> ws
+     return = <'return'> expr
      assign = identifier ws <'='> ws expr
      <expr> = (atom | sum | product) ws
      <atom> = int | pexpr | identifier
