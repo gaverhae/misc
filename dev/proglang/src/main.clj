@@ -54,6 +54,13 @@
           [env []]
           args))
 
+(defn add-env
+  [env n v]
+  (update env n (fn [old]
+                  (if old
+                    (reset! old v)
+                    (atom v)))))
+
 (defn eval-pl
   [env node]
   (case (first node)
@@ -69,22 +76,29 @@
                [env [:int (reduce * 1 (map second vs))]])
     :assign (let [[_ [_ n] expr] node
                   [env v] (eval-pl env expr)]
-              [(assoc env n v) nil])
+              [(add-env env n v) nil])
     :def (let [[_ fn-name args body] node]
-           [(assoc env fn-name [:fn args body env]) nil])
+           [(add-env env fn-name [:fn args (cons :S body) env])
+            nil])
     :app (let [[_ f & args] node
                [env evaled-f] (eval-pl env f)
                _ (assert (= :fn (first evaled-f)))
                [_ params body captured-env] evaled-f
-               [env evaled-args] (eval-args env args)]
-           [env (second (eval-pl (merge env
-                                        captured-env
-                                        (zipmap params evaled-args))
-                                 (cons :S body)))])
+               [env evaled-args] (eval-args env args)
+               [closure-env app-val] (eval-pl (reduce (fn [env [n v]]
+                                                        (add-env env n v))
+                                                      {::parent captured-env}
+                                                      (map vector params evaled-args))
+                                              body)]
+           [env app-val])
     :return (let [[_ expr] node]
               (eval-pl env expr))
     :identifier (let [[_ n] node]
-                  [env (get env n)])
+                  [env (loop [env env]
+                         (if-let [v (get env n)]
+                           @v
+                           (when-let [p (get env ::parent)]
+                             (recur p))))])
     :S (let [[_ & stmts] node]
          (reduce (fn [[env v] stmt]
                    (let [[env v] (eval-pl env stmt)]
