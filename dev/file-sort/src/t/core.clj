@@ -183,10 +183,10 @@
                       (let [h (hashes (Path/.toFile (p d2 f)))
                             ext (string/replace (Path/.getFileName (p d2 f)) #".*\." "")
                             target (str f "__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
-                        (println "Conflict: " f)
                         (if (exists? (p d1 target))
                           (delete (p d2 f))
-                          (move (p d2 f) (p d1 target)))))
+                          (do (println "Conflict: " f)
+                              (move (p d2 f) (p d1 target))))))
                     (move (p d2 f) (p d1 f))))
                 (remove-dir-tree d2)
                 d1))
