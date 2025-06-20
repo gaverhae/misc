@@ -1,5 +1,6 @@
 let
   pkgs = import ./nix/nixpkgs.nix {};
+  jdk = pkgs.jdk21;
   getFlake = url: (builtins.getFlake url).packages.${pkgs.system}.default;
 in
 pkgs.mkShell {
@@ -7,7 +8,9 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     bash
     cacert
+    (clojure.override { jdk = jdk; })
     curl
+    jdk
     jq
   ];
 }
