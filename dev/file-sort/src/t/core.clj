@@ -235,6 +235,20 @@
                                    (= dir-name
                                       (str (Path/.getFileName path)))
                                    (Path/.endsWith path (str partial-path "/" dir-name))))
+                            [:under partial-path :dir :any :containing files]
+                            (fn [[typ path]]
+                              (and (= :dirs typ)
+                                   (Path/.endsWith path (str partial-path "/"
+                                                             (str (Path/.getFileName path))))
+                                   (= (set files)
+                                      (->> (children path)
+                                           (map (fn [child]
+                                                  [(cond (Files/isSymbolicLink child) :symlink
+                                                         (Files/isRegularFile child no-follow-symlinks) :file
+                                                         (is-dir? child) :dir
+                                                         :else :unknown)
+                                                   (str (Path/.getFileName child))]))
+                                           set))))
                             [:under partial-path :dir dir-name :containing files]
                             (fn [[typ path]]
                               (and (= :dirs typ)
