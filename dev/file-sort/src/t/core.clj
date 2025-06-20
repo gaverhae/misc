@@ -185,6 +185,8 @@
        (sort-by (fn [[[md5 sha1 size] fs]]
                   size))
        reverse
+       (take 10)
+       reverse
        (map (fn [[[md5 sha1 size] fs]]
               (println)
               (println (format "%8.2f GB / %s / %s"
