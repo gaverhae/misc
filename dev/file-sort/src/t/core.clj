@@ -102,7 +102,6 @@
                    (remove ds?)
                    set))
       same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
-      copy (fn [^Path from ^Path to] (Files/copy from to no-copy-opt))
       create-path (fn [path] (Files/createDirectories path no-file-attr))
       move (fn [from to] (Files/move from to no-copy-opt))
       delete (fn [path] (Files/delete path))
