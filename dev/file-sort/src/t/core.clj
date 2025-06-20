@@ -132,7 +132,8 @@
                                                      (move (p d2 f) (p d1 (str f "__" (random-uuid)))))
                         (contains? files-under-d2 f) (move (p d2 f) (p d1 f))
                         (contains? files-under-d1 f) :nothing-to-do))
-                (remove-dir-tree d2)))
+                (remove-dir-tree d2)
+                d1))
             dest
             ds)))
 
