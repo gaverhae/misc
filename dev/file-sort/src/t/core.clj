@@ -21,26 +21,30 @@
 (def no-link-opt (make-array LinkOption 0))
 (def no-string (make-array String 0))
 
+(defn ->path
+  [^String s]
+  (Path/.toAbsolutePath (Paths/get s no-string)))
+
 (defn all-files-under
-  "Returns a lazy list of all the files under the given path. Only reports
-  regular files; does not traverse symlinks."
+  "Returns a list of all the files under the given path. Only reports regular
+   files; does not traverse symlinks."
   [path]
-  (cond (string? path) (all-files-under (Paths/get path no-string))
-        ;; do not traverse symbolic links at all
+  (cond ;; do not traverse symbolic links at all
         (Files/isSymbolicLink path) []
         ;; silently ignore files we can't read
         (not (Files/isReadable path)) []
-        (Files/isDirectory path no-link-opt) (let [children (with-open [stream (Files/list path)]
-                                                    (-> stream Stream/.iterator iterator-seq vec))]
-                                     (mapcat all-files-under children))
-        :else [(-> path Path/.toAbsolutePath str)]))
+        ;; recur on directories
+        (Files/isDirectory path no-link-opt)
+        (let [children (with-open [stream (Files/list path)]
+                         (-> stream Stream/.iterator iterator-seq vec))]
+          (mapcat all-files-under children))
+        :else [(-> path Path/.toAbsolutePath)]))
 
 (defn all-dirs-under
-  "Returns a lazy list of all the dirs under the given path. Only reports
-  regular dirs; does not traverse symlinks."
+  "Returns a list of all the dirs under the given path. Only reports regular
+   dirs; does not traverse symlinks."
   [path]
-  (cond (string? path) (all-dirs-under (Paths/get path no-string))
-        ;; do not traverse symbolic links at all
+  (cond ;; do not traverse symbolic links at all
         (Files/isSymbolicLink path) []
         ;; silently ignore files we can't read
         (not (Files/isReadable path)) []
@@ -53,10 +57,10 @@
 
 (defn file-stats
   [root]
-  (let [files (all-files-under root)]
-    {:count (count files)
-     :total-size (->> files
-                      (map (fn [s] (Files/size (Paths/get s no-string))))
+  (let [paths (all-files-under (->path root))]
+    {:count (count paths)
+     :total-size (->> paths
+                      (map (fn [path] (Files/size path)))
                       (reduce + 0))}))
 
 (defn now
@@ -89,11 +93,14 @@
 
 (let [no-copy-opt ^"[Ljava.nio.file.CopyOption;" (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
-      p (fn [d s] (Paths/get (str d s) no-string))
+      p (fn [d s] (->path (str d s)))
       ds? (fn [s] (and (>= (count s) 9)
                        (= ".DS_Store" (subs s (- (count s) 9) (count s)))))
       under (fn [f d]
-              (->> (f d) (map (fn [s] (subs s (count d)))) (remove ds?) set))
+              (->> (f (->path d))
+                   (map (fn [p] (subs (str p) (count (str (->path d))))))
+                   (remove ds?)
+                   set))
       same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
       copy (fn [^Path from ^Path to] (Files/copy from to no-copy-opt))
       create-path (fn [path] (Files/createDirectories path no-file-attr))
@@ -101,7 +108,7 @@
       delete (fn [path] (Files/delete path))
       remove-dir-tree (fn [d]
                         (Files/walkFileTree
-                          (p d "")
+                          (->path d)
                           (reify FileVisitor
                             (visitFile [_ path attrs]
                               (if (and (BasicFileAttributes/.isRegularFile attrs)
@@ -144,12 +151,12 @@
        (apply str)))
 
 (defn hashes
-  [m]
+  [f]
   (let [buffer-size (* 64 1024)
         buffer (byte-array buffer-size)
         md5 (MessageDigest/getInstance "md5")
         sha1 (MessageDigest/getInstance "sha1")]
-    (with-open [is (io/input-stream (:file m))]
+    (with-open [is (io/input-stream f)]
       (loop []
         (let [n (.read is buffer)]
           (when (pos? n)
@@ -157,42 +164,41 @@
             (.update sha1 buffer 0 n))
           (if (= n buffer-size)
             (recur)
-            (assoc m :md5 (bytes-to-hex (.digest md5))
-                     :sha1 (bytes-to-hex (.digest sha1)))))))))
+            {:md5 (bytes-to-hex (.digest md5))
+             :sha1 (bytes-to-hex (.digest sha1))}))))))
 
 (defn find-dups
   [env-roots]
   (->> env-roots
+       (map ->path)
        (mapcat all-files-under)
-       (map (fn [s]
-              (let [p (Paths/get s no-string)]
-                {:file s
-                 :path p
-                 :size (Files/size p)})))
-       (reduce (fn [acc f]
-                 (update acc (:size f) (fnil conj []) f))
+       (map (fn [p]
+              {:path p
+               :size (Files/size p)}))
+       (reduce (fn [acc m]
+                 (update acc (:size m) (fnil conj []) m))
                {})
-       (filter (fn [[s fs]]
-                 (>= (count fs) 2)))
+       (filter (fn [[s ms]]
+                 (>= (count ms) 2)))
        (sort-by key)
        reverse
        (take 100)
        (mapcat val)
-       (map hashes)
+       (map (fn [m] (merge m (hashes (Path/.toFile (:path m))))))
        (group-by (juxt :md5 :sha1 :size))
-       (filter (fn [[[md5 sha1 size] fs]]
-                 (>= (count fs) 2)))
-       (sort-by (fn [[[md5 sha1 size] fs]]
+       (filter (fn [[[md5 sha1 size] ms]]
+                 (>= (count ms) 2)))
+       (sort-by (fn [[[md5 sha1 size] ms]]
                   size))
        reverse
        (take 10)
        reverse
-       (map (fn [[[md5 sha1 size] fs]]
+       (map (fn [[[md5 sha1 size] ms]]
               (println)
               (println (format "%8.2f GB / %s / %s"
                                (/ (long size) (* 1.0 1024 1024 1024))
                                md5 sha1))
-              (->> fs (map :file) sort (map println) doall)
+              (->> ms (map (comp str :path)) sort (map println) doall)
               (println)))
        doall))
 
