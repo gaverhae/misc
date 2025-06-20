@@ -1,10 +1,5 @@
 name:                chap1
 version:             0.1.0.0
-github:              "githubuser/chap1"
-license:             "CC BY-NC-ND 4.0"
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2019 Author name here"
 
 extra-source-files:
 - README.md
