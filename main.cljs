@@ -3,9 +3,35 @@
     [reagent.core :as r]
     [reagent.dom :as rdom]))
 
+(def game-title "Game Title")
+
 (defonce state (r/atom nil))
 
-(defn app []
+(defn component:title [game-title]
+  [:svg#game-title {:viewBox "0 0 700 200"
+                    :xmlns "http://www.w3.org/2000/svg"}
+   [:defs
+    [:path {:id "curve" :d "M 100 150 C 200 100 500 100 600 150"}]
+    [:filter {:id "drop-shadow"}
+     ["feOffset" {:in "SourceGraphic" :dx "0" :dy "10" :result "offset"}]
+     ["feMerge" {}
+      ["feMergeNode" {:in "offset"}]
+      ["feMergeNode" {:in "SourceGraphic"}]]]]
+   [:text {:class "title-text-under"
+           :stroke-width "10px"
+           :fill "none"
+           :filter "url(#drop-shadow)"
+           :stroke-linecap "round"
+           :stroke-linejoin "round"}
+    [:textPath {:href "#curve" :textAnchor "middle" :startOffset "50%"}
+     [:tspan.game-title-text
+      game-title]]]
+   [:text {:class "title-text-over" :stroke-width "10px"}
+    [:textPath {:href "#curve" :textAnchor "middle" :startOffset "50%"}
+     [:tspan.game-title-text
+      game-title]]]])
+
+(defn component:game []
   [:main
    [:div.cgv {:style {"--size" 10}}
     [:img.cgv-entity
@@ -17,4 +43,8 @@
        "--x" 0
        "--y" 0}}]]])
 
-(rdom/render [app] (.getElementById js/document "app"))
+(defn component:app []
+  [:main
+   [component:title game-title]])
+
+(rdom/render [component:app] (.getElementById js/document "app"))

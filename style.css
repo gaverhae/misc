@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Sigmar+One&display=swap');
+
+:root {
+  --font-title: "Sigmar One", sans-serif;
+  --color-fg: black;
+  --color-1: white;
+}
+
 html, body, #app, main {
   height: 100%;
   width: 100%;
@@ -6,4 +14,37 @@ html, body, #app, main {
   background-color: #252924;
   color: #CFD4CE;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*** game title ***/
+
+#game-title {
+  width: 100vw;
+  max-width: 1024px;
+  font-size: 4em;
+  animation: bob 1.5s ease-in-out infinite;
+}
+
+#game-title * {
+  font-family: var(--font-title);
+}
+
+#game-title text.title-text-under {
+  stroke: var(--color-fg);
+}
+
+#game-title text.title-text-over {
+  fill: var(--color-1);
+}
+
+@keyframes bob {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
