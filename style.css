@@ -1,10 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Sigmar+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
 
 :root {
+  --font-main: "Fredoka", sans-serif;
   --font-title: "Sigmar One", sans-serif;
   --color-bg: #252924;
   --color-fg: #CFD4CE;
   --color-shadow: black;
+  --color-accent: #F94144;
+  --color-accent-shadow: #b92527;
+}
+
+* {
+  font-family: var(--font-main);
 }
 
 html, body, #app, main {
@@ -14,7 +22,12 @@ html, body, #app, main {
   overflow: hidden;
   background-color: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-main);
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
 }
 
 /*** game title ***/
@@ -48,4 +61,43 @@ html, body, #app, main {
   100% {
     transform: translateY(0);
   }
+}
+
+/*** layout ***/
+
+main.title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
+
+/*** menu ***/
+
+nav.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 2.5em;
+  gap: 0.5em;
+}
+
+nav.menu a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+nav.menu a:hover {
+  
+}
+
+nav.menu a.button.cta {
+  background-color: var(--color-accent);
+  color: var(--color-fg);
+  padding: 0.75rem 2.5rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+  box-shadow: 0 5px 0 var(--color-accent-shadow);
+  font-weight: bold;
 }

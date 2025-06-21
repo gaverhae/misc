@@ -7,6 +7,11 @@
 
 (defonce state (r/atom nil))
 
+(defn component:icon [id]
+  [:img.icon
+   {:src
+    (str "https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/" id ".svg")}])
+
 (defn component:title [game-title]
   [:svg#game-title {:viewBox "0 0 700 200"
                     :xmlns "http://www.w3.org/2000/svg"}
@@ -43,8 +48,17 @@
        "--x" 0
        "--y" 0}}]]])
 
+(defn component:menu []
+  [:nav.menu
+   [:a {:href "#instructions"} "instructions"]
+   [:a "settings"]
+   [:a "credits"]
+   [:a.button.cta "Play"]])
+
 (defn component:app []
-  [:main
-   [component:title game-title]])
+  [:main.title
+   [component:title game-title]
+   [component:menu]
+   [component:icon "1f3ae"]])
 
 (rdom/render [component:app] (.getElementById js/document "app"))
