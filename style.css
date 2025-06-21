@@ -22,6 +22,7 @@ html, body, #app, main {
   overflow: hidden;
   background-color: var(--color-bg);
   color: var(--color-fg);
+  user-select: none;
 }
 
 .icon {
@@ -123,6 +124,10 @@ nav.menu a:hover {
   transform: rotate(var(--rotation)) scale(1.3);
 }
 
+nav.menu a:active {
+  transform: rotate(var(--rotation)) scale(1.1);
+}
+
 nav.menu a:nth-child(1) { --rotation: -2deg; }
 nav.menu a:nth-child(2) { --rotation: 3deg; }
 nav.menu a:nth-child(3) { --rotation: -1deg; }
@@ -141,4 +146,9 @@ nav.menu a.button.cta {
   box-shadow: 0 5px 0 var(--color-accent-shadow);
   font-weight: bold;
   cursor: pointer;
+}
+
+nav.menu a.button.cta:active {
+  box-shadow: none;
+  transform: rotate(var(--rotation)) translateY(5px) scale(1.2);
 }
