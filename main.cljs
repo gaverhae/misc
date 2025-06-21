@@ -51,14 +51,14 @@
 (defn component:menu []
   [:nav.menu
    [:a {:href "#instructions"} "instructions"]
-   [:a "settings"]
-   [:a "credits"]
+   [:a {:href "#settings"} "settings"]
+   [:a {:href "#credits"} "credits"]
    [:a.button.cta "Play"]])
 
 (defn component:app []
   [:main.title
    [component:title game-title]
    [component:menu]
-   [component:icon "1f3ae"]])
+   #_ [component:icon "1f3ae"]])
 
 (rdom/render [component:app] (.getElementById js/document "app"))

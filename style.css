@@ -30,6 +30,9 @@ html, body, #app, main {
   opacity: 0.5;
 }
 
+button {
+}
+
 /*** game title ***/
 
 #game-title {
@@ -86,11 +89,19 @@ nav.menu {
 nav.menu a {
   color: var(--color-accent);
   text-decoration: none;
+  transform: rotate(var(--rotation));
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease-out;
 }
 
 nav.menu a:hover {
-  
+  color: var(--color-fg);
+  transform: rotate(var(--rotation)) scale(1.1);
 }
+
+nav.menu a:nth-child(1) { --rotation: -2deg; }
+nav.menu a:nth-child(2) { --rotation: 3deg; }
+nav.menu a:nth-child(3) { --rotation: -1deg; }
+nav.menu a:nth-child(4) { --rotation: 2deg; }
 
 nav.menu a.button.cta {
   background-color: var(--color-accent);
@@ -100,4 +111,5 @@ nav.menu a.button.cta {
   margin-top: 1rem;
   box-shadow: 0 5px 0 var(--color-accent-shadow);
   font-weight: bold;
+  cursor: pointer;
 }
