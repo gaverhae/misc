@@ -30,9 +30,6 @@ html, body, #app, main {
   opacity: 0.5;
 }
 
-button {
-}
-
 /*** game title ***/
 
 #game-title {
@@ -58,11 +55,23 @@ button {
   0% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-15px) scale(1.02);
   }
+
   100% {
     transform: translateY(0);
+  }
+}
+
+@keyframes bgpan {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 128px -128px;
   }
 }
 
@@ -74,6 +83,21 @@ main.title {
   align-items: center;
   justify-content: center;
   gap: 1em;
+  position: relative;
+}
+
+main.title::before {
+  content: "";
+  position: absolute;
+  top: -25%;
+  left: -25%;
+  width: 150%;
+  height: 150%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='none' stroke='%23CFD4CE' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' class='icon icon-tabler icons-tabler-outline icon-tabler-device-gamepad'%3E%3Cpath d='M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM6 12h4m-2-2v4M15 11v.01M18 13v.01M26 32a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H28a2 2 0 0 1-2-2zM30 36h4m-2-2v4M39 35v.01M42 37v.01'/%3E%3C/svg%3E");
+  background-size: 128px;
+  opacity: 0.05;
+  transform: rotate(5deg);
+  animation: bgpan 10s linear infinite;
 }
 
 /*** menu ***/
