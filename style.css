@@ -2,8 +2,9 @@
 
 :root {
   --font-title: "Sigmar One", sans-serif;
-  --color-fg: black;
-  --color-1: white;
+  --color-bg: #252924;
+  --color-fg: #CFD4CE;
+  --color-shadow: black;
 }
 
 html, body, #app, main {
@@ -11,9 +12,9 @@ html, body, #app, main {
   width: 100%;
   margin: 0px;
   overflow: hidden;
-  background-color: #252924;
-  color: #CFD4CE;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-main);
 }
 
 /*** game title ***/
@@ -30,11 +31,11 @@ html, body, #app, main {
 }
 
 #game-title text.title-text-under {
-  stroke: var(--color-fg);
+  stroke: var(--color-shadow);
 }
 
 #game-title text.title-text-over {
-  fill: var(--color-1);
+  fill: var(--color-fg);
 }
 
 @keyframes bob {
