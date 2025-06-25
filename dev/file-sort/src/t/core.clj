@@ -265,8 +265,8 @@
         (println "Which one do you keep?")
         (print "> ") (flush)
         (let [kept-idx (loop [r (read-line)]
-                         (if (and (int? r)
-                                  (< 0 r (count ms)))
+                         (if (when-let[r (parse-long r)]
+                               (< 0 r (count ms)))
                            r
                            (do (println "Try again.")
                                (print "> ") (flush)
@@ -376,8 +376,7 @@
           (apply merge-dirs (rest args))
 
           (and (= ["dups" "show"] (take 2 args))
-               (try (parse-long (nth args 2))
-                 (catch Exception _ false)))
+               (parse-long (nth args 2)))
           (show-dups env-roots (parse-long (nth args 2)))
 
           (= ["dups"] args)
