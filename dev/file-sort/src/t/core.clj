@@ -50,6 +50,10 @@
       (delete-rec child)))
   (delete path))
 
+(defn make-hard-link
+  [from at]
+  (Files/createLink at from))
+
 (defn all-paths-under
   "List all the paths under the given path. Returns a map with these keys:
    :dirs, :files, :symlinks, :error."
@@ -83,6 +87,15 @@
         (string/replace "T" "-")
         (string/replace ":" "-"))))
 
+(defn show-size
+  [^long n]
+  (let [suf ["B" "kB" "MB" "GB" "TB"]]
+    (loop [n (* 1.0 n) e 0]
+      (if (>= n 1024)
+        (recur (/ n 1024.0) (inc e))
+        (format "%.2f%s" n (suf e))))))
+
+
 (defn count-files
   [env-roots save-result]
   (if (nil? env-roots)
@@ -97,11 +110,10 @@
         (spit (str "_data/" n ".edn") (pr-str cs)))
       (prn cs)
       (println (format "Total files: %d" (->> cs :data vals (map :count) (reduce + 0))))
-      (println (format "Total size (GB): %.2f" (-> cs :data vals
-                                                   (->> (map :total-size)
-                                                        (reduce + 0))
-                                                   long
-                                                   (/ 1.0 1000 1000 1000)))))))
+      (println (format "Total size: %s" (-> cs :data vals
+                                            (->> (map :total-size)
+                                                 (reduce + 0))
+                                            show-size))))))
 
 (defn bytes-to-hex
   [^bytes bs]
@@ -204,38 +216,84 @@
        (map (fn [p]
               {:path p
                :size (Files/size p)}))
-       (reduce (fn [acc m]
-                 (update acc (:size m) (fnil conj []) m))
-               {})
+       (group-by :size)
        (filter (fn [[s ms]]
                  (>= (count ms) 2)))
-       (sort-by key)
-       reverse
-       (take 100)
-       (mapcat (fn [[_ ms]]
-                 (for [i (range (count ms))
-                       :let [a (nth ms i)
-                             r (drop (inc i) ms)]
-                       :when (every? (fn [x] (not (Files/isSameFile (:path a) (:path x))))
-                                     r)]
-                   a)))
+       (map (fn [[_ ms]]
+              (let [same-file? (fn [m1] (fn [m2] (Files/isSameFile (:path m1) (:path m2))))]
+                (loop [valid []
+                       to-check ms]
+                  (if (empty? to-check)
+                    valid
+                    (let [[f & to-check] to-check]
+                      (recur (conj valid f)
+                             (vec (remove (same-file? f) to-check)))))))))
+       (filter (fn [v] (>= (count v) 2)))
+       (mapcat identity)
        (map (fn [m] (merge m (hashes (Path/.toFile (:path m))))))
        (group-by (juxt :md5 :sha1 :size))
        (filter (fn [[[md5 sha1 size] ms]]
                  (>= (count ms) 2)))
        (sort-by (fn [[[md5 sha1 size] ms]]
-                  size))
-       reverse
-       (take 10)
+                  (- (long size))))))
+
+(defn show-dups
+  [env-roots n]
+  (->> (find-dups env-roots)
+       (take n)
        reverse
        (map (fn [[[md5 sha1 size] ms]]
               (println)
-              (println (format "%8.2f GB / %s / %s"
-                               (/ (long size) (* 1.0 1024 1024 1024))
-                               md5 sha1))
+              (println (format "%s / %s / %s" (show-size size) md5 sha1))
               (->> ms (map (comp str :path)) sort (map println) doall)
               (println)))
        doall))
+
+(defn rem-dups
+  [env-roots]
+  (loop [to-handle (find-dups env-roots)]
+    (if (empty? to-handle)
+      (println "All done. Bye!")
+      (let [[[[md5 sha1 size] ms] & to-handle] to-handle
+            paths (->> ms (sort-by (comp str :path)))]
+        (println (format "Groups left after this one: %d." (count to-handle)))
+        (println (format "%s / %s / %s" (show-size size) md5 sha1))
+        (->> paths
+             (map (comp str :path))
+             (map-indexed (fn [idx x] (println (format "%2d - %s" idx x))))
+             doall)
+        (println "Which one do you keep?")
+        (print "> ") (flush)
+        (let [kept-idx (loop [r (read-line)]
+                         (if (and (int? r)
+                                  (< 0 r (count ms)))
+                           r
+                           (do (println "Try again.")
+                               (print "> ") (flush)
+                               (recur (read-line)))))
+              action (loop [kept (nth paths kept-idx)
+                            th (concat (take kept-idx paths) (drop (inc (long kept-idx)) paths))]
+                       (if (empty? th)
+                         :done
+                         (let [[m & th] th]
+                           (println (format "Original: \"%s\"." (:path kept)))
+                           (println (format "Next item: \"%s\"." (:path m)))
+                           (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
+                           (print "> ") (flush)
+                           (case (read-line)
+                             "S" (recur m (conj th kept))
+                             "s" (recur kept th)
+                             "d" (do (delete (:path m))
+                                     (recur kept th))
+                             "q" :quit
+                             "h" (do (delete (:path m))
+                                     (make-hard-link (:path kept) (:path m))
+                                     (recur kept th))
+                             (do (println "Please enter S, s, d, q, or h.")
+                                 (recur kept (cons m th)))))))]
+          (case action
+            :done (recur to-handle)
+            :quit (println "Bye!")))))))
 
 (defn delete-pattern
   "Deletes all paths that match pattern under given root."
@@ -317,8 +375,12 @@
                (>= (count (rest args)) 2))
           (apply merge-dirs (rest args))
 
+          (and (= ["dups" "show"] (take 2 args))
+               (int? (nth args 2)))
+          (show-dups env-roots (nth args 2))
+
           (= ["dups"] args)
-          (find-dups env-roots)
+          (rem-dups env-roots)
 
           (and (= "delete" (first args))
                (= 3 (count args)))
