@@ -377,8 +377,9 @@
           (apply merge-dirs (rest args))
 
           (and (= ["dups" "show"] (take 2 args))
-               (int? (nth args 2)))
-          (show-dups env-roots (nth args 2))
+               (try (parse-long (nth args 2))
+                 (catch Exception _ false)))
+          (show-dups env-roots (parse-long (nth args 2)))
 
           (= ["dups"] args)
           (rem-dups env-roots)
