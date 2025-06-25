@@ -257,7 +257,6 @@
       (println "All done. Bye!")
       (let [[[[md5 sha1 size] ms] & to-handle] to-handle
             paths (->> ms (sort-by (comp str :path)))]
-        (println (format "Groups left after this one: %d." (count to-handle)))
         (println (format "%s / %s / %s" (show-size size) md5 sha1))
         (->> paths
              (map (comp str :path))
