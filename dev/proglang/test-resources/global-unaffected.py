@@ -1,8 +1,8 @@
 b = 5
 
 def unaffecting(a):
-    b = 1
-    return a + b
+  b = 1
+  return a + b
 
 unaffecting(5)
 
