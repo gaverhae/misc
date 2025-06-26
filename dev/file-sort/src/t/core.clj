@@ -18,7 +18,7 @@
            (java.util.stream Stream))
   (:gen-class))
 
-(def no-link-opt (make-array LinkOption 0))
+(def no-follow-symlinks (into-array [LinkOption/NOFOLLOW_LINKS]))
 (def no-string (make-array String 0))
 
 (defn ->path
@@ -34,7 +34,7 @@
         ;; silently ignore files we can't read
         (not (Files/isReadable path)) {:error [path]}
         ;; recur on directories
-        (Files/isDirectory path no-link-opt)
+        (Files/isDirectory path no-follow-symlinks)
         (let [children (with-open [stream (Files/list path)]
                          (-> stream Stream/.iterator iterator-seq vec))]
           (->> (map all-paths-under children)
@@ -84,11 +84,16 @@
       p (fn [d s] (->path (str d s)))
       ds? (fn [s] (and (>= (count s) 9)
                        (= ".DS_Store" (subs s (- (count s) 9) (count s)))))
-      under (fn [k f d]
-              (->> (k (f (->path d)))
-                   (map (fn [p] (subs (str p) (count (str (->path d))))))
-                   (remove ds?)
-                   set))
+      under (fn [d]
+              (->> (all-paths-under (->path d))
+                   (map (fn [[typ ps]]
+                          [typ
+                           (cond->> ps
+                             true (map (fn [p] (subs (str p) (count (str (->path d))))))
+                             (= :files typ) (remove ds?)
+                             true set)]))
+                   (into {})))
+      exists? (fn [p] (Files/exists p no-follow-symlinks))
       same-files? (fn [p1 p2] (= -1 (Files/mismatch p1 p2)))
       create-path (fn [path] (Files/createDirectories path no-file-attr))
       move (fn [from to] (Files/move from to no-copy-opt))
@@ -113,18 +118,15 @@
   (defn merge-dirs
     [dest & ds]
     (reduce (fn [d1 d2]
-              (let [files-under-d1 (under :files all-paths-under d1)
-                    files-under-d2 (under :files all-paths-under d2)
-                    all-dirs (set/union (under :dirs all-paths-under d1) (under :dirs all-paths-under d2))
-                    common-paths (set/intersection files-under-d1 files-under-d2)]
-                (doseq [d all-dirs]
+              (let [under-d2 (under d2)]
+                (doseq [d (:dirs under-d2)]
                   (create-path (p d1 d)))
-                (doseq [f (sort files-under-d2)]
-                  (cond (contains? common-paths f) (if (same-files? (p d1 f) (p d2 f))
-                                                     (delete (p d2 f))
-                                                     (move (p d2 f) (p d1 (str f "__" (random-uuid)))))
-                        (contains? files-under-d2 f) (move (p d2 f) (p d1 f))
-                        (contains? files-under-d1 f) :nothing-to-do))
+                (doseq [f (sort (:files under-d2))]
+                  (if (exists? (p d1 f))
+                    (if (same-files? (p d1 f) (p d2 f))
+                      (delete (p d2 f))
+                      (move (p d2 f) (p d1 (str f "__" (random-uuid)))))
+                    (move (p d2 f) (p d1 f))))
                 (remove-dir-tree d2)
                 d1))
             dest
