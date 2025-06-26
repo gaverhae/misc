@@ -6,16 +6,18 @@
             [t.lib :as lib :refer [->long]])
   (:import (java.util BitSet)))
 
+(set! *unchecked-math* :warn-on-boxed)
+
 (defn parse
   [lines]
   (->> lines (map parse-long)))
 
 (defmacro mix-prune
   [a f b]
-  `(mod (bit-xor ~a (~f ~a ~b)) 16777216))
+  `(rem (bit-xor ~a (~f ~a ~b)) 16777216))
 
 (defn next-random
-  [n]
+  ^long [^long n]
   (-> n
       (mix-prune * 64)
       (mix-prune quot 32)
@@ -42,34 +44,34 @@
              (let [vendor (first vs)
                    vs (rest vs)
                    n 5
-                   secret (nth (iterate next-random vendor)
-                               (- n 2))
-                   prev (mod secret 10)
+                   secret (long (nth (iterate next-random vendor)
+                                     (- n 2)))
+                   prev (rem secret 10)
                    secret (next-random secret)
-                   p (mod secret 10)
+                   p (rem secret 10)
                    secret (next-random secret)
                    last-4 (->> (iterate next-random vendor)
                                (take n)
                                (partition 2 1)
-                               (map (fn [[a b]] (- (mod b 10) (mod a 10))))
-                               (reduce (fn [acc el]
+                               (map (fn [[^long a ^long b]] (- (rem b 10) (rem a 10))))
+                               (reduce (fn [^long acc ^long el]
                                          (+ (* acc 20) 10 el))
                                        0))
                    bs (BitSet. div)]
-               (aset tot last-4 (long (+ (aget tot last-4) p)))
+               (aset tot last-4 (+ (aget tot last-4) p))
                (.set bs last-4)
                (loop [n n
                       p p
                       prev prev
                       secret secret
-                      last-4 last-4]
+                      last-4 ^long last-4]
                  (when (<= n 2000)
                    (let [n (inc n)
                          prev p
-                         p (mod secret 10)
+                         p (rem secret 10)
                          secret (next-random secret)
                          d (- p prev)
-                         last-4 (mod (+ (* 20 last-4) 10 d)
+                         last-4 (rem (+ (* 20 last-4) 10 d)
                                      div)]
                      (when (not (.get bs last-4))
                        (aset tot last-4 (long (+ (aget tot last-4) p))))
@@ -89,6 +91,8 @@
 4265
 
   (lib/bench #(part2 @puzzle))
+"202506121426.2245.8122587a:  0.08 ±  0.00 [ 0.07  0.08]"
+"202501121859.2196.43444551:  0.05 ±  0.00 [ 0.05  0.05]"
 "202505282235.2220.ea75fe02:  0.40 ±  0.00 [ 0.40  0.41]"
 "202501121834.2194.956ceb1d:  0.42 ±  0.00 [ 0.42  0.43]"
 "202501121756.2192.b8be9379:  0.23 ±  0.00 [ 0.23  0.24]"
