@@ -12,6 +12,9 @@ data E = Var String
        | Num Int
        deriving (Eq, Show)
 
+-- TODO: figure out what I wanted to do with this line
+-- data Env = Env [(String, Program)]
+
 data Program = Program E [(String, E)]
 
 names = tail $ (Data.List.inits . repeat) ['a'..'z'] >>= sequence
