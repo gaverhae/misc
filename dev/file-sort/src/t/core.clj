@@ -118,23 +118,23 @@
                               (delete path)
                               FileVisitResult/CONTINUE))))]
   (defn merge-dirs
-    [d1 d2 dest]
-    (let [files-under-d1 (under all-files-under d1)
-          files-under-d2 (under all-files-under d2)
-          all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
-          all-files (set/union files-under-d1 files-under-d2)
-          common-paths (set/intersection files-under-d1 files-under-d2)]
-      (doseq [d all-dirs]
-        (create-path (p dest d)))
-      (doseq [f (sort all-files)]
-        (cond (contains? common-paths f) (do (move (p d1 f) (p dest f))
-                                             (if (same-files? (p dest f) (p d2 f))
-                                               (delete (p d2 f))
-                                               (move (p d2 f) (p dest (str f "__" (random-uuid))))))
-              (contains? files-under-d1 f) (move (p d1 f) (p dest f))
-              (contains? files-under-d2 f) (move (p d2 f) (p dest f))))
-      (remove-dir-tree d1)
-      (remove-dir-tree d2))))
+    [dest & ds]
+    (reduce (fn [d1 d2]
+              (let [files-under-d1 (under all-files-under d1)
+                    files-under-d2 (under all-files-under d2)
+                    all-dirs (set/union (under all-dirs-under d1) (under all-dirs-under d2))
+                    common-paths (set/intersection files-under-d1 files-under-d2)]
+                (doseq [d all-dirs]
+                  (create-path (p d1 d)))
+                (doseq [f (sort files-under-d2)]
+                  (cond (contains? common-paths f) (if (same-files? (p d1 f) (p d2 f))
+                                                     (delete (p d2 f))
+                                                     (move (p d2 f) (p d1 (str f "__" (random-uuid)))))
+                        (contains? files-under-d2 f) (move (p d2 f) (p d1 f))
+                        (contains? files-under-d1 f) :nothing-to-do))
+                (remove-dir-tree d2)))
+            dest
+            ds)))
 
 (defn bytes-to-hex
   [^bytes bs]
@@ -207,9 +207,8 @@
           (count-files env-roots save-result)
 
           (and (= "merge" (first args))
-               (= 3 (count (rest args))))
-          (let [[_ d1 d2 dest] args]
-            (merge-dirs d1 d2 dest))
+               (>= (count (rest args)) 2))
+          (apply merge-dirs (rest args))
 
           (= ["dups"] args)
           (find-dups env-roots)
