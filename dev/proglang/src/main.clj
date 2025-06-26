@@ -6,7 +6,7 @@
   (insta/parser
     "S = nl* stmt*
      stmt = indent (def | return | assign | expr) nl+
-     indent = ' '*
+     indent = '  '*
      def = <'def'> ws identifier ws <'('> (identifier (ws <','> ws identifier)*)? <')'> ws <':'> ws
      return = <'return'> ws expr
      assign = identifier ws <'='> ws expr
@@ -32,6 +32,7 @@
                    [block cont] (split-with (fn [[_ i _]] (> i current-indent))
                                             stmts)
                    block-indent (-> block first second)]
+               (assert (= block-indent (inc current-indent)))
                (cons [:def fn-name arg-names (parse-blocks block-indent block)]
                      (parse-blocks current-indent cont)))
         (cons node (parse-blocks current-indent stmts))))))

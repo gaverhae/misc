@@ -35,8 +35,9 @@
      [:assign [:identifier "a"] [:int "2"]]
      [:assign [:identifier "b"] [:int "5"]]
      [:sum [:identifier "a"] [:identifier "b"]]]
-    ["def fib(n):"]
-    [:S [:def "fib" ["n"] []]]
+    ["def fib(n):"
+     "  return 1"]
+    [:S [:def "fib" ["n"] [[:return [:int "1"]]]]]
     ["1 + 2"
      "a = 5"
      "def square(x):"
