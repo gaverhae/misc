@@ -2,7 +2,6 @@
   (:require [clojure.core.match :refer [match]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.java.shell :refer [sh]]
             [clojure.set :as set]
             [clojure.string :as string])
   (:import (java.io File)
