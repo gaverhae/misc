@@ -156,7 +156,14 @@
        (mapcat val)
        (map hashes)
        (group-by (juxt :md5 :sha1 :size))
-       prn))
+       (map (fn [[[md5 sha1 size] fs]]
+              (println)
+              (println "MD5: " md5)
+              (println "SHA1: " sha1)
+              (println (format "Size: %5.2f GB" (/ size (* 1.0 1024 1024 1024))))
+              (->> fs (map :file) (map println) doall)
+              (println)))
+       doall))
 
 (defn -main
   [& args]
