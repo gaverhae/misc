@@ -4,5 +4,20 @@ set -euo pipefail
 DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
 cd "$DIR/.."
 
+SDK_PATH=$(xcrun --sdk macosx --show-sdk-path | xargs)
+echo "Resolved SDK Path: \"$SDK_PATH\""
+
 javac MinimalSwingApp.java
-native-image MinimalSwingApp
+java -agentlib:native-image-agent=config-output-dir=./target/native-image-config MinimalSwingApp
+native-image MinimalSwingApp \
+             -H:+UnlockExperimentalVMOptions \
+             --native-image-info \
+             -H:NativeLinkerOption="-framework" -H:NativeLinkerOption="AppKit" \
+             -H:NativeLinkerOption="-framework" -H:NativeLinkerOption="CoreFoundation" \
+             -H:NativeLinkerOption="-framework" -H:NativeLinkerOption="CoreGraphics" \
+             -H:NativeLinkerOption="-framework" -H:NativeLinkerOption="CoreServices" \
+             -H:NativeLinkerOption="-framework" -H:NativeLinkerOption="Carbon" \
+             -H:NativeLinkerOption="-framework" -H:NativeLinkerOption="ApplicationServices" \
+             -H:NativeLinkerOption="-isysroot" -H:NativeLinkerOption="${SDK_PATH}" \
+             -H:NativeLinkerOption="-L${SDKROOT}/System/Library/Frameworks" \
+             -H:ConfigurationFileDirectories=./target/native-image-config
