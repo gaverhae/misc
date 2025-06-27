@@ -9,9 +9,11 @@ trap "echo 'Something went wrong. Logs of last step:'; cat $log" EXIT
 
 _help() (
   echo "Available commands:"
+  echo "  h native      Compiles native executable."
+  echo "  h repl        Starts a Cider REPL."
+  echo "  h run         Starts the program."
   echo "  h test        Watches src and test directories, and runs \`clj -X:test\`"
   echo "                on each change."
-  echo "  h repl        Starts a Cider REPL."
 )
 
 _test() (
@@ -26,6 +28,10 @@ _run() (
   clj -M -m main "$@"
 )
 
+_native() (
+  clj -T:build native
+)
+
 case $1 in
   repl)
     _repl
@@ -36,6 +42,9 @@ case $1 in
     ;;
   test)
     _test
+    ;;
+  native)
+    _native
     ;;
   *)
     _help
