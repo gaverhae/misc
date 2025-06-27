@@ -1,7 +1,6 @@
 (ns build
-  (:require [clojure.tools.build.api :as b]
-            [babashka.process :refer [shell]])
-  (:import [io.github.humbleui.jwm Platform]))
+  (:require [clojure.java.process :as process]
+            [clojure.tools.build.api :as b]))
 
 (def uber-file "target/uber.jar")
 (def class-dir "target/classes")
@@ -22,56 +21,31 @@
              :basis basis
              :main 'main})))
 
+(defn shell
+  [& cmd+args]
+  (let [p (apply process/start
+                 {:in :inherit
+                  :out :inherit
+                  :err :inherit}
+                 cmd+args)
+        result @(process/exit-ref p)]
+    (when (not (zero? result))
+      (throw (ex-info "Subprocess exited with non-zero value."
+                      {:code result
+                       :command cmd+args})))))
+
 (defn native [params]
   (uber params)
-  (shell
-    "native-image"
-    "--initialize-at-build-time"
-    "-J-Dclojure.compiler.direct-linking=true"
-
-    ;; Initialize problematic JWM classes at run time
-    "--initialize-at-run-time=io.github.humbleui.jwm.impl.RefCounted$_FinalizerHolder"
-    "--initialize-at-run-time=io.github.humbleui.jwm.impl.Managed"
-
-    ;; Skija loads native library statically by default which gives me linker errors when running
-    ;; Therefore passing flag to load libs dynamically and initialize its classes at runtime
-    "-Dskija.staticLoad=false"
-    "--initialize-at-run-time=io.github.humbleui.skija.impl.Cleanable"
-    "--initialize-at-run-time=io.github.humbleui.skija.impl.RefCnt$_FinalizerHolder"
-
-    "--initialize-at-run-time=main"
-    ;; This a lazy wildcard to initialize Skija classes at run time, then we bring BlendMode back to build time
-    ;; Should probably enumerate run time classes.
-    ;; To avoid being brittle it depends whether there is bigger chance that new native classes are added,
-    ;; or that non-native skija classes are used in build time context (e.g. in def bindings).
-    "--initialize-at-run-time=io.github.humbleui.skija"
-    "--initialize-at-build-time=io.github.humbleui.skija.BlendMode"
-
-    ;; Dealing with native bindings using JNI
-    "-H:+JNI"
-    (str "-H:IncludeResources="
-         (condp = Platform/CURRENT
-           Platform/MACOS ".*\\.dylib$"
-           Platform/WINDOWS ".*\\.dll$"
-           Platform/X11 ".*\\.so$")
-         "|.*jwm.version$"
-         "|.*skija.version$"
-         "|.*\\.ttf$")
-
-    ;; Some extra reporting for debugging purposes
-    "-H:+ReportExceptionStackTraces"
-    "--report-unsupported-elements-at-runtime"
-    "--native-image-info"
-    "--verbose"
-    "-Dskija.logLevel=DEBUG"
-
-    ;; Reports for image size optimization
-    ;; target/dashboard-dump.bgv that can be loaded visualized in https://www.graalvm.org/dashboard/
-    "-H:+DashboardAll"
-    "-H:DashboardDump=target/dashboard-dump"
-
-    "-H:-CheckToolchain"
-
-    "--no-fallback"
-    "-jar" uber-file
-    "gity"))
+  (shell "native-image"
+         "--initialize-at-build-time"
+         "-H:+UnlockExperimentalVMOptions" "-H:-CheckToolchain"
+         "-Djava.awt.headless=false"
+         "--initialize-at-run-time=sun.awt.AWTAutoShutdown"
+         "--initialize-at-run-time=javax.swing.RepaintManager"
+         "--initialize-at-run-time=java.awt.GraphicsEnvironment$LocalGE"
+         "--initialize-at-run-time=sun.java2d.opengl.OGLSurfaceData"
+         "--initialize-at-run-time=sun.java2d.metal.MTLSurfaceData"
+         "--initialize-at-run-time= java.awt.EventDispatchThread"
+         "--trace-object-instantiation=java.lang.Thread"
+         "-jar" uber-file
+         "gity"))
