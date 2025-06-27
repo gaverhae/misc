@@ -8,6 +8,17 @@ rm -rf *.class minimaljavafxapp lib
 mkdir lib
 cp "$FX_HOME"/*.dylib lib/
 
+for dylib in lib/*.dylib; do
+  name=$(basename "$dylib")
+  install_name_tool -id "@rpath/${name}" "$dylib"
+  if otool -L "$dylib" | grep "jenkins2"; then
+    otool -L "$dylib" | grep "jenkins2" | awk '{print $1}' | while read -r old_path; do
+      dep=$(basename "$old_path")
+      install_name_tool -change "$old_path" "@rpath/${dep}" "$dylib"
+    done
+  fi
+done
+
 javac --module-path "$FX_HOME" \
       --add-modules javafx.controls \
       MinimalJavaFXApp.java
