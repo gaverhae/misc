@@ -3,5 +3,6 @@
 /.graal
 /.javafx
 *.class
-/reports
+/reports/
 /minimaljavafxapp
+/META-INF/
