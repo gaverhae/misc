@@ -6,4 +6,6 @@ cd "$DIR/.."
 
 rm -f *.class minimaljavafxapp
 javac --module-path "$FX_HOME" --add-modules javafx.controls MinimalJavaFXApp.java
+java -agentlib:native-image-agent=config-output-dir=./META-INF/native-image \
+     --module-path "$FX_HOME" --add-modules javafx.controls MinimalJavaFXApp.java
 native-image --module-path "$FX_HOME" --add-modules javafx.controls -cp . MinimalJavaFXApp
