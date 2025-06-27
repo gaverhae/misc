@@ -1,3 +1,5 @@
 .envrc.private
 *.class
 /minimalswingapp
+/.flock
+/.graalvm

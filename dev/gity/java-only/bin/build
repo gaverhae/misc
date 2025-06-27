@@ -4,14 +4,5 @@ set -euo pipefail
 DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
 cd "$DIR/.."
 
-SDK_PATH=$(xcrun --sdk macosx --show-sdk-path | xargs)
-echo "Resolved SDK Path (trimmed): \"$SDK_PATH\""
-
 javac MinimalSwingApp.java
-native-image MinimalSwingApp \
-             -H:+UnlockExperimentalVMOptions \
-             -H:CCompilerPath="$CC" \
-             --native-compiler-options="-isysroot ${SDK_PATH}" \
-             --native-compiler-options="-F${SDK_PATH}/System/Library/Frameworks" \
-             --native-compiler-options="-iframework ${SDK_PATH}/System/Library/Frameworks" \
-             --native-compiler-options="-v"
+native-image MinimalSwingApp
