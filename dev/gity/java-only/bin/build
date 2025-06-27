@@ -5,4 +5,4 @@ DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
 cd "$DIR/.."
 
 javac MinimalSwingApp.java
-native-image MinimalSwingApp
+native-image -H:-CheckToolchain MinimalSwingApp
