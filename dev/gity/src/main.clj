@@ -1,14 +1,19 @@
 (ns main
-  (:require [io.github.humbleui.ui :as ui])
+  (:import (javax.swing JFrame
+                        JLabel
+                        SwingUtilities))
   (:gen-class))
 
-(ui/defcomp app
+(defn app
   []
-  [ui/center
-   [ui/label "Hello, World!"]])
+  (let [frame (JFrame. "Hello")
+        label (JLabel. "Hello World")]
+    (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE)
+    (.add (.getContentPane frame) label)
+    (.pack frame)
+    (.setVisible frame true)))
 
 (defn -main
   [& args]
   (println "hello")
-  (ui/start-app!
-    (ui/window app)))
+  (SwingUtilities/invokeLater app))
