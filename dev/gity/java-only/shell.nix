@@ -7,7 +7,7 @@ pkgs.mkShell {
     bash
     cacert
     curl
+    flock
     jq
-    graalvm-ce
   ];
 }
