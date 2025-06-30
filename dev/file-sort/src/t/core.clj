@@ -1,5 +1,6 @@
 (ns t.core
-  (:require [clojure.core.match :refer [match]]
+  (:require [clojure.core.async :as async]
+            [clojure.core.match :refer [match]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.set :as set]
@@ -250,34 +251,43 @@
 
 (defn rem-dups
   [env-roots]
-  (loop [to-handle (find-dups env-roots)]
-    (if (empty? to-handle)
-      (println "All done. Bye!")
-      (let [[[[md5 sha1 size] paths] & to-handle] to-handle]
-        (println (format "%s / %s / %s" (show-size size) md5 sha1))
-        (let [action (loop [kept (first paths)
-                            th (rest paths)]
-                       (if (empty? th)
-                         :done
-                         (let [[m & th] th]
-                           (println (format "Original: \"%s\"." (:path kept)))
-                           (println (format "Next item: \"%s\"." (:path m)))
-                           (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
-                           (print "> ") (flush)
-                           (case (read-line)
-                             "S" (recur m (conj th kept))
-                             "s" (recur kept th)
-                             "d" (do (delete (:path m))
-                                     (recur kept th))
-                             "q" :quit
-                             "h" (do (delete (:path m))
-                                     (make-hard-link (:path kept) (:path m))
-                                     (recur kept th))
-                             (do (println "Please enter S, s, d, q, or h.")
-                                 (recur kept (cons m th)))))))]
-          (case action
-            :done (recur to-handle)
-            :quit (println "Bye!")))))))
+  (let [ch (async/chan)
+        q1 (async/thread
+             (loop [to-handle (find-dups env-roots)]
+               (if (empty? to-handle)
+                 (async/close! ch)
+                 (let [[t & to-handle] to-handle]
+                   (async/>!! ch t)
+                   (recur to-handle)))))
+        q2 (async/thread
+             (loop []
+               (when-let [[[[md5 sha1 size] paths] & to-handle] (async/<!! ch)]
+                 (println (format "%s / %s / %s" (show-size size) md5 sha1))
+                 (case (loop [kept (first paths)
+                              th (rest paths)]
+                         (if (empty? th)
+                           :done
+                           (let [[m & th] th]
+                             (println (format "Original:  \"%s\"." (:path kept)))
+                             (println (format "Next item: \"%s\"." (:path m)))
+                             (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
+                             (print "> ") (flush)
+                             (case (read-line)
+                               "S" (recur m (conj th kept))
+                               "s" (recur kept th)
+                               "d" (do (delete (:path m))
+                                       (recur kept th))
+                               "q" :quit
+                               nil :quit
+                               "h" (do (delete (:path m))
+                                       (make-hard-link (:path kept) (:path m))
+                                       (recur kept th))
+                               (do (println "Please enter S, s, d, q, or h.")
+                                   (recur kept (cons m th)))))))
+                   :done (recur)
+                   :quit (println "Bye!")))))]
+    (async/<!! q1)
+    (async/<!! q2)))
 
 (defn delete-pattern
   "Deletes all paths that match pattern under given root."
