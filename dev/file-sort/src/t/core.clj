@@ -261,7 +261,7 @@
                    (recur to-handle)))))
         q2 (async/thread
              (loop []
-               (when-let [[[[md5 sha1 size] paths] & to-handle] (async/<!! ch)]
+               (when-let [[[md5 sha1 size] paths] (async/<!! ch)]
                  (println (format "%s / %s / %s" (show-size size) md5 sha1))
                  (case (loop [kept (first paths)
                               th (rest paths)]
