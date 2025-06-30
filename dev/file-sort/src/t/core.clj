@@ -253,24 +253,10 @@
   (loop [to-handle (find-dups env-roots)]
     (if (empty? to-handle)
       (println "All done. Bye!")
-      (let [[[[md5 sha1 size] ms] & to-handle] to-handle
-            paths (->> ms (sort-by (comp str :path)))]
+      (let [[[[md5 sha1 size] paths] & to-handle] to-handle]
         (println (format "%s / %s / %s" (show-size size) md5 sha1))
-        (->> paths
-             (map (comp str :path))
-             (map-indexed (fn [idx x] (println (format "%2d - %s" idx x))))
-             doall)
-        (println "Which one do you keep?")
-        (print "> ") (flush)
-        (let [kept-idx (loop [r (read-line)]
-                         (if (when-let[r (parse-long r)]
-                               (<= 0 r (dec (count ms))))
-                           (parse-long r)
-                           (do (println "Try again.")
-                               (print "> ") (flush)
-                               (recur (read-line)))))
-              action (loop [kept (nth paths kept-idx)
-                            th (concat (take kept-idx paths) (drop (inc (long kept-idx)) paths))]
+        (let [action (loop [kept (first paths)
+                            th (rest paths)]
                        (if (empty? th)
                          :done
                          (let [[m & th] th]
