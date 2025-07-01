@@ -123,21 +123,23 @@
        (apply str)))
 
 (defn hashes
-  [f]
-  (let [buffer-size (* 64 1024)
-        buffer (byte-array buffer-size)
-        md5 (MessageDigest/getInstance "md5")
-        sha1 (MessageDigest/getInstance "sha1")]
-    (with-open [is (io/input-stream f)]
-      (loop []
-        (let [n (.read is buffer)]
-          (when (pos? n)
-            (.update md5 buffer 0 n)
-            (.update sha1 buffer 0 n))
-          (if (= n buffer-size)
-            (recur)
-            {:md5 (bytes-to-hex (.digest md5))
-             :sha1 (bytes-to-hex (.digest sha1))}))))))
+  ([f] (hashes f true))
+  ([f loop?]
+   (let [buffer-size (* 64 1024)
+         buffer (byte-array buffer-size)
+         md5 (MessageDigest/getInstance "md5")
+         sha1 (MessageDigest/getInstance "sha1")]
+     (with-open [is (io/input-stream f)]
+       (loop []
+         (let [n (.read is buffer)]
+           (when (pos? n)
+             (.update md5 buffer 0 n)
+             (.update sha1 buffer 0 n))
+           (if (and loop?
+                    (= n buffer-size))
+             (recur)
+             {:md5 (bytes-to-hex (.digest md5))
+              :sha1 (bytes-to-hex (.digest sha1))})))))))
 
 (let [no-copy-opt ^"[Ljava.nio.file.CopyOption;" (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
@@ -215,7 +217,11 @@
                                          f]))
                                  (into {})
                                  (map val)))
-        compute-signature (fn [file]
+        fast-signature (fn [file]
+                         (let [{:keys [md5 sha1]} (hashes (Path/.toFile (:path file))
+                                                          false)]
+                           (format "%s / %s / %s" (show-size (:size file)) md5 sha1)))
+        complete-signature (fn [file]
                             (let [{:keys [md5 sha1]} (hashes (Path/.toFile (:path file)))]
                               (format "%s / %s / %s" (show-size (:size file)) md5 sha1)))
         stop-if-one (fn [files]
@@ -230,7 +236,10 @@
                                             (take-while #(= size (:size %)))
                                             (remove-same-files)
                                             (stop-if-one)
-                                            (group-by compute-signature)
+                                            (group-by fast-signature)
+                                            (filter (fn [[fsig ms]] (>= (count ms) 2)))
+                                            (mapcat (fn [[fsig ms]]
+                                                      (group-by complete-signature ms)))
                                             (filter (fn [[sig ms]] (>= (count ms) 2))))]
                             (concat chunks (lazy-seq (! (drop-while #(= size (:size %)) files))))))))]
   (->> env-roots
