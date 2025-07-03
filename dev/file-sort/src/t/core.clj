@@ -17,7 +17,9 @@
                           Paths)
            (java.security MessageDigest)
            (java.util Locale)
-           (java.util.stream Stream))
+           (java.util.stream Stream)
+           (org.jline.terminal TerminalBuilder)
+           (org.jline.utils InfoCmp$Capability))
   (:gen-class))
 
 (def no-follow-symlinks (into-array [LinkOption/NOFOLLOW_LINKS]))
@@ -373,6 +375,21 @@
       (println (str f))
       (delete-rec f))))
 
+(defn ploup
+  []
+  (let [terminal (TerminalBuilder/terminal)]
+    (prn (bean (.enterRawMode terminal)))
+    (let [reader (.reader terminal)]
+      (loop []
+        (.print (.writer terminal) "> ")
+        (.flush (.writer terminal))
+        (let [c (char (.read reader))]
+          (if (= \q c)
+            (println "Bye!")
+            (do
+              (println "Received: " c)
+              (recur))))))))
+
 (defn -main
   [& args]
   (when-let [lang (System/getenv "LANG")]
@@ -382,6 +399,9 @@
         save-result (System/getenv "SAVE_RESULT")]
     (cond (empty? args)
           (count-files env-roots save-result)
+
+          (= ["ploup"] args)
+          (ploup)
 
           (and (= "merge" (first args))
                (>= (count (rest args)) 2))
