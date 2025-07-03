@@ -1,5 +1,7 @@
 # gity
 
+## Introduction
+
 For the longest time, I've been doing most of my git visualization with a
 wonderful utility called [GitX]. However, that utility has two main problems:
 
@@ -18,6 +20,8 @@ to render the git history. I'm not sre what's happening or what has changed (it
 has worked flawlessly on this repo since this repo was created); it could be a
 bug in the app, it could be a bug in Rosetta2.
 
+## A First, Failed Attempt
+
 I've also been looking for an excuse to try [Humble UI], as well as [native
 compilation of Clojure programs][humble-graal] through [GraalVM].
 
@@ -27,3 +31,92 @@ So here goes nothing, as they say. We'll see how far I get.
 [GraalVM]: https://www.graalvm.org
 [GitX]: https://github.com/pieter/gitx
 [humble-graal]: https://github.com/dundalek/humble-graal
+
+Well, I did not actually get very far. Not only could I not get Humble UI to
+work with GraalVM, I also could not get GraalVM to work with [Swing] or
+[JavaFX], even when removing the "Clojure" variable.
+
+[Swing]: https://docs.oracle.com/javase/tutorial/uiswing/
+[JavaFX]: https://openjfx.io
+
+## Explorations
+
+Exploring alternatives, I found a few options:
+
+- **Going Native.** I'm not interested in C++; if I'm going to learn a native
+  language in 2025, I want a slightly more modern one. [C] could be an option, as
+  could Go or Rust, but ideally I'd lean more towards something like Zig, Odin,
+  Mojo, or gren. Unfortunately, it looks like none of them have any GUI library
+  of their own, nor mature bindings to the "big three" (Qt, wxWidget, GTK).
+  Some of them have "game engine" bindings or libraries, but that means
+  reinventing a lot of wheel to get typical GUI controls. It looks like the
+  easiest path if I really want to go down that path is to learn C and use GTK
+  directly. The [webview-lib] library may offer an alternative route, though
+  perhaps if I want to go down that path I may as well go to the next point.
+- **Faking It With The Web.** A popular appraoch in recent years, frameworks
+  like Electron seem well-suited for the kind of app I have in mind. I have
+  briefly surveyed [Electron] (Node.js), [Tauri] (Rust), [Wails] (Go), [NWjs]
+  (Node.js), [Sciter] (Node.js), and [Neutralino] (Node.js +). These all have
+  roughly similar characteristics in that they can produce "native" packages
+  while the GUI part is rendered HTML (either through an embedded [Chromium] or
+  using host support), while the backend is coded in the a specific language.
+  From my perspective, this should allow me to write all of the GUI parts in
+  ClojureScript, which I already know a bit, rather than having to learn an
+  entirely new way of doing GUI. [Electron] is the most well-known and looks
+  like the most mature one, but it tends to produce fairly bloated packages as
+  it bundles Chrome. Backend logic would need to be written in JS, which could
+  be ClojureScript, but in an environment I know little about. [Tauri] and
+  [Wails] seem like good alternatives, and produce much smaller executable.
+  [Rust] seems more interesting to learn than [Go], though I know [Go]'s story
+  around cross-compilation and standalone, native executables is pretty
+  stellar. [Neutralino] is the only one that mentions first-class support for
+  [extensions], i.e. the ability to write your backend in any language.
+- **Jank.** [Jank] is meant to be a dialect of Clojure hosted in the C++
+  ecossytem rather than the JVM. On paper this seems like the perfect fit, but
+  unfortunately the project does not seem quite mature enough yet.
+- **Flutter/Dart.** Pushed by Google, the [Flutter] framework uses Google's
+  other language [Dart]. I have not heard or read much good about either [Dart]
+  or [Flutter], but there is quite a lot of money behind it, so there's a
+  chance it mostly works out. There is also a [ClojureDart] dialect that could
+  make it easier for me.
+- **React Native.** A popular alternative in recent years, [React Native] was
+  Facebook's attempt to simplify mobile development, building on the marketing
+  momentum and some of the ideas of React. From my understanding, it is mostly
+  targeting mobile, but can also be used for desktop apps. Most of the code
+  would be written in ClojureScript, accessing native widgets through React
+  Native APIs. It's unclear how "portable" the code itself is; I get the
+  impression it's a bit of a "portable pogrammer" story. Integration with
+  ClojureScript exists, but I'm not sure how good / mature it is. Also, I've
+  moved away from React for web development, so I'm note entirely sure how much
+  I'd like the same ideas on native.
+
+[C]: https://en.wikipedia.org/wiki/C_(programming_language)
+[Go]: https://go.dev
+[Rust]: https://www.rust-lang.org
+[Zig]: https://ziglang.org
+[Odin]: https://odin-lang.org
+[Mojo]: https://www.modular.com/mojo
+[gren]: https://gren-lang.org
+[Qt]: https://www.qt.io/product/framework
+[wxWidget]: https://wxwidgets.org
+[GTK]: https://www.gtk.org
+[Electron]: https://www.electronjs.org
+[Tauri]: https://v2.tauri.app
+[Wails]: https://wails.io
+[NWjs]: https://nwjs.io
+[Sciter]: https://sciter.com
+[Neutralino]: https://neutralino.js.org
+[webview-lib]: https://github.com/webview/webview
+[extensions]: https://neutralino.js.org/docs/how-to/extensions-overview
+[Chromium]: https://www.chromium.org/Home/
+[Jank]: https://jank-lang.org
+[Flutter]: https://flutter.dev
+[Dart]: https://dart.dev
+[ClojureDart]: https://github.com/Tensegritics/ClojureDart
+[React Native]: https://reactnative.dev
+
+## Next Step
+
+The propsect of using a native Clojure executable as an extension to Neutralino
+currently takes the lead for me, though Tauri is a close second and Wails is
+not far behind.
