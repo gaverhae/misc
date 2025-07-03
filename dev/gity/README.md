@@ -70,7 +70,8 @@ Exploring alternatives, I found a few options:
   [Rust] seems more interesting to learn than [Go], though I know [Go]'s story
   around cross-compilation and standalone, native executables is pretty
   stellar. [Neutralino] is the only one that mentions first-class support for
-  [extensions], i.e. the ability to write your backend in any language.
+  [extensions], i.e. the ability to write your backend in any language. See
+  [this comparison][webcomp] for more details.
 - **Jank.** [Jank] is meant to be a dialect of Clojure hosted in the C++
   ecossytem rather than the JVM. On paper this seems like the perfect fit, but
   unfortunately the project does not seem quite mature enough yet.
@@ -114,6 +115,7 @@ Exploring alternatives, I found a few options:
 [Dart]: https://dart.dev
 [ClojureDart]: https://github.com/Tensegritics/ClojureDart
 [React Native]: https://reactnative.dev
+[webcomp]: https://github.com/Elanis/web-to-desktop-framework-comparison
 
 ## Next Step
 
