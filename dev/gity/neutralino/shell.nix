@@ -9,5 +9,6 @@ pkgs.mkShell {
     cacert
     curl
     jq
+    nodejs
   ];
 }
