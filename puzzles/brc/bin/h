@@ -10,6 +10,9 @@ case "$1" in
     mkdir _work
     clj -M -m generate _work/measurements.txt 10000
     ;;
+  base)
+    time clj -M -m baseline _work/measurements.txt >/dev/null
+    ;;
   *)
     echo "Unknown command: $1"
     exit 1

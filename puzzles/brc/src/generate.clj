@@ -1,3 +1,6 @@
+;; translated as directly as lazily feasible from
+;; https://github.com/gunnarmorling/1brc/blob/db064194be375edc02d6dbcd21268ad40f7e2869/src/main/java/dev/morling/onebrc/CreateMeasurements.java
+
 (ns generate
   (:require [clojure.java.io :as io])
   (:import (java.util.concurrent ThreadLocalRandom)))
@@ -426,7 +429,7 @@
               mt (get s 1)
               t (/ (Math/round (* 10.0 (.nextGaussian r mt 10))) 10.0)]
           (.write w (get s 0))
-          (.write w ",")
+          (.write w ";")
           (.write w (Double/toString t))
           (.write w "\n"))))
     (printf "Done writing %s in %2.5f seconds."
