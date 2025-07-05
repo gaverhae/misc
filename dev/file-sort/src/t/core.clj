@@ -3,6 +3,7 @@
             [clojure.core.match :refer [match]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.java.process :as p]
             [clojure.set :as set]
             [clojure.string :as string])
   (:import (java.io File)
@@ -375,9 +376,28 @@
       (println (str f))
       (delete-rec f))))
 
+(defmacro with-raw-terminal
+  [& body]
+  `(try
+     (p/exec "bash" "-c" "stty raw -F /dev/tty")
+     ~@body
+     (finally
+       (p/exec {:err :discard} "bash" "-c" "stty cooked -F /dev/tty || true")
+       (println))))
+
 (defn ploup
   []
-  (let [terminal (TerminalBuilder/terminal)]
+  (with-open [r (io/reader System/in)]
+    (with-raw-terminal
+      (loop []
+        (print "> ") (flush)
+        (let [c (char (.read r))]
+          (when (not= \q c)
+            (print "\n\r")
+            (print "Got: " c)
+            (print "\n\r")
+            (recur))))))
+  #_(let [terminal (TerminalBuilder/terminal)]
     (prn (bean (.enterRawMode terminal)))
     (let [reader (.reader terminal)]
       (loop []
