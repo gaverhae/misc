@@ -18,9 +18,7 @@
                           Paths)
            (java.security MessageDigest)
            (java.util Locale)
-           (java.util.stream Stream)
-           (org.jline.terminal TerminalBuilder)
-           (org.jline.utils InfoCmp$Capability))
+           (java.util.stream Stream))
   (:gen-class))
 
 (def no-follow-symlinks (into-array [LinkOption/NOFOLLOW_LINKS]))
@@ -396,19 +394,7 @@
             (print "\n\r")
             (print "Got: " c)
             (print "\n\r")
-            (recur))))))
-  #_(let [terminal (TerminalBuilder/terminal)]
-    (prn (bean (.enterRawMode terminal)))
-    (let [reader (.reader terminal)]
-      (loop []
-        (.print (.writer terminal) "> ")
-        (.flush (.writer terminal))
-        (let [c (char (.read reader))]
-          (if (= \q c)
-            (println "Bye!")
-            (do
-              (println "Received: " c)
-              (recur))))))))
+            (recur)))))))
 
 (defn -main
   [& args]
