@@ -274,7 +274,7 @@
        (let [~'get-char (fn [] (str (char (.read r#))))
              ;; Normally `(println x)` is equivalent to `(print x "\n")` but in
              ;; raw mode we need the carriage return.
-             ~'println (fn [& args#] (apply print args# "\n\r"))]
+             ~'println (fn [& args#] (apply print (concat args# ["\n\r"])))]
          ~@body))
      (finally
        (p/exec {:err :discard} "bash" "-c" "stty cooked -F /dev/tty || true")
@@ -296,12 +296,14 @@
              (with-raw-terminal
                (loop []
                  (when-let [[sig paths] (async/<!! ch)]
+                   (println) (println)
                    (println sig)
                    (case (loop [kept (first paths)
                                 th (rest paths)]
                            (if (empty? th)
                              :done
                              (let [[m & th] th]
+                               (println)
                                (println (format "Original:  \"%s\"." (:path kept)))
                                (println (format "Next item: \"%s\"." (:path m)))
                                (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
