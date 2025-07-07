@@ -201,9 +201,9 @@
                             target (str f "__FS_DUPS__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
                         (if (exists? (p d1 target))
                           (delete (p d2 f))
-                          (do (println "C: " (subs f 1))
+                          (do (println " C  " (subs f 1))
                               (move (p d2 f) (p d1 target))))))
-                    (do (println "A: " (subs f 1))
+                    (do (println "A   " (subs f 1))
                         (move (p d2 f) (p d1 f)))))
                 (remove-dir-tree d2)
                 d1))
