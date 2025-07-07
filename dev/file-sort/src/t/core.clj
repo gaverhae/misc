@@ -110,11 +110,12 @@
       (when (= "true" save-result)
         (spit (str "_data/" n ".edn") (pr-str cs)))
       (prn cs)
-      (println (format "Total files: %d" (->> cs :data vals (map :count) (reduce + 0))))
-      (println (format "Total size: %s" (-> cs :data vals
-                                            (->> (map :total-size)
-                                                 (reduce + 0))
-                                            show-size))))))
+      (println (format "Total files, size: %d %s"
+                       (->> cs :data vals (map :count) (reduce + 0))
+                       (-> cs :data vals
+                           (->> (map :total-size)
+                                (reduce + 0))
+                           show-size))))))
 
 (defn bytes-to-hex
   [^bytes bs]
