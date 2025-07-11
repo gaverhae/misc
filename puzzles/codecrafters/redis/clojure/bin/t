@@ -1,0 +1,30 @@
+#!/usr/bin/env bb
+
+(ns t
+  (:require [babashka.fs :as fs]
+            [babashka.process :as p]))
+
+(defn push
+  [dir]
+  (loop [base-dir dir]
+    (if (contains? (->> (fs/list-dir base-dir)
+                        (map fs/file-name)
+                        set)
+                   ".git")
+      (p/exec "bash" "-c" (format "cd %s; git subtree push --prefix=%s cc-redis-clojure master"
+                                  (str base-dir)
+                                  (str (fs/relativize base-dir dir))))
+      (recur (fs/parent base-dir)))))
+
+(defn -main
+  [dir & args]
+  (cond
+    (= ["push"] args) (push dir)
+    :else (do (println "Unrecognized command:")
+              (prn args)
+              (System/exit 1))))
+
+(if (= *file* (System/getProperty "babashka.file"))
+  (apply -main
+         (fs/parent (fs/parent *file*))
+         *command-line-args*))
