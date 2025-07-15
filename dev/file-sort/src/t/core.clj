@@ -157,7 +157,8 @@
                    (into {})))
       exists? (fn [p] (Files/exists p no-follow-symlinks))
       same-files? (fn [p1 p2]
-                    (or (Files/isSameFile p1 p2)
+                    (or (= (Files/getAttribute p1 "unix:ino" no-follow-symlinks)
+                           (Files/getAttribute p2 "unix:ino" no-follow-symlinks))
                         (and (Files/isSymbolicLink p1)
                              (Files/isSymbolicLink p2)
                              (= (Files/readSymbolicLink p1)
