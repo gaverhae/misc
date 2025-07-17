@@ -57,16 +57,20 @@
 
 (defn add-env
   [env mem n v]
-  (if-let [at (get env n)]
-    (do (reset! at v)
-        [env mem nil])
-    [(assoc env n (atom v)) mem nil]))
+  (if-let [addr (get env n)]
+    [env (update mem :mem assoc addr v) nil]
+    (let [addr (:next-addr mem)]
+      [(assoc env n addr)
+       (-> mem
+           (update :mem assoc addr v)
+           (update :next-addr inc))
+       nil])))
 
 (defn get-value
   [env mem n]
   (loop [e env]
-    (if-let [v (get e n)]
-      [env mem @v]
+    (if-let [addr (get e n)]
+      [env mem (get-in mem [:mem addr])]
       (when-let [p (get e ::parent)]
         (recur p)))))
 
@@ -76,7 +80,8 @@
 
 (defn init-mem
   []
-  {})
+  {:next-addr 0
+   :mem {}})
 
 (defn eval-pl
   [env mem node]
