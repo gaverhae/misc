@@ -10,7 +10,8 @@
      def = <'def'> ws identifier ws <'('> (identifier (ws <','> ws identifier)*)? <')'> ws <':'> ws
      return = <'return'> ws expr
      assign = identifier ws <'='> ws expr
-     <expr> = (atom | sum | product) ws
+     <expr> = (atom | sum | product | app) ws
+     app = identifier ws <'('> ws (expr (ws , ws expr)*)? ws <')'>
      <atom> = int | pexpr | identifier
      <pexpr> = <'('> ws expr ws <')'>
      sum = (atom | product) (ws <'+'> ws (atom | product))+
