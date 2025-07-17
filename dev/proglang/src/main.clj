@@ -5,9 +5,11 @@
 (def parse-string
   (insta/parser
     "S = nl* stmt*
-     stmt = indent (def | return | assign | expr) nl+
+     stmt = indent (def | return | assign | expr | if | else) nl+
      indent = '  '*
      def = <'def'> ws identifier ws <'('> (identifier (ws <','> ws identifier)*)? <')'> ws <':'> ws
+     if = <'if'> ws expr ws <':'>
+     else = <'else'> ws <':'>
      return = <'return'> ws expr
      assign = identifier ws <'='> ws expr
      <expr> = (atom | sum | product | app) ws
@@ -35,6 +37,24 @@
                (assert (= block-indent (inc current-indent)))
                (cons [:def fn-name arg-names (parse-blocks block-indent block)]
                      (parse-blocks current-indent cont)))
+        :if (let [[_ expr] node
+                  [block-if cont] (split-with (fn [[_ i _]] (> i current-indent))
+                                              stmts)
+                  block-indent (-> block-if first second)]
+              (assert (= block-indent (inc current-indent)))
+              (if (= [:stmt current-indent [:else]] (first cont))
+                (let [[block-else cont] (split-with (fn [[_ i _]] (> i current-indent))
+                                                    (rest cont))
+                      block-indent (-> block-if first second)]
+                  (assert (= block-indent (inc current-indent)))
+                  (cons [:if
+                         expr
+                         (parse-blocks block-indent block-if)
+                         (parse-blocks block-indent block-else)]
+                        (parse-blocks current-indent cont)))
+                (cons [:if expr (parse-blocks block-indent block-if)]
+                      (parse-blocks current-indent cont))))
+        :else (throw (ex-info "Unmatched else."))
         (cons node (parse-blocks current-indent stmts))))))
 
 (defn parse
