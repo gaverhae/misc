@@ -48,65 +48,67 @@
 (declare eval-pl)
 
 (defn eval-args
-  [env args]
-  (reduce (fn [[env vs] n]
-            (let [[env v] (eval-pl env n)]
-              [env (conj vs v)]))
-          [env []]
+  [env mem args]
+  (reduce (fn [[env mem vs] n]
+            (let [[env mem v] (eval-pl env mem n)]
+              [env mem (conj vs v)]))
+          [env mem []]
           args))
 
 (defn add-env
-  [env n v]
+  [env mem n v]
   (if-let [at (get env n)]
     (do (reset! at v)
-        env)
-    (assoc env n (atom v))))
+        [env mem nil])
+    [(assoc env n (atom v)) mem nil]))
 
 (defn eval-pl
-  [env node]
+  [env mem node]
   (case (first node)
     :int (let [[_ i] node]
-           [env [:int (parse-long i)]])
+           [env mem [:int (parse-long i)]])
     :sum (let [[_ & terms] node
-               [env vs] (eval-args env terms)]
+               [env mem vs] (eval-args env mem terms)]
            (assert (every? (fn [[t v]] (= t :int)) vs))
-           [env [:int (reduce + 0 (map second vs))]])
+           [env mem [:int (reduce + 0 (map second vs))]])
     :product (let [[_ & factors] node
-                   [env vs] (eval-args env factors)]
+                   [env mem vs] (eval-args env mem factors)]
                (assert (every? (fn [[t v]] (= t :int)) vs))
-               [env [:int (reduce * 1 (map second vs))]])
+               [env mem [:int (reduce * 1 (map second vs))]])
     :assign (let [[_ [_ n] expr] node
-                  [env v] (eval-pl env expr)]
-              [(add-env env n v) nil])
+                  [env mem v] (eval-pl env mem expr)]
+              (add-env env mem n v))
     :def (let [[_ fn-name args body] node
                ;; for recursion to work, fn needs to know about itself in its own environment
-               env (add-env env fn-name nil)
-               env (add-env env fn-name [:fn args (cons :S body) env])]
-           [env nil])
+               [env mem _] (add-env env mem fn-name nil)
+               [env mem _] (add-env env mem fn-name [:fn args (cons :S body) env])]
+           [env mem nil])
     :app (let [[_ f & args] node
-               [env evaled-f] (eval-pl env f)
+               [env mem evaled-f] (eval-pl env mem f)
                _ (assert (= :fn (first evaled-f)))
                [_ params body captured-env] evaled-f
-               [env evaled-args] (eval-args env args)
-               [closure-env app-val] (eval-pl (reduce (fn [env [n v]]
-                                                        (add-env env n v))
-                                                      {::parent captured-env}
-                                                      (map vector params evaled-args))
-                                              body)]
-           [env app-val])
+               [env mem evaled-args] (eval-args env mem args)
+               [closure-env mem _] (reduce (fn [[env mem _] [n v]]
+                                             (add-env env mem n v))
+                                           [{::parent captured-env} mem nil]
+                                           (map vector params evaled-args))
+               [closure-env mem app-val] (eval-pl closure-env mem body)]
+           [env mem app-val])
     :return (let [[_ expr] node]
-              (eval-pl env expr))
+              (eval-pl env mem expr))
     :identifier (let [[_ n] node]
-                  [env (loop [env env]
-                         (if-let [v (get env n)]
-                           @v
-                           (when-let [p (get env ::parent)]
-                             (recur p))))])
+                  [env
+                   mem
+                   (loop [env env]
+                     (if-let [v (get env n)]
+                       @v
+                       (when-let [p (get env ::parent)]
+                         (recur p))))])
     :S (let [[_ & stmts] node]
-         (reduce (fn [[env v] stmt]
-                   (let [[env v] (eval-pl env stmt)]
-                     [env v]))
-                 [env nil]
+         (reduce (fn [[env mem v] stmt]
+                   (let [[env mem v] (eval-pl env mem stmt)]
+                     [env mem v]))
+                 [env mem nil]
                  stmts))))
 
 (defn shell
@@ -118,13 +120,14 @@
     (let [line (read-line)]
       (when (and (not= line "quit")
                  (not= line nil))
-        (let [[env v] (eval-pl env (parse line))]
+        (let [[env v] (eval-pl env :todo (parse line))]
           (println "    => " (pr-str v))
           (recur env))))))
 
 (defn run-file
   [file]
-  (second (second (eval-pl {} (parse (slurp file))))))
+  (let [[env mem res] (eval-pl {} :todo (parse (slurp file)))]
+    res))
 
 (defn usage
   []

@@ -79,26 +79,28 @@
      [:assign [:identifier "complex"] [:int "3"]]]))
 
 (deftest pl-eval
-  (are [string result] (= result (second (second (s/eval-pl {} (s/parse (str string "\n"))))))
-    "1+2+3" 6
-    "(1) + (2 * 3)" 7
-    "1  +  2 * 3 " 7
-    "(1  +  2)* 3 " 9))
+  (are [string expected] (let [[env mem actual] (s/eval-pl {} :todo (s/parse (str string "\n")))]
+                           (= expected actual))
+    "1+2+3" [:int 6]
+    "(1) + (2 * 3)" [:int 7]
+    "1  +  2 * 3 " [:int 7]
+    "(1  +  2)* 3 " [:int 9]))
 
 (deftest multiline-expr
-  (are [strings tree] (= tree (second (second (s/eval-pl {} (s/parse (->lines strings))))))
-    ["4" "1+2+3"] 6
-    ["(1+2)" "(1) + (2 * 3)"] 7
-    ["" "6 * 4 " "" "1  +  2 * 3"] 7
-    ["" "" "(1  +  2)* 3 "] 9))
+  (are [strings expected] (let [[env mem actual] (s/eval-pl {} :todo (s/parse (->lines strings)))]
+                            (= expected actual))
+    ["4" "1+2+3"] [:int 6]
+    ["(1+2)" "(1) + (2 * 3)"] [:int 7]
+    ["" "6 * 4 " "" "1  +  2 * 3"] [:int 7]
+    ["" "" "(1  +  2)* 3 "] [:int 9]))
 
 (deftest files
   (are [path result] (= result (s/run-file (str "test-resources/" path ".py")))
-    "plain-sum" 42
-    "parens" 154
-    "multi-line" 12
-    "assign" 42
-    "thrice" 31
-    "global-side-effect" 12
-    "global-shadowing" 2
-    "global-unaffected" 5))
+    "plain-sum" [:int 42]
+    "parens" [:int 154]
+    "multi-line" [:int 12]
+    "assign" [:int 42]
+    "thrice" [:int 31]
+    "global-side-effect" [:int 12]
+    "global-shadowing" [:int 2]
+    "global-unaffected" [:int 5]))
