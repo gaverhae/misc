@@ -79,7 +79,7 @@
      [:assign [:identifier "complex"] [:int "3"]]]))
 
 (deftest pl-eval
-  (are [string expected] (let [[env mem actual] (s/eval-pl {} :todo (s/parse (str string "\n")))]
+  (are [string expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (str string "\n")))]
                            (= expected actual))
     "1+2+3" [:int 6]
     "(1) + (2 * 3)" [:int 7]
@@ -87,7 +87,7 @@
     "(1  +  2)* 3 " [:int 9]))
 
 (deftest multiline-expr
-  (are [strings expected] (let [[env mem actual] (s/eval-pl {} :todo (s/parse (->lines strings)))]
+  (are [strings expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (->lines strings)))]
                             (= expected actual))
     ["4" "1+2+3"] [:int 6]
     ["(1+2)" "(1) + (2 * 3)"] [:int 7]
