@@ -62,6 +62,18 @@
         [env mem nil])
     [(assoc env n (atom v)) mem nil]))
 
+(defn get-value
+  [env mem n]
+  (loop [e env]
+    (if-let [v (get e n)]
+      [env mem @v]
+      (when-let [p (get e ::parent)]
+        (recur p)))))
+
+(defn create-env
+  [env mem]
+  [{::parent env} mem nil])
+
 (defn eval-pl
   [env mem node]
   (case (first node)
@@ -90,20 +102,14 @@
                [env mem evaled-args] (eval-args env mem args)
                [closure-env mem _] (reduce (fn [[env mem _] [n v]]
                                              (add-env env mem n v))
-                                           [{::parent captured-env} mem nil]
+                                           (create-env captured-env mem)
                                            (map vector params evaled-args))
                [closure-env mem app-val] (eval-pl closure-env mem body)]
            [env mem app-val])
     :return (let [[_ expr] node]
               (eval-pl env mem expr))
     :identifier (let [[_ n] node]
-                  [env
-                   mem
-                   (loop [env env]
-                     (if-let [v (get env n)]
-                       @v
-                       (when-let [p (get env ::parent)]
-                         (recur p))))])
+                  (get-value env mem n))
     :S (let [[_ & stmts] node]
          (reduce (fn [[env mem v] stmt]
                    (let [[env mem v] (eval-pl env mem stmt)]
