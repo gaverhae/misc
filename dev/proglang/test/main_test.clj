@@ -3,19 +3,19 @@
             [clojure.test :refer [deftest are]]))
 
 (deftest basic-expressions
-  (are [string tree] (= tree (first (s/parse string :start :expr)))
+  (are [string tree] (= tree (first (s/iparse string :start :expr)))
     "34+123" [:sum [:int "34"] [:int "123"]]
     "1+2*3" [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
     "2*3+1" [:sum [:product [:int "2"] [:int "3"]] [:int "1"]]))
 
 (deftest whitespace-ignored
-  (are [strings tree] (apply = tree (map (fn [s] (first (s/parse s :start :expr))) strings))
+  (are [strings tree] (apply = tree (map (fn [s] (first (s/iparse s :start :expr))) strings))
     ["34+123" "34 + 123" "34 +   123"] [:sum [:int "34"] [:int "123"]]
     ["1+2*3" "1 + 2 * 3" "1+2  *  3"] [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
     ["2*3+1" "2 * 3 + 1"] [:sum [:product [:int "2"] [:int "3"]] [:int "1"]]))
 
 (deftest parens
-  (are [string tree] (= tree (first (s/parse string :start :expr)))
+  (are [string tree] (= tree (first (s/iparse string :start :expr)))
     "1 + (2 * 3)" [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
     "(1 + 2) * 3" [:product [:sum [:int "1"] [:int "2"]] [:int "3"]]
     "(1 + 2 * 3)" [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
