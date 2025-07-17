@@ -29,14 +29,14 @@
 
 (deftest ast
   (are [strings tree] (= tree (s/parse (->lines strings)))
-    ["1 + (2 * 3)"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
+    ["1 + (2 * 3)"] [:S [:stmt 0 [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]]
     ["a = 2" "b = 5" "a + b"]
     [:S
-     [:assign [:identifier "a"] [:int "2"]]
-     [:assign [:identifier "b"] [:int "5"]]
-     [:sum [:identifier "a"] [:identifier "b"]]]
+     [:stmt 0 [:assign [:identifier "a"] [:int "2"]]]
+     [:stmt 0 [:assign [:identifier "b"] [:int "5"]]]
+     [:stmt 0 [:sum [:identifier "a"] [:identifier "b"]]]]
     ["def fib(n):"]
-    [:S [:def [:identifier "fib"] [:identifier "n"]]]))
+    [:S [:stmt 0 [:def [:identifier "fib"] [:identifier "n"]]]]))
 
 (deftest pl-eval
   (are [string result] (= result (second (s/eval-pl {} (s/parse (str string "\n")))))
