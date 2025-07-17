@@ -76,7 +76,20 @@
          [:return [:sum [:identifier "d"] [:int "1"]]]]]
        [:assign [:identifier "x"] [:int "1"]]
        [:return [:app [:identifier "helper"] [:identifier "x"]]]]]
-     [:assign [:identifier "complex"] [:int "3"]]]))
+     [:assign [:identifier "complex"] [:int "3"]]]
+    ["a = 0"
+     "if 0:"
+     "  a = 1"
+     "else:"
+     "  a = 2"
+     "a"]
+    [:S
+     [:assign [:identifier "a"] [:int "0"]]
+     [:if
+      [:int "0"]
+      [[:assign [:identifier "a"] [:int "1"]]]
+      [[:assign [:identifier "a"] [:int "2"]]]]
+     [:identifier "a"]]))
 
 (deftest pl-eval
   (are [string expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (str string "\n")))]
