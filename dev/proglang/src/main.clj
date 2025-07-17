@@ -74,6 +74,10 @@
   [env mem]
   [{::parent env} mem nil])
 
+(defn init-mem
+  []
+  {})
+
 (defn eval-pl
   [env mem node]
   (case (first node)
@@ -126,13 +130,13 @@
     (let [line (read-line)]
       (when (and (not= line "quit")
                  (not= line nil))
-        (let [[env v] (eval-pl env :todo (parse line))]
+        (let [[env v] (eval-pl env (init-mem) (parse line))]
           (println "    => " (pr-str v))
           (recur env))))))
 
 (defn run-file
   [file]
-  (let [[env mem res] (eval-pl {} :todo (parse (slurp file)))]
+  (let [[env mem res] (eval-pl {} (init-mem) (parse (slurp file)))]
     res))
 
 (defn usage
