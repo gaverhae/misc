@@ -29,36 +29,33 @@
 
 (deftest ast
   (are [strings tree] (= tree (s/parse (->lines strings)))
-    ["1 + (2 * 3)"] [:S [:stmt 0 [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]]
+    ["1 + (2 * 3)"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
     ["a = 2" "b = 5" "a + b"]
     [:S
-     [:stmt 0 [:assign [:identifier "a"] [:int "2"]]]
-     [:stmt 0 [:assign [:identifier "b"] [:int "5"]]]
-     [:stmt 0 [:sum [:identifier "a"] [:identifier "b"]]]]
+     [:assign [:identifier "a"] [:int "2"]]
+     [:assign [:identifier "b"] [:int "5"]]
+     [:sum [:identifier "a"] [:identifier "b"]]]
     ["def fib(n):"]
-    [:S [:stmt 0 [:def [:identifier "fib"] [:identifier "n"]]]]
+    [:S [:def "fib" ["n"] []]]
     ["1 + 2"
      "a = 5"
      "def square(x):"
      "  return x * x"
      "b + 2"]
     [:S
-     [:stmt 0 [:sum [:int "1"] [:int "2"]]]
-     [:stmt 0 [:assign [:identifier "a"] [:int "5"]]]
-     [:stmt 0 [:def [:identifier "square"] [:identifier "x"]]]
-     [:stmt 2 [:return [:product [:identifier "x"] [:identifier "x"]]]]
-     [:stmt 0 [:sum [:identifier "b"] [:int "2"]]]]))
-
-(deftest block-ast
-  (are [strings tree] (= tree (s/parse-blocks (rest (s/parse (->lines strings))) 0))
+     [:sum [:int "1"] [:int "2"]]
+     [:assign [:identifier "a"] [:int "5"]]
+     [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
+     [:sum [:identifier "b"] [:int "2"]]]
     ["1 + 2"]
-    [[:sum [:int "1"] [:int "2"]]]
+    [:S [:sum [:int "1"] [:int "2"]]]
     ["1 + 2"
      "a = 5"
      "def square(x):"
      "  return x * x"
      "square(a)"]
-    [[:sum [:int "1"] [:int "2"]]
+    [:S
+     [:sum [:int "1"] [:int "2"]]
      [:assign [:identifier "a"] [:int "5"]]
      [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
      [:app [:identifier "square"] [:identifier "a"]]]
@@ -70,7 +67,8 @@
      "  x = 1"
      "  return helper(x)"
      "complex = 3"]
-    [[:sum [:int "1"] [:int "3"]]
+    [:S
+     [:sum [:int "1"] [:int "3"]]
      [:def "complex" ["a" "b" "c"]
       [[:def "helper" ["a" "b"]
         [[:assign [:identifier "d"] [:product [:identifier "a"] [:identifier "c"]]]
