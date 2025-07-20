@@ -44,25 +44,27 @@
        (parse-blocks 0)
        (cons :S)))
 
+(declare eval-pl)
+
+(defn eval-args
+  [env args]
+  (reduce (fn [[env vs] n]
+            (let [[env v] (eval-pl env n)]
+              [env (conj vs v)]))
+          [env []]
+          args))
+
 (defn eval-pl
   [env node]
   (case (first node)
     :int (let [[_ i] node]
            [env [:int (parse-long i)]])
     :sum (let [[_ & terms] node
-               [env vs] (reduce (fn [[env vs] n]
-                                   (let [[env v] (eval-pl env n)]
-                                     [env (conj vs v)]))
-                                 [env []]
-                                 terms)]
+               [env vs] (eval-args env terms)]
            (assert (every? (fn [[t v]] (= t :int)) vs))
            [env [:int (reduce + 0 (map second vs))]])
     :product (let [[_ & factors] node
-                   [env vs] (reduce (fn [[env vs] n]
-                                       (let [[env v] (eval-pl env n)]
-                                         [env (conj vs v)]))
-                                     [env []]
-                                     factors)]
+                   [env vs] (eval-args env factors)]
                (assert (every? (fn [[t v]] (= t :int)) vs))
                [env [:int (reduce * 1 (map second vs))]])
     :assign (let [[_ [_ n] expr] node
@@ -74,11 +76,7 @@
                [env evaled-f] (eval-pl env f)
                _ (assert (= :fn (first evaled-f)))
                [_ params body captured-env] evaled-f
-               [env evaled-args] (reduce (fn [[env vs] n]
-                                           (let [[env v] (eval-pl env n)]
-                                             [env (conj vs v)]))
-                                         [env []]
-                                         args)]
+               [env evaled-args] (eval-args env args)]
            [env (second (eval-pl (merge env
                                         captured-env
                                         (zipmap params evaled-args))
