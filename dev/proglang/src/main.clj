@@ -56,10 +56,10 @@
 
 (defn add-env
   [env n v]
-  (update env n (fn [old]
-                  (if old
-                    (reset! old v)
-                    (atom v)))))
+  (if-let [at (get env n)]
+    (do (reset! at v)
+        env)
+    (assoc env n (atom v))))
 
 (defn eval-pl
   [env node]
