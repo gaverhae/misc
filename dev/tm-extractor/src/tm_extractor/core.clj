@@ -5,7 +5,7 @@
             [clojure.java.shell :refer [sh]]
             [clojure.data.int-map :as i])
   (:import [java.io File]
-           [java.nio.file Files Paths LinkOption]))
+           [java.nio.file Files Paths LinkOption CopyOption]))
 
 (defn normalize
   [root]
@@ -73,10 +73,11 @@
           (when new?
             (.mkdirs (io/file (str dest "/" bup (.getParent (io/file path)))))
             (try
-              (Files/createLink (Paths/get (str dest "/" bup path) (make-array String 0))
-                                (Paths/get (str src "/" bup path) (make-array String 0)))
+              (Files/copy (Paths/get (str src "/" bup path) (make-array String 0))
+                          (Paths/get (str dest "/" bup path) (make-array String 0))
+                          ^"[Ljava.nio.file.CopyOption;" (make-array CopyOption 0))
               (catch Exception _
-                (print (str "Error linking " path ".\n")))))
+                (print (str "Error copying " path ".\n")))))
           (recur (conj seen? inode)
                  (inc i)
                  (rest files)))))
