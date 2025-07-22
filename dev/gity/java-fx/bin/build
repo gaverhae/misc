@@ -4,7 +4,10 @@ set -euo pipefail
 DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
 cd "$DIR/.."
 
-rm -f *.class minimaljavafxapp
+rm -rf *.class minimaljavafxapp lib
+mkdir lib
+cp "$FX_HOME"/*.dylib lib/
+
 javac --module-path "$FX_HOME" \
       --add-modules javafx.controls \
       MinimalJavaFXApp.java
@@ -12,11 +15,13 @@ java -agentlib:native-image-agent=config-output-dir=./META-INF/native-image \
      --module-path "$FX_HOME" \
      --add-modules javafx.controls \
      --enable-native-access=javafx.graphics \
-     MinimalJavaFXApp.java
+     MinimalJavaFXApp
 native-image --module-path "$FX_HOME" \
              --add-modules javafx.controls \
              --enable-native-access=javafx.graphics \
-             -H:NativeLinkerOption=-L"${FX_HOME}" \
+             -H:NativeLinkerOption=-rpath \
+             -H:NativeLinkerOption=@loader_path/lib \
+             -H:NativeLinkerOption=-L"$DIR/../lib" \
              -H:NativeLinkerOption=-lglass \
              -H:NativeLinkerOption=-lprism_es2 \
              -H:NativeLinkerOption=-lprism_common \
