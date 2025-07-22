@@ -117,8 +117,46 @@ Exploring alternatives, I found a few options:
 [React Native]: https://reactnative.dev
 [webcomp]: https://github.com/Elanis/web-to-desktop-framework-comparison
 
-## Next Step
+## Neutralino
 
 The propsect of using a native Clojure executable as an extension to Neutralino
 currently takes the lead for me, though Tauri is a close second and Wails is
 not far behind.
+
+Well, that didn't work. The documentation was promising at first skim, but
+packaging does not seem to actually work on their tutorial application (which
+is really just running their template engine), especially on macOS, which is a
+bit of a deal breaker. I also get the distinct impression that this is a
+one-person project, and the overall level of professionalism is not up to my
+standards.
+
+I'm giving up on this; it looks like Electron is a much better option if I
+really want to go the web route.
+
+## Web
+
+I spent a fair bit of time looking at their docs, and it seems a bit opaque for
+someone who isn't a Rust/Go dev. Which I guess is somewhat expected. They're
+still in the running, but I also spent a fair amount of time looking at the
+Electron docs, and that actually looks pretty reasonable. I think if I want a
+web-style thing I might just admit I need to accept the size of an Electron
+bundle.
+
+## `jlink` and `jpackage`
+
+While doing all of that reading, I stumbled on [this HN post][hn] presenting
+[this blog post][clj-desktop], which suggests in "modern" Java there is
+actually another viable apporoach with a combination of [jpackage] and [jlink].
+The core idea here is to "simply" package an JVM application. Unlike GraalVM,
+this is not trying to divorce the app from the JVM and produce a native
+executable; instead, it is about packaging the JVM with the app. Which
+obviously means we keep the drawbacks of the JVM, such as slow startup time and
+excessive memory usage, but we do get the one thing I'm actually looking for
+here: a downloadable package that "just works" on each major platform, without
+requiring users to separately install anything. Maybe. That's my understanding
+of the marketing, at least. I'll try it now.
+
+[hn]: https://news.ycombinator.com/item?id=22710604
+[clj-desktop]: https://vlaaad.github.io/year-of-clojure-on-the-desktop
+[jpackage]: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jpackage.html
+[jlink]: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html
