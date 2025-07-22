@@ -1,7 +1,5 @@
 {:deps
- {io.github.humbleui/HumbleUI {:git/sha "edcdcd75959d8069a3b54e4f92b7a0ea04068661"}}
+ {}
  :aliases
- {:build {:deps {io.github.humbleui/jwm {:mvn/version "0.4.18"}
-                 io.github.clojure/tools.build {:git/tag  "v0.10.9" :git/sha "e405aac49c67310f88ceeca7839881692abdde95"}
-                 babashka/process {:mvn/version "0.6.23"}}
+ {:build {:deps {io.github.clojure/tools.build {:git/tag  "v0.10.9" :git/sha "e405aac49c67310f88ceeca7839881692abdde95"}}
           :ns-default build}}}
