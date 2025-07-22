@@ -9,5 +9,6 @@
 
 (defn -main
   [& args]
+  (println "hello")
   (ui/start-app!
-    (ui/window #'app)))
+    (ui/window app)))
