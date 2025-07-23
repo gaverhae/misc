@@ -137,7 +137,9 @@
                                            (create-env captured-env mem)
                                            (map vector params evaled-args))
                [closure-env mem app-val] (eval-pl closure-env mem body)]
-           [env mem app-val])
+           (assert (and (= 2 (count app-val))
+                        (= :return (first app-val))))
+           [env mem (second app-val)])
     :return (let [[_ expr] node
                   [env mem r] (eval-pl env mem expr)]
               [env mem [:return r]])
@@ -159,7 +161,7 @@
                    (let [[env mem v] (eval-pl env mem stmt)]
                      (if (and (= 2 (count v))
                               (= :return (first v)))
-                       (reduced [env mem (second v)])
+                       (reduced [env mem v])
                        [env mem v])))
                  [env mem nil]
                  stmts))))
