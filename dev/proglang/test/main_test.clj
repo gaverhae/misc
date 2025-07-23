@@ -139,4 +139,5 @@
     "global-side-effect" [:int 12]
     "global-shadowing" [:int 2]
     "global-unaffected" [:int 5]
-    "fact" [:int 3628800]))
+    "fact" [:int 3628800]
+    "fib" [:int 89]))
