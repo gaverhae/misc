@@ -12,14 +12,16 @@
      else = <'else'> ws* <':'>
      return = <'return'> ws+ expr
      assign = identifier ws* <'='> ws* expr
-     <expr> = (atom | sum | product | app) ws*
+     <expr> = (atom | sum | product | app | equal) ws*
      app = (identifier | app) ws* <'('> ws* (expr (ws* <','> ws* expr)*)? ws* <')'>
-     <atom> = int | pexpr | identifier
+     <atom> = int | pexpr | identifier | bool
+     equal = atom ws* <'=='> ws* atom
      <pexpr> = <'('> ws* expr ws* <')'>
      sum = (atom | product) (ws* <'+'> ws* (atom | product))+
      product = atom (ws* <'*'> ws* atom)+
      identifier = #'[a-zA-Z_][a-zA-Z0-9_]*'
      int = #'\\d+'
+     bool = 'True' | 'False'
      <nl> = <'\n'>
      <ws> = <' '>"))
 

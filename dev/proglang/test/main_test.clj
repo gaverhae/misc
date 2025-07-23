@@ -89,7 +89,14 @@
       [:int "0"]
       [[:assign [:identifier "a"] [:int "1"]]]
       [[:assign [:identifier "a"] [:int "2"]]]]
-     [:identifier "a"]]))
+     [:identifier "a"]]
+    ["True == (1 == 2)"]
+    [:S
+     [:equal
+      [:bool "True"]
+      [:equal
+       [:int "1"]
+       [:int "2"]]]]))
 
 (deftest pl-eval
   (are [string expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (str string "\n")))]
