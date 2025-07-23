@@ -14,7 +14,7 @@
      assign = identifier ws* <'='> ws* expr
      <expr> = (atom | sum | product | app | equal) ws*
      app = (identifier | app) ws* <'('> ws* (expr (ws* <','> ws* expr)*)? ws* <')'>
-     <atom> = int | pexpr | identifier | bool
+     <atom> = int | pexpr | identifier | bool | app
      equal = atom ws* <'=='> ws* atom
      <pexpr> = <'('> ws* expr ws* <')'>
      sum = (atom | product) (ws* <'+'> ws* (atom | product))+
