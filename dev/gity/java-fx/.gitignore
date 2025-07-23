@@ -1,9 +1,0 @@
-.envrc.private
-/.flock
-/.graal
-/.javafx
-*.class
-/reports/
-/minimaljavafxapp
-/META-INF/
-/lib/
