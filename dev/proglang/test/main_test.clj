@@ -138,4 +138,5 @@
     "thrice" [:int 31]
     "global-side-effect" [:int 12]
     "global-shadowing" [:int 2]
-    "global-unaffected" [:int 5]))
+    "global-unaffected" [:int 5]
+    "fact" [:int 3628800]))
