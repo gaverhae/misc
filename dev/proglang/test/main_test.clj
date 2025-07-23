@@ -118,11 +118,16 @@
 
 (deftest multiline-expr
   (are [strings expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (->lines strings)))]
+                            #_(prn [expected actual])
                             (= expected actual))
     ["4" "1+2+3"] [:int 6]
     ["(1+2)" "(1) + (2 * 3)"] [:int 7]
     ["" "6 * 4 " "" "1  +  2 * 3"] [:int 7]
-    ["" "" "(1  +  2)* 3 "] [:int 9]))
+    ["" "" "(1  +  2)* 3 "] [:int 9]
+    ["a = 1" "a + 2"] [:int 3]
+    ["if True:"  "  1" "else:" "  2"] [:int 1]
+    ["if False:" "  1" "else:" "  2"] [:int 2]))
+
 
 (deftest files
   (are [path result] (= result (s/run-file (str "test-resources/" path ".py")))
