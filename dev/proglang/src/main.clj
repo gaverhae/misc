@@ -102,12 +102,16 @@
 
 (defn init-mem
   []
-  {:next-addr 0
-   :mem {}})
+  {:next-addr 1
+   :mem {0 [:fn ["s"]
+            [:S
+             [:print [:identifier "s"]]
+             [:return [:int "0"]]]
+            {}]}})
 
 (defn init-env
   []
-  {})
+  {"print" 0})
 
 (defn eval-pl
   [env mem node]
@@ -160,6 +164,10 @@
           (if (contains? #{[:bool "False"] [:int 0]} condition)
             (eval-pl env mem (cons :S else-expr))
             (eval-pl env mem (cons :S true-expr))))
+    :print (let [[_ e] node
+                 [env mem v] (eval-pl env mem e)]
+             (println (second v))
+             [env mem nil])
     :S (let [[_ & stmts] node]
          (reduce (fn [[env mem v] stmt]
                    (let [[env mem v] (eval-pl env mem stmt)]
