@@ -7,4 +7,4 @@ def inc(x):
   return x + 1
 
 x = 4
-thrice(thrice)(inc)(x)
+print(thrice(thrice)(inc)(x))
