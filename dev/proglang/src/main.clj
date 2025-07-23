@@ -105,6 +105,10 @@
   {:next-addr 0
    :mem {}})
 
+(defn init-env
+  []
+  {})
+
 (defn eval-pl
   [env mem node]
   (case (first node)
@@ -169,7 +173,7 @@
 (defn shell
   []
   :todo
-  #_(loop [env {}]
+  #_(loop [env (init-env)]
     (print "> ")
     (flush)
     (let [line (read-line)]
@@ -181,7 +185,7 @@
 
 (defn run-file
   [file]
-  (let [[env mem res] (eval-pl {} (init-mem) (parse (slurp file)))]
+  (let [[env mem res] (eval-pl (init-env) (init-mem) (parse (slurp file)))]
     res))
 
 (defn usage
