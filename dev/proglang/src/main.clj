@@ -155,7 +155,7 @@
     (let [line (read-line)]
       (when (and (not= line "quit")
                  (not= line nil))
-        (let [[env v] (eval-pl env (init-mem) (parse line))]
+        (let [[env mem v] (eval-pl env (init-mem) (parse line))]
           (println "    => " (pr-str v))
           (recur env))))))
 
