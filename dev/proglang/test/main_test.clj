@@ -96,7 +96,12 @@
       [:bool "True"]
       [:equal
        [:int "1"]
-       [:int "2"]]]]))
+       [:int "2"]]]]
+    ["1 + fact(3)"]
+    [:S
+     [:sum
+      [:int "1"]
+      [:app [:identifier "fact"] [:int "3"]]]]))
 
 (deftest pl-eval
   (are [string expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (str string "\n")))]
