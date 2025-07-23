@@ -151,8 +151,8 @@
     :if (let [[_ condition-expr true-expr else-expr] node
               [env mem condition] (eval-pl env mem condition-expr)]
           (if (contains? #{[:bool "False"] [:int 0]} condition)
-            (eval-pl env mem else-expr)
-            (eval-pl env mem true-expr)))
+            (eval-pl env mem (cons :S else-expr))
+            (eval-pl env mem (cons :S true-expr))))
     :S (let [[_ & stmts] node]
          (reduce (fn [[env mem v] stmt]
                    (let [[env mem v] (eval-pl env mem stmt)]
