@@ -20,7 +20,7 @@
      sum = (atom | product) (ws* <'+'> ws* (atom | product))+
      product = atom (ws* <'*'> ws* atom)+
      identifier = #'[a-zA-Z_][a-zA-Z0-9_]*'
-     int = #'\\d+'
+     int = #'-?\\d+'
      bool = 'True' | 'False'
      <nl> = <'\n'>
      <ws> = <' '>"))
