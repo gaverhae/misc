@@ -4,4 +4,4 @@ def fact(n):
   else:
     return n * fact(n + -1)
 
-fact(10)
+print(fact(10))
