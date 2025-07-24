@@ -1,5 +1,6 @@
 {:deps
- {instaparse/instaparse {:mvn/version "1.5.0"}}
+ {instaparse/instaparse {:mvn/version "1.5.0"}
+  io.github.gaverhae/clonad {:git/sha "1a02ffc84d1f60dd74dc8c1c8616c1a3d080b74f"}}
  :aliases
  {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.9" :git/sha "e405aac"}}
           :ns-default build}
