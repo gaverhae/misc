@@ -12,6 +12,7 @@ _help() (
   echo "  h test        Watches src and test directories, and runs \`clj -X:test\`"
   echo "                on each change."
   echo "  h repl        Starts a Cider REPL."
+  echo "  h shell       Starts a proglang shell."
 )
 
 _test() (
@@ -22,12 +23,13 @@ _repl() (
   clj -M:cider-clj
 )
 
+_shell() (
+  clj -M -m main
+)
+
 case $1 in
-  repl)
-    _repl
-    ;;
-  test)
-    _test
+  repl|test|shell)
+    _$1
     ;;
   *)
     _help
