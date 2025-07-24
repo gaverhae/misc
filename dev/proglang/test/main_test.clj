@@ -104,7 +104,7 @@
       [:int "1"]
       [:app [:identifier "fact"] [:int "3"]]]]))
 
-#_(deftest pl-eval
+(deftest pl-eval
   (are [string expected] (let [[env mem stack actual] (s/eval-pl (s/parse (str string "\n")))]
                            #_(prn [expected actual])
                            (= expected actual))
