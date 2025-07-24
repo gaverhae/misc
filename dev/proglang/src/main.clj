@@ -82,6 +82,8 @@
   []
   {"print" 0})
 
+(def ^:dynamic +enable-gc+ false)
+
 (defn mrun-envs
   ([mv] (mrun-envs mv (init-env) (init-mem) []))
   ([mv env mem stack]
@@ -108,7 +110,32 @@
                                             (recur (::parent env)))))]
      [:get-env] [env mem stack env]
      [:push-env base] [{::parent base} mem (conj stack env) nil]
-     [:pop-env] [(peek stack) mem (pop stack) nil]
+     [:pop-env] (if +enable-gc+
+                  (let [live-mem (loop [envs-to-check stack
+                                        mem-to-check []
+                                        mem-checked #{}]
+                                   (cond (and (empty? envs-to-check)
+                                              (empty? mem-to-check)) mem-checked
+                                         (empty? mem-to-check)
+                                         (let [[e & envs-to-check] envs-to-check
+                                               envs-to-check (if-let [p (::parent e)]
+                                                               (conj envs-to-check p)
+                                                               envs-to-check)
+                                               e (dissoc e ::parent)]
+                                           (recur envs-to-check (vals e) mem-checked))
+                                         :else
+                                         (let [[t & mem-to-check] mem-to-check]
+                                           (if (mem-checked t)
+                                             (recur envs-to-check mem-to-check mem-checked)
+                                             (let [mem-checked (conj mem-checked t)]
+                                               (match (get (:mem mem) t)
+                                                 [:int _] (recur envs-to-check mem-to-check mem-checked)
+                                                 [:bool _] (recur envs-to-check mem-to-check mem-checked)
+                                                 [:fn args body captured-env]
+                                                 (recur (conj envs-to-check captured-env)
+                                                        mem-to-check mem-checked)))))))]
+                    [(peek stack) (update mem :mem select-keys live-mem) (pop stack) nil])
+                  [(peek stack) mem (pop stack) nil])
      [:print v] (do (println (second v))
                     [env mem nil]))))
 
