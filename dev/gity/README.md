@@ -156,7 +156,24 @@ here: a downloadable package that "just works" on each major platform, without
 requiring users to separately install anything. Maybe. That's my understanding
 of the marketing, at least. I'll try it now.
 
+At first I was a bit anxious about the way the [jpackage] description is
+written in the future tense, even for the most recent Java (24):
+
+> The jpackage tool will take as input a Java application and a Java run-time
+> image, and produce a Java application image that includes all the necessary
+> dependencies. It will be able to produce a native package in a
+> platform-specific format, such as an exe on Windows or a dmg on macOS. Each
+> format must be built on the platform it runs on, there is no cross-platform
+> support. The tool will have options that allow packaged applications to be
+> customized in various ways.
+
 [hn]: https://news.ycombinator.com/item?id=22710604
 [clj-desktop]: https://vlaaad.github.io/year-of-clojure-on-the-desktop
-[jpackage]: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jpackage.html
-[jlink]: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html
+[jpackage]: https://docs.oracle.com/en/java/javase/24/docs/specs/man/jpackage.html
+[jlink]: https://docs.oracle.com/en/java/javase/24/docs/specs/man/jlink.html
+
+But it turns out it actually works! And my first-attempt package isn't even
+_that_ big, clocking in at ∞ 65MB for a macOS app bundle. Well, `GitX.app` is
+at 8.1MB, so that's not _great_, but I haven't done anything to optimize it
+yet, and, well... We're 15 years later, MBs are less expensive these days.
+:shrug:
