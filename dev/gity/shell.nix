@@ -10,6 +10,7 @@ pkgs.mkShell {
     cacert
     (clojure.override { jdk = jdk; })
     curl
+    graalvmPackages.graalvm-ce
     jdk
     jq
   ];
