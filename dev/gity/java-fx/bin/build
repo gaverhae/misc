@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
+cd "$DIR/.."
+
+rm -f *.class minimaljavafxapp
+javac --module-path "$FX_HOME" --add-modules javafx.controls MinimalJavaFXApp.java
+native-image --module-path "$FX_HOME" --add-modules javafx.controls -cp . MinimalJavaFXApp
