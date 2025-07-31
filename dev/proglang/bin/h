@@ -16,7 +16,7 @@ _help() (
 )
 
 _test() (
-  fswatch -o -0 . | xargs -0 -n 1 bash -c 'clj -X:test'
+  watchexec -w src -w test -c -- clj -X:test
 )
 
 _repl() (
