@@ -72,6 +72,7 @@
 (defn init-mem
   []
   {:next-addr 1
+   :next-thread 1
    :mem {0 [:fn ["s"]
             [:S
              [:print [:identifier "s"]]
@@ -84,60 +85,90 @@
 
 (def ^:dynamic +enable-gc+ false)
 
+(def mt-q clojure.lang.PersistentQueue/EMPTY)
+
 (defn mrun-envs
-  ([mv] (mrun-envs mv (init-env) (init-mem) []))
-  ([mv env mem stack]
+  ([mv] (mrun-envs mv [0 (init-env) []] (init-mem) mt-q {}))
+  ([mv current-thread mem ready-threads done-threads]
    (match mv
-     [:pure v] [env mem stack v]
-     [:bind mv f] (let [[env mem stack v] (mrun-envs mv env mem stack)]
-                    (if (not= v :m/stop)
-                      (mrun-envs (f v) env mem stack)))
-     [:assert bool msg] [env mem stack (if bool :m/continue :m/stop)]
-     [:add-to-env n v] (if-let [addr (get env n)]
-                         [env (update mem :mem assoc addr v) stack nil]
-                         (let [addr (:next-addr mem)]
-                           [(assoc env n addr)
-                            (-> mem
-                                (update :mem assoc addr v)
-                                (update :next-addr inc))
-                            stack
-                            nil]))
-     [:get-from-env n] [env mem stack (loop [env env]
-                                        (if (nil? env)
-                                          nil
-                                          (if-let [addr (get env n)]
-                                            (get (:mem mem) addr)
-                                            (recur (::parent env)))))]
-     [:get-env] [env mem stack env]
-     [:push-env base] [{::parent base} mem (conj stack env) nil]
-     [:pop-env] (if +enable-gc+
-                  (let [live-mem (loop [envs-to-check stack
-                                        mem-to-check []
-                                        mem-checked #{}]
-                                   (cond (and (empty? envs-to-check)
-                                              (empty? mem-to-check)) mem-checked
-                                         (empty? mem-to-check)
-                                         (let [[e & envs-to-check] envs-to-check
-                                               envs-to-check (if-let [p (::parent e)]
-                                                               (conj envs-to-check p)
-                                                               envs-to-check)
-                                               e (dissoc e ::parent)]
-                                           (recur envs-to-check (vals e) mem-checked))
-                                         :else
-                                         (let [[t & mem-to-check] mem-to-check]
-                                           (if (mem-checked t)
-                                             (recur envs-to-check mem-to-check mem-checked)
-                                             (let [mem-checked (conj mem-checked t)]
-                                               (match (get (:mem mem) t)
-                                                 [:int _] (recur envs-to-check mem-to-check mem-checked)
-                                                 [:bool _] (recur envs-to-check mem-to-check mem-checked)
-                                                 [:fn args body captured-env]
-                                                 (recur (conj envs-to-check captured-env)
-                                                        mem-to-check mem-checked)))))))]
-                    [(peek stack) (update mem :mem select-keys live-mem) (pop stack) nil])
-                  [(peek stack) mem (pop stack) nil])
+     [:pure v] [v current-thread mem ready-threads done-threads]
+     [:bind mv f] (let [[v current-thread mem ready-threads done-threads] (mrun-envs mv current-thread mem ready-threads done-threads)]
+                    (cond (= v :m/stop)
+                          :m/error
+                          (and (seq? v) (= 2 (count v)) (= :m/thread-finished (first v)))
+                          (let [[thread-id env stack] current-thread
+                                done-threads (assoc done-threads thread-id [(second v) env stack])]
+                            (if (empty? ready-threads)
+                              (let [[result env stack] (get done-threads 0)]
+                                [result [env stack] mem ready-threads done-threads])
+                              (let [[f v current-thread] (peek ready-threads)]
+                                (mrun-envs (f v) current-thread mem (pop ready-threads) done-threads))))
+                          (empty? ready-threads)
+                          (mrun-envs (f v) current-thread mem ready-threads done-threads)
+                          :else
+                          (let [parked-thread [f v current-thread]
+                                [f v current-thread] (peek ready-threads)
+                                ready-threads (conj (pop ready-threads) parked-thread)]
+                            (mrun-envs (f v) current-thread mem ready-threads done-threads))))
+     [:assert bool msg] [(if bool :m/continue :m/stop) current-thread mem ready-threads done-threads]
+     [:add-to-env n v] (let [[thread-id env stack] current-thread]
+                         (if-let [addr (get env n)]
+                           [nil [thread-id env stack] (update mem :mem assoc addr v) ready-threads done-threads]
+                           (let [addr (:next-addr mem)]
+                             [nil
+                              [thread-id (assoc env n addr) stack]
+                              (-> mem
+                                  (update :mem assoc addr v)
+                                  (update :next-addr inc))
+                              ready-threads
+                              done-threads])))
+     [:get-from-env n] (let [[thread-id env stack] current-thread]
+                         [(loop [env env]
+                            (if (nil? env)
+                              nil
+                              (if-let [addr (get env n)]
+                                (get (:mem mem) addr)
+                                (recur (::parent env)))))
+                          [thread-id env stack]
+                          mem
+                          ready-threads
+                          done-threads])
+     [:get-env] (let [[thread-id env stack] current-thread]
+                  [env [thread-id env stack] mem ready-threads done-threads])
+     [:push-env base] (let [[thread-id env stack] current-thread]
+                        [nil [thread-id {::parent base} (conj stack env)] mem ready-threads done-threads])
+     [:pop-env] (let [[thread-id env stack] current-thread]
+                  (if +enable-gc+
+                    (let [other-thread-stacks (->> ready-threads
+                                                   (mapcat (fn [[f v [thread-id env stack]]]
+                                                             (conj stack env))))
+                          live-mem (loop [envs-to-check (concat stack other-thread-stacks)
+                                          mem-to-check []
+                                          mem-checked #{}]
+                                     (cond (and (empty? envs-to-check)
+                                                (empty? mem-to-check)) mem-checked
+                                           (empty? mem-to-check)
+                                           (let [[e & envs-to-check] envs-to-check
+                                                 envs-to-check (if-let [p (::parent e)]
+                                                                 (conj envs-to-check p)
+                                                                 envs-to-check)
+                                                 e (dissoc e ::parent)]
+                                             (recur envs-to-check (vals e) mem-checked))
+                                           :else
+                                           (let [[t & mem-to-check] mem-to-check]
+                                             (if (mem-checked t)
+                                               (recur envs-to-check mem-to-check mem-checked)
+                                               (let [mem-checked (conj mem-checked t)]
+                                                 (match (get (:mem mem) t)
+                                                   [:int _] (recur envs-to-check mem-to-check mem-checked)
+                                                   [:bool _] (recur envs-to-check mem-to-check mem-checked)
+                                                   [:fn args body captured-env]
+                                                   (recur (conj envs-to-check captured-env)
+                                                          mem-to-check mem-checked)))))))]
+                      [nil [thread-id (peek stack) (pop stack)] (update mem :mem select-keys live-mem) ready-threads done-threads])
+                    [nil [thread-id (peek stack) (pop stack)] mem ready-threads done-threads]))
      [:print v] (do (println (second v))
-                    [env mem nil]))))
+                    [nil current-thread mem ready-threads done-threads]))))
 
 (defn sequenceM
   "[m v] -> m [v]"
@@ -204,8 +235,10 @@
 
 (defn shell
   []
-  (loop [env (init-env)
+  (loop [current-thread [0 (init-env) []]
          mem (init-mem)
+         ready-threads mt-q
+         done-threads {}
          prev-lines ""
          multi-line? false]
     (if multi-line?
@@ -217,8 +250,8 @@
       (cond (or (= entry "quit") (= entry nil))
             (println "Bye!")
             (= entry ":env")
-            (do (prn env)
-                (recur env mem "" false))
+            (do (prn current-thread)
+                (recur current-thread mem ready-threads done-threads "" false))
             (= entry ":mem")
             (do (printf "{:next-addr %d,\n :mem %s\n"
                         (:next-addr mem)
@@ -227,24 +260,24 @@
                           (format "<:count %d, :sample %s>}"
                                   (count (:mem mem))
                                   (->> mem :mem seq shuffle (take 10) (into {})))))
-                (recur env mem "" false))
+                (recur current-thread mem ready-threads done-threads "" false))
             (and (not multi-line?) (not (string/ends-with? (string/trim line) ":")))
-            (let [[env mem _ v] (mrun-envs (m-eval (parse line)) env mem [])]
+            (let [[v current-thread mem ready-threads done-threads] (mrun-envs (m-eval (parse line)) current-thread mem ready-threads done-threads)]
               (println "=> " v)
-              (recur env mem "" false))
+              (recur current-thread mem ready-threads done-threads "" false))
             (and (not multi-line?) (string/ends-with? (string/trim line) ":"))
-            (recur env mem line true)
+            (recur current-thread mem ready-threads done-threads line true)
             (and multi-line? (= line "\n"))
-            (let [[env mem _ v] (mrun-envs (m-eval (parse prev-lines)) env mem [])]
+            (let [[v current-thread mem ready-threads done-threads] (mrun-envs (m-eval (parse prev-lines)) current-thread mem ready-threads done-threads)]
               (println "=> " v)
-              (recur env mem "" false))
+              (recur current-thread mem ready-threads done-threads "" false))
             multi-line?
-            (recur env mem (str prev-lines line) true)
+            (recur current-thread mem ready-threads done-threads (str prev-lines line) true)
             :else "Unsupported sequence"))))
 
 (defn run-file
   [file]
-  (let [[env mem res] (eval-pl (parse (slurp file)))]
+  (let [[res current-thread mem ready-threads done-threads] (eval-pl (parse (slurp file)))]
     res))
 
 (defn usage
