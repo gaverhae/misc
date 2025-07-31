@@ -9,8 +9,8 @@ pkgs.mkShell {
     cacert
     clojure
     curl
-    fswatch
     jdk
     jq
+    watchexec
   ];
 }
