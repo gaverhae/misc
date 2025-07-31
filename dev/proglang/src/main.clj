@@ -110,6 +110,15 @@
                                 [f v current-thread] (peek ready-threads)
                                 ready-threads (conj (pop ready-threads) parked-thread)]
                             (mrun-envs (f v) current-thread mem ready-threads done-threads))))
+     [:start-thread f v] (let [new-thread-id (:next-thread mem)
+                               mem (update mem :next-thread inc)
+                               [_ env _] current-thread]
+                           [[:thread new-thread-id] current-thread mem (conj ready-threads [f v [new-thread-id env []]]) done-threads])
+     [:wait-for-thread id] (if (contains? done-threads id)
+                             (let [res (get done-threads id)]
+                               [res current-thread mem ready-threads done-threads])
+                             (let [[f v thread] (peek ready-threads)]
+                               (mrun-envs (f v) thread mem (conj ready-threads current-thread) done-threads)))
      [:assert bool msg] [(if bool :m/continue :m/stop) current-thread mem ready-threads done-threads]
      [:add-to-env n v] (let [[thread-id env stack] current-thread]
                          (if-let [addr (get env n)]
