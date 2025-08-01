@@ -110,6 +110,7 @@
   (case (first node)
     :int (let [[_ i] node]
            [env mem [:int (parse-long i)]])
+    :bool [env mem node]
     :sum (let [[_ & terms] node
                [env mem vs] (eval-args env mem terms)]
            (assert (every? (fn [[t v]] (= t :int)) vs))
@@ -141,6 +142,17 @@
               (eval-pl env mem expr))
     :identifier (let [[_ n] node]
                   (get-value env mem n))
+    :equal (let [[_ left-expr right-expr] node
+                 [env mem left] (eval-pl env mem left-expr)
+                 [env mem right] (eval-pl env mem right-expr)]
+             [env mem (if (= left right)
+                        [:bool "True"]
+                        [:bool "False"])])
+    :if (let [[_ condition-expr true-expr else-expr] node
+              [env mem condition] (eval-pl env mem condition-expr)]
+          (if (contains? #{[:bool "False"] [:int 0]} condition)
+            (eval-pl env mem else-expr)
+            (eval-pl env mem true-expr)))
     :S (let [[_ & stmts] node]
          (reduce (fn [[env mem v] stmt]
                    (let [[env mem v] (eval-pl env mem stmt)]

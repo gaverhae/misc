@@ -100,11 +100,16 @@
 
 (deftest pl-eval
   (are [string expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (str string "\n")))]
+                           #_(prn [expected actual])
                            (= expected actual))
     "1+2+3" [:int 6]
     "(1) + (2 * 3)" [:int 7]
     "1  +  2 * 3 " [:int 7]
-    "(1  +  2)* 3 " [:int 9]))
+    "(1  +  2)* 3 " [:int 9]
+    "True" [:bool "True"]
+    "1 == 1" [:bool "True"]
+    "1 == 2" [:bool "False"]
+    "True == False" [:bool "False"]))
 
 (deftest multiline-expr
   (are [strings expected] (let [[env mem actual] (s/eval-pl {} (s/init-mem) (s/parse (->lines strings)))]
