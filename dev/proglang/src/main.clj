@@ -7,21 +7,21 @@
     "S = nl* stmt*
      stmt = indent (def | return | assign | expr | if | else) nl+
      indent = '  '*
-     def = <'def'> ws identifier ws <'('> (identifier (ws <','> ws identifier)*)? <')'> ws <':'> ws
-     if = <'if'> ws expr ws <':'>
-     else = <'else'> ws <':'>
-     return = <'return'> ws expr
-     assign = identifier ws <'='> ws expr
-     <expr> = (atom | sum | product | app) ws
-     app = (identifier | app) ws <'('> ws (expr (ws , ws expr)*)? ws <')'>
+     def = <'def'> ws+ identifier ws* <'('> ws* (identifier (ws* <','> ws* identifier)*)? <')'> ws* <':'> ws*
+     if = <'if'> ws+ expr ws* <':'>
+     else = <'else'> ws* <':'>
+     return = <'return'> ws+ expr
+     assign = identifier ws* <'='> ws* expr
+     <expr> = (atom | sum | product | app) ws*
+     app = (identifier | app) ws* <'('> ws* (expr (ws* <','> ws* expr)*)? ws* <')'>
      <atom> = int | pexpr | identifier
-     <pexpr> = <'('> ws expr ws <')'>
-     sum = (atom | product) (ws <'+'> ws (atom | product))+
-     product = atom (ws <'*'> ws atom)+
+     <pexpr> = <'('> ws* expr ws* <')'>
+     sum = (atom | product) (ws* <'+'> ws* (atom | product))+
+     product = atom (ws* <'*'> ws* atom)+
      identifier = #'[a-zA-Z_][a-zA-Z0-9_]*'
      int = #'\\d+'
      <nl> = <'\n'>
-     <ws> = <' '*>"))
+     <ws> = <' '>"))
 
 (defn parse-blocks
   [current-indent stmts]
