@@ -1,5 +1,6 @@
 (ns main-test
   (:require [main :as s]
+            [clojure.string :as string]
             [clojure.test :refer [deftest are]]))
 
 (deftest basic-expressions
@@ -138,15 +139,17 @@
      "fib(0)"] [:int 5]))
 
 (deftest files
-  (are [path result] (= result (s/run-file (str "test-resources/" path ".py")))
-    "plain-sum" [:int 42]
-    "parens" [:int 154]
-    "multi-line" [:int 12]
-    "assign" [:int 42]
-    "thrice" [:int 31]
-    "global-side-effect" [:int 12]
-    "global-shadowing" [:int 2]
-    "global-unaffected" [:int 5]
-    "fact" [:int 3628800]
-    "fib" [:int 89]
-    "fib-flat" [:int 89]))
+  (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
+
+                       (= result (string/split-lines s)))
+    "plain-sum" ["42"]
+    "parens" ["154"]
+    "multi-line" ["12"]
+    "assign" ["42"]
+    "thrice" ["31"]
+    "global-side-effect" ["12"]
+    "global-shadowing" ["2"]
+    "global-unaffected" ["5"]
+    "fact" ["3628800"]
+    "fib" ["89"]
+    "fib-flat" ["89"]))
