@@ -69,86 +69,89 @@
        (parse-blocks 0)
        (cons :S)))
 
-(defn init-mem
+(def mt-q clojure.lang.PersistentQueue/EMPTY)
+
+(defn init-m-state
   []
-  {:next-addr 1
-   :next-thread 1
+  {:thread-id 0
+   :env {"print" 0}
+   :stack []
+   :ready-threads mt-q
+   :suspended-threads {}
+   :done-threads {}
+   :next-addr 1
+   :next-thread-id 1
    :mem {0 [:fn ["s"]
             [:S
              [:print [:identifier "s"]]
              [:return [:int "0"]]]
             {}]}})
 
-(defn init-env
-  []
-  {"print" 0})
-
 (def ^:dynamic +enable-gc+ false)
 
-(def mt-q clojure.lang.PersistentQueue/EMPTY)
-
 (defn mrun-envs
-  ([mv] (mrun-envs mv [0 (init-env) []] (init-mem) mt-q {}))
-  ([mv current-thread mem ready-threads done-threads]
+  ([mv] (mrun-envs mv (init-m-state)))
+  ([mv m-state]
    (match mv
-     [:pure v] [v current-thread mem ready-threads done-threads]
-     [:bind mv f] (let [[v current-thread mem ready-threads done-threads] (mrun-envs mv current-thread mem ready-threads done-threads)]
+     [:pure v] [v m-state]
+     [:bind mv f] (let [[v m-state] (mrun-envs mv m-state)]
                     (cond (= v :m/stop)
                           :m/error
                           (and (seq? v) (= 2 (count v)) (= :m/thread-finished (first v)))
-                          (let [[thread-id env stack] current-thread
-                                done-threads (assoc done-threads thread-id [(second v) env stack])]
-                            (if (empty? ready-threads)
-                              (let [[result env stack] (get done-threads 0)]
-                                [result [env stack] mem ready-threads done-threads])
-                              (let [[f v current-thread] (peek ready-threads)]
-                                (mrun-envs (f v) current-thread mem (pop ready-threads) done-threads))))
-                          (empty? ready-threads)
-                          (mrun-envs (f v) current-thread mem ready-threads done-threads)
+                          (let [{:keys [thread-id env stack]} m-state
+                                m-state (update m-state :done-threads assoc thread-id [(second v) env stack])]
+                            (if (empty? (:ready-threads m-state))
+                              (let [[result env stack] (get (:done-threads m-state) 0)]
+                                [result (assoc m-state :env env :stack stack)])
+                              (let [[f v [thread-id env stack]] (peek (:ready-threads m-state))]
+                                (mrun-envs (f v) (-> m-state
+                                                     (assoc :thread-id thread-id :env env :stack stack)
+                                                     (update :ready-threads pop))))))
+                          (empty? (:ready-threads m-state))
+                          (mrun-envs (f v) m-state)
                           :else
-                          (let [parked-thread [f v current-thread]
-                                [f v current-thread] (peek ready-threads)
-                                ready-threads (conj (pop ready-threads) parked-thread)]
-                            (mrun-envs (f v) current-thread mem ready-threads done-threads))))
-     [:start-thread f v] (let [new-thread-id (:next-thread mem)
-                               mem (update mem :next-thread inc)
-                               [_ env _] current-thread]
-                           [[:thread new-thread-id] current-thread mem (conj ready-threads [f v [new-thread-id env []]]) done-threads])
-     [:wait-for-thread id] (if (contains? done-threads id)
-                             (let [res (get done-threads id)]
-                               [res current-thread mem ready-threads done-threads])
-                             (let [[f v thread] (peek ready-threads)]
-                               (mrun-envs (f v) thread mem (conj ready-threads current-thread) done-threads)))
-     [:assert bool msg] [(if bool :m/continue :m/stop) current-thread mem ready-threads done-threads]
-     [:add-to-env n v] (let [[thread-id env stack] current-thread]
-                         (if-let [addr (get env n)]
-                           [nil [thread-id env stack] (update mem :mem assoc addr v) ready-threads done-threads]
-                           (let [addr (:next-addr mem)]
-                             [nil
-                              [thread-id (assoc env n addr) stack]
-                              (-> mem
-                                  (update :mem assoc addr v)
-                                  (update :next-addr inc))
-                              ready-threads
-                              done-threads])))
-     [:get-from-env n] (let [[thread-id env stack] current-thread]
-                         [(loop [env env]
-                            (if (nil? env)
-                              nil
-                              (if-let [addr (get env n)]
-                                (get (:mem mem) addr)
-                                (recur (::parent env)))))
-                          [thread-id env stack]
-                          mem
-                          ready-threads
-                          done-threads])
-     [:get-env] (let [[thread-id env stack] current-thread]
-                  [env [thread-id env stack] mem ready-threads done-threads])
-     [:push-env base] (let [[thread-id env stack] current-thread]
-                        [nil [thread-id {::parent base} (conj stack env)] mem ready-threads done-threads])
-     [:pop-env] (let [[thread-id env stack] current-thread]
+                          (let [parked-thread [f v [(:thread-id m-state) (:env m-state) (:stack m-state)]]
+                                [f v [thread-id env stack]] (peek (:ready-threads m-state))
+                                m-state (update m-state :ready-threads (fn [r] (conj (pop r) parked-thread)))]
+                            (mrun-envs (f v) m-state))))
+     [:start-thread f v] (let [new-thread-id (:next-thread-id m-state)
+                               env (:env m-state)
+                               m-state (-> m-state
+                                           (update :next-thread-id inc)
+                                           (update :ready-threads conj [f v [new-thread-id env []]]))]
+                           [[:thread-id new-thread-id] m-state])
+     [:wait-for-thread id] (if (contains? (:done-threads m-state) id)
+                             (let [res (get (:done-threads m-state) id)]
+                               [res m-state])
+                             (let [[f v [id env stack]] (peek (:ready-threads m-state))
+                                   current-thread [(:thread-id m-state) (:env m-state) (:stack m-state)]
+                                   m-state (-> m-state
+                                               (assoc :thread-id id :env env :stack stack)
+                                               (update :ready-threads conj current-thread))]
+                               (mrun-envs (f v) m-state)))
+     [:assert bool msg] [(if bool :m/continue :m/stop) m-state]
+     [:add-to-env n v] (if-let [addr (get (:env m-state) n)]
+                         [nil (update m-state :mem assoc addr v)]
+                         (let [addr (:next-addr m-state)]
+                           [nil (-> m-state
+                                    (update :next-addr inc)
+                                    (update :mem assoc addr v)
+                                    (update :env assoc n addr))]))
+     [:get-from-env n] [(loop [env (:env m-state)]
+                          (if (nil? env)
+                            :m/stop
+                            (if-let [addr (get env n)]
+                              (get (:mem m-state) addr)
+                              (recur (::parent env)))))
+                        m-state]
+     [:get-env] [(:env m-state) m-state]
+     [:push-env base] (let [{:keys [env stack]} m-state]
+                        [nil (-> m-state
+                                 (assoc :env {::parent base})
+                                 (update :stack conj env))])
+     [:pop-env] (let [{:keys [thread-id env stack]} m-state]
                   (if +enable-gc+
-                    (let [other-thread-stacks (->> ready-threads
+                    (let [other-thread-stacks (->> (:ready-threads m-state)
                                                    (mapcat (fn [[f v [thread-id env stack]]]
                                                              (conj stack env))))
                           live-mem (loop [envs-to-check (concat stack other-thread-stacks)
@@ -168,16 +171,21 @@
                                              (if (mem-checked t)
                                                (recur envs-to-check mem-to-check mem-checked)
                                                (let [mem-checked (conj mem-checked t)]
-                                                 (match (get (:mem mem) t)
+                                                 (match (get (:mem m-state) t)
                                                    [:int _] (recur envs-to-check mem-to-check mem-checked)
                                                    [:bool _] (recur envs-to-check mem-to-check mem-checked)
                                                    [:fn args body captured-env]
                                                    (recur (conj envs-to-check captured-env)
                                                           mem-to-check mem-checked)))))))]
-                      [nil [thread-id (peek stack) (pop stack)] (update mem :mem select-keys live-mem) ready-threads done-threads])
-                    [nil [thread-id (peek stack) (pop stack)] mem ready-threads done-threads]))
+                      [nil (-> m-state
+                               (assoc :env (peek (:stack m-state)))
+                               (update :stack pop)
+                               (update :mem select-keys live-mem))])
+                    [nil (-> m-state
+                             (assoc :env (peek (:stack m-state)))
+                             (update :stack pop))]))
      [:print v] (do (println (second v))
-                    [nil current-thread mem ready-threads done-threads]))))
+                    [nil m-state]))))
 
 (defn sequenceM
   "[m v] -> m [v]"
@@ -244,10 +252,7 @@
 
 (defn shell
   []
-  (loop [current-thread [0 (init-env) []]
-         mem (init-mem)
-         ready-threads mt-q
-         done-threads {}
+  (loop [m-state (init-m-state)
          prev-lines ""
          multi-line? false]
     (if multi-line?
@@ -259,34 +264,34 @@
       (cond (or (= entry "quit") (= entry nil))
             (println "Bye!")
             (= entry ":env")
-            (do (prn current-thread)
-                (recur current-thread mem ready-threads done-threads "" false))
+            (do (prn (:env m-state))
+                (recur m-state "" false))
             (= entry ":mem")
             (do (printf "{:next-addr %d,\n :mem %s\n"
-                        (:next-addr mem)
-                        (if (< (count (:mem mem)) 10)
-                          (pr-str (:mem mem))
+                        (:next-addr m-state)
+                        (if (< (count (:mem m-state)) 10)
+                          (pr-str (:mem m-state))
                           (format "<:count %d, :sample %s>}"
-                                  (count (:mem mem))
-                                  (->> mem :mem seq shuffle (take 10) (into {})))))
-                (recur current-thread mem ready-threads done-threads "" false))
+                                  (count (:mem m-state))
+                                  (->> m-state :mem seq shuffle (take 10) (into {})))))
+                (recur m-state "" false))
             (and (not multi-line?) (not (string/ends-with? (string/trim line) ":")))
-            (let [[v current-thread mem ready-threads done-threads] (mrun-envs (m-eval (parse line)) current-thread mem ready-threads done-threads)]
+            (let [[v m-state] (mrun-envs (m-eval (parse line)) m-state)]
               (println "=> " v)
-              (recur current-thread mem ready-threads done-threads "" false))
+              (recur m-state "" false))
             (and (not multi-line?) (string/ends-with? (string/trim line) ":"))
-            (recur current-thread mem ready-threads done-threads line true)
+            (recur m-state line true)
             (and multi-line? (= line "\n"))
-            (let [[v current-thread mem ready-threads done-threads] (mrun-envs (m-eval (parse prev-lines)) current-thread mem ready-threads done-threads)]
+            (let [[v state] (mrun-envs (m-eval (parse prev-lines)) m-state)]
               (println "=> " v)
-              (recur current-thread mem ready-threads done-threads "" false))
+              (recur m-state "" false))
             multi-line?
-            (recur current-thread mem ready-threads done-threads (str prev-lines line) true)
+            (recur m-state (str prev-lines line) true)
             :else "Unsupported sequence"))))
 
 (defn run-file
   [file]
-  (let [[res current-thread mem ready-threads done-threads] (eval-pl (parse (slurp file)))]
+  (let [[res state] (eval-pl (parse (slurp file)))]
     res))
 
 (defn usage
