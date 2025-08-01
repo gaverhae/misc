@@ -1,7 +1,7 @@
 (ns main-test
   (:require [main :as s]
             [clojure.string :as string]
-            [clojure.test :refer [deftest are]]))
+            [clojure.test :refer [deftest are is]]))
 
 (deftest basic-expressions
   (are [string tree] (= tree (first (s/parse-string string :start :expr)))
@@ -140,7 +140,6 @@
 
 (deftest files
   (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
-
                        (= result (string/split-lines s)))
     "plain-sum" ["42"]
     "parens" ["154"]
@@ -153,3 +152,18 @@
     "fact" ["3628800"]
     "fib" ["89"]
     "fib-flat" ["89"]))
+
+(deftest gc
+  (let [fib (s/m-eval (s/parse (->lines ["def fib(n):"
+                                         "  if n == 0:"
+                                         "    return 1"
+                                         "  if n == 1:"
+                                         "    return 1"
+                                         "  return fib(n + -1) + fib(n + -2)"
+                                         "fib(25)"])))]
+    (let [[env mem stack v] (s/mrun-envs fib)]
+      (is (= {"print" 0, "fib" 1} env))
+      (is (= 242787 (:next-addr mem)))
+      (is (= 242787 (count (:mem mem))))
+      (is (= [] stack))
+      (is (= [:int 121393] v)))))
