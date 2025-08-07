@@ -105,7 +105,7 @@
       [:app [:identifier "fact"] [:int "3"]]]]))
 
 (deftest pl-eval
-  (are [string expected] (let [[actual m-state] (s/eval-pl (s/parse (str string "\n")))]
+  (are [string expected] (let [[actual t m] (s/eval-pl (s/parse (str string "\n")))]
                            #_(prn [expected actual])
                            (= expected actual))
     "1+2+3" [:int 6]
@@ -118,7 +118,7 @@
     "True == False" [:bool false]))
 
 (deftest multiline-expr
-  (are [strings expected] (let [[actual m-state] (s/eval-pl (s/parse (->lines strings)))]
+  (are [strings expected] (let [[actual t m] (s/eval-pl (s/parse (->lines strings)))]
                             #_(prn [:exp expected :act actual])
                             (= expected actual))
     ["4" "1+2+3"] [:int 6]
@@ -162,14 +162,14 @@
                                          "    return 1"
                                          "  return fib(n + -1) + fib(n + -2)"
                                          "fib(12)"])))]
-    (let [[v {:keys [env stack mem next-addr]}] (s/mrun-envs fib)]
+    (let [[v {:keys [env stack]} {:keys [mem next-addr]}] (s/mrun-envs fib)]
       (is (= {"print" 0, "start_t" 1, "wait_t" 2, "fib" 3} env))
       (is (= 469 next-addr))
       (is (= 469 (count mem)))
       (is (= [] stack))
       (is (= [:int 233] v)))
-    (let [[v {:keys [env stack mem next-addr]}] (binding [s/+enable-gc+ true]
-                                                  (s/mrun-envs fib))]
+    (let [[v {:keys [env stack]} {:keys [mem next-addr]}] (binding [s/+enable-gc+ true]
+                                                            (s/mrun-envs fib))]
       (is (= {"print" 0, "start_t" 1, "wait_t" 2, "fib" 3} env))
       (is (= 469 next-addr))
       (is (= 4 (count mem)))
