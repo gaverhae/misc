@@ -138,31 +138,30 @@
    (vatch mv
      [:pure v] [v m-state]
      [:bind mv f] (let [[v m-state] (mrun-envs mv m-state)]
-                    (cond (= v :m/stop)
-                          :m/error
-                          (and (seq? v) (= 2 (count v)) (= :m/thread-finished (first v)))
-                          (let [{:keys [thread-id env stack]} m-state
-                                m-state (update m-state :done-threads assoc thread-id [(second v) env stack])]
-                            (if (empty? (:ready-threads m-state))
-                              (let [[result env stack] (get (:done-threads m-state) 0)]
-                                [result (assoc m-state :env env :stack stack)])
-                              (let [[f v [thread-id env stack]] (peek (:ready-threads m-state))]
-                                (mrun-envs (f v) (-> m-state
-                                                     (assoc :thread-id thread-id :env env :stack stack)
-                                                     (update :ready-threads pop))))))
-                          (empty? (:ready-threads m-state))
-                          (mrun-envs (f v) m-state)
+                    (cond (= v :m/stop) :m/error
                           :else
-                          (let [parked-thread [f v [(:thread-id m-state) (:env m-state) (:stack m-state)]]
-                                [f v [thread-id env stack]] (peek (:ready-threads m-state))
-                                m-state (update m-state :ready-threads (fn [r] (conj (pop r) parked-thread)))]
-                            (mrun-envs (f v) m-state))))
-     [:start-thread f v] (let [new-thread-id (:next-thread-id m-state)
-                               env (:env m-state)
-                               m-state (-> m-state
-                                           (update :next-thread-id inc)
-                                           (update :ready-threads conj [f v [new-thread-id env []]]))]
-                           [[:thread-id new-thread-id] m-state])
+                          #_(empty? (:ready-threads m-state)) (mrun-envs (f v) m-state)
+                          #_:else
+                          #_(let [parked-thread [(f v) [(:thread-id m-state) (:env m-state) (:stack m-state)]]
+                                [mv [thread-id env stack]] (peek (:ready-threads m-state))
+                                m-state (-> m-state
+                                            (update :ready-threads pop)
+                                            (update :ready-threads conj parked-thread)
+                                            (assoc :thread-id thread-id)
+                                            (assoc :env env)
+                                            (assoc :stack stack))]
+                            (mrun-envs mv m-state))))
+     [:start-thread mv] (let [new-thread-id (:next-thread-id m-state)
+                              env (:env m-state)
+                              m-state (-> m-state
+                                          (update :next-thread-id inc)
+                                          (update :ready-threads conj [mv [new-thread-id env []]]))]
+                          [[:thread-id new-thread-id] m-state])
+     [:end-thread v] (let [{:keys [thread-id env stack]} m-state
+                           m-state (update m-state :done-threads assoc thread-id [v env stack])
+                           [mv [tid env stack]] (peek (:ready-threads m-state))
+                           m-state (update m-state :ready-threads pop)]
+                       [nil m-state])
      [:wait-for-thread id] (if (contains? (:done-threads m-state) id)
                              (let [res (get (:done-threads m-state) id)]
                                [res m-state])
@@ -251,6 +250,10 @@
     [:print expr] (monad
                     v :<< (m-eval expr)
                     [:print v])
+    [:start_t f] [:start-thread (monad
+                                  v :<< (m-eval [:app f])
+                                  [:end-thread v])]
+    [:thread-id i] [:thread-id i]
     [:S] [:pure nil]
     [:S head] (m-eval head)
     [:S head & tail] (mdo [[ret? v] (m-eval head)
