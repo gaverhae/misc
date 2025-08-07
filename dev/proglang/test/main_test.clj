@@ -140,6 +140,7 @@
 
 (deftest files
   (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
+                       #_(prn [:exp result :act (string/split-lines s)])
                        (= result (string/split-lines s)))
     "plain-sum" ["42"]
     "parens" ["154"]
@@ -184,8 +185,8 @@
                                         "  return fib(n + -1) + fib(n + -2)"
                                         "fib(25)"]))))
   (with-out-str (time (s/mrun-envs fib)))
-"\"Elapsed time: 3215.4995 msecs\"\n"
+"\"Elapsed time: 3769.785542 msecs\"\n"
   (with-out-str (time (binding [s/+enable-gc+ true]
                         (s/mrun-envs fib))))
-"\"Elapsed time: 5510.669833 msecs\"\n"
+"\"Elapsed time: 5483.278375 msecs\"\n"
 )
