@@ -131,7 +131,9 @@
      [:pure v] [v t m]
      [:bind mv f] (let [[v t m] (mrun-envs mv t m)]
                     (mrun-envs (f v) t m))
-     [:assert bool msg] [(if bool :m/continue :m/stop) t m]
+     [:assert bool msg] (if bool
+                          [nil t m]
+                          (throw (ex-info msg {})))
      [:add-to-env n v] (if-let [addr (get (:env t) n)]
                          [nil t (update m :mem assoc addr v)]
                          (let [addr (:next-addr m)]
