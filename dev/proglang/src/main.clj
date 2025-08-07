@@ -107,7 +107,7 @@
           other-thread-stacks (->> (:ready-threads m-state)
                                    (mapcat (fn [[f v [thread-id env stack]]]
                                              (conj stack env))))
-          live-mem (loop [envs-to-check (concat stack other-thread-stacks)
+          live-mem (loop [envs-to-check (concat [env] stack other-thread-stacks)
                           mem-to-check []
                           mem-checked #{}]
                      (cond (and (empty? envs-to-check)
@@ -127,9 +127,8 @@
                                  (vatch (get (:mem m-state) t)
                                    [:int _] (recur envs-to-check mem-to-check mem-checked)
                                    [:bool _] (recur envs-to-check mem-to-check mem-checked)
-                                   [:fn args body captured-env]
-                                   (recur (conj envs-to-check captured-env)
-                                          mem-to-check mem-checked)))))))]
+                                   [:fn args body captured-env] (recur (conj envs-to-check captured-env)
+                                                                       mem-to-check mem-checked)))))))]
       (update m-state :mem select-keys live-mem))
     m-state))
 
@@ -195,9 +194,9 @@
                                  (update :stack conj env))])
      [:pop-env] (let [{:keys [thread-id env stack]} m-state]
                   [nil (-> m-state
-                           run-gc
                            (assoc :env (peek (:stack m-state)))
-                           (update :stack pop))])
+                           (update :stack pop)
+                           run-gc)])
      [:print v] (do (println (second v))
                     [nil m-state]))))
 
