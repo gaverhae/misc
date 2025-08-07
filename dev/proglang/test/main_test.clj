@@ -163,16 +163,16 @@
                                          "  return fib(n + -1) + fib(n + -2)"
                                          "fib(25)"])))]
     (let [[v {:keys [env stack mem next-addr]}] (s/mrun-envs fib)]
-      (is (= {"print" 0, "fib" 1} env))
-      (is (= 242787 next-addr))
-      (is (= 242787 (count mem)))
+      (is (= {"print" 0, "start_t" 1, "wait_t" 2, "fib" 3} env))
+      (is (= 242789 next-addr))
+      (is (= 242789 (count mem)))
       (is (= [] stack))
       (is (= [:int 121393] v)))
     (let [[v {:keys [env stack mem next-addr]}] (binding [s/+enable-gc+ true]
                                                   (s/mrun-envs fib))]
-      (is (= {"print" 0, "fib" 1} env))
-      (is (= 242787 next-addr))
-      (is (= 2 (count mem)))
+      (is (= {"print" 0, "start_t" 1, "wait_t" 2, "fib" 3} env))
+      (is (= 242789 next-addr))
+      (is (= 4 (count mem)))
       (is (= [] stack))
       (is (= [:int 121393] v)))))
 
