@@ -189,21 +189,14 @@
                                               "  return fib(4)"
                                               "t1 = start_t(fib3)"
                                               "t2 = start_t(fib4)"
-                                              "t1"
-                                              #_"r1 = wait_t(t1)"
-                                              #_"r2 = wait_t(t2)"
-                                              #_"print(r1 + r2)"
-                                              #_"r1 + r2"])))]
-    (let [[v t m] (s/mrun-envs multifib)]
-      (is (= [:thread-id 1] v))
-      (is (= [:thread-id 1] (get-in m [:done-threads 0 0])))
-      (is (= [:int 3] (get-in m [:done-threads 1 0])))
-      (is (= [:int 5] (get-in m [:done-threads 2 0])))
-      #_(is (= 1 (count (:ready-threads m-state))))
-      #_(is (nil? (-> m-state :ready-threads peek))))
-    #_(is (= nil
-           (with-out-str (s/mrun-envs multifib))))))
-
+                                              "r1 = wait_t(t1)"
+                                              "r2 = wait_t(t2)"
+                                              "r1 + r2"])))
+        [v t m] (s/mrun-envs multifib)]
+    (is (= [:int 8] v))
+    (is (= [:int 8] (get-in m [:done-threads 0 0])))
+    (is (= [:int 3] (get-in m [:done-threads 1 0])))
+    (is (= [:int 5] (get-in m [:done-threads 2 0])))))
 
 (comment
   (def fib (s/m-eval (s/parse (->lines ["def fib(n):"
@@ -214,8 +207,8 @@
                                         "  return fib(n + -1) + fib(n + -2)"
                                         "fib(25)"]))))
   (with-out-str (time (s/mrun-envs fib)))
-"\"Elapsed time: 38127.960125 msecs\"\n"
+"\"Elapsed time: 38808.007334 msecs\"\n"
   (with-out-str (time (binding [s/+enable-gc+ true]
                         (s/mrun-envs fib))))
-"\"Elapsed time: 41864.55625 msecs\"\n"
+"\"Elapsed time: 40742.647542 msecs\"\n"
 )
