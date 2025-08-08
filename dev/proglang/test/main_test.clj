@@ -3,19 +3,19 @@
             [clojure.string :as string]
             [clojure.test :refer [deftest are is]]))
 
-#_(deftest basic-expressions
+(deftest basic-expressions
   (are [string tree] (= tree (first (s/parse-string string :start :expr)))
     "34+123" [:sum [:int "34"] [:int "123"]]
     "1+2*3" [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
     "2*3+1" [:sum [:product [:int "2"] [:int "3"]] [:int "1"]]))
 
-#_(deftest whitespace-ignored
+(deftest whitespace-ignored
   (are [strings tree] (apply = tree (map (fn [s] (first (s/parse-string s :start :expr))) strings))
     ["34+123" "34 + 123" "34 +   123"] [:sum [:int "34"] [:int "123"]]
     ["1+2*3" "1 + 2 * 3" "1+2  *  3"] [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
     ["2*3+1" "2 * 3 + 1"] [:sum [:product [:int "2"] [:int "3"]] [:int "1"]]))
 
-#_(deftest parens
+(deftest parens
   (are [string tree] (= tree (first (s/parse-string string :start :expr)))
     "1 + (2 * 3)" [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
     "(1 + 2) * 3" [:product [:sum [:int "1"] [:int "2"]] [:int "3"]]
@@ -28,7 +28,7 @@
        (map (fn [s] (str s "\n")))
        (apply str)))
 
-#_(deftest ast
+(deftest ast
   (are [strings tree] (= tree (s/parse (->lines strings)))
     ["1 + (2 * 3)"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
     ["a = 2" "b = 5" "a + b"]
@@ -109,26 +109,26 @@
                            #_(prn [expected actual])
                            (= expected actual))
     "1+2+3" [:int 6]
-    #_#_"(1) + (2 * 3)" [:int 7]
-    #_#_"1  +  2 * 3 " [:int 7]
-    #_#_"(1  +  2)* 3 " [:int 9]
-    #_#_"True" [:bool true]
-    #_#_"1 == 1" [:bool true]
-    #_#_"1 == 2" [:bool false]
-    #_#_"True == False" [:bool false]))
+    "(1) + (2 * 3)" [:int 7]
+    "1  +  2 * 3 " [:int 7]
+    "(1  +  2)* 3 " [:int 9]
+    "True" [:bool true]
+    "1 == 1" [:bool true]
+    "1 == 2" [:bool false]
+    "True == False" [:bool false]))
 
-#_(deftest multiline-expr
+(deftest multiline-expr
   (are [strings expected] (let [[actual t m] (s/eval-pl (s/parse (->lines strings)))]
-                            (prn [:exp expected :act actual])
+                            #_(prn [:exp expected :act actual])
                             (= expected actual))
-    #_#_["4" "1+2+3"] [:int 6]
-    #_#_["(1+2)" "(1) + (2 * 3)"] [:int 7]
-    #_#_["" "6 * 4 " "" "1  +  2 * 3"] [:int 7]
-    #_#_["" "" "(1  +  2)* 3 "] [:int 9]
-    #_#_["a = 1" "a + 2"] [:int 3]
-    #_#_["if True:"  "  1" "else:" "  2"] [:int 1]
-    #_#_["if False:" "  1" "else:" "  2"] [:int 2]
-    #_#_["def has_dead_code():"
+    ["4" "1+2+3"] [:int 6]
+    ["(1+2)" "(1) + (2 * 3)"] [:int 7]
+    ["" "6 * 4 " "" "1  +  2 * 3"] [:int 7]
+    ["" "" "(1  +  2)* 3 "] [:int 9]
+    ["a = 1" "a + 2"] [:int 3]
+    ["if True:"  "  1" "else:" "  2"] [:int 1]
+    ["if False:" "  1" "else:" "  2"] [:int 2]
+    ["def has_dead_code():"
      "  return 5"
      "  2"
      "has_dead_code()"] [:int 5]
@@ -138,7 +138,7 @@
      "  return 2"
      "fib(0)"] [:int 5]))
 
-#_(deftest files
+(deftest files
   (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
                        #_(prn [:exp result :act (string/split-lines s)])
                        (= result (string/split-lines s)))
@@ -154,7 +154,7 @@
     "fib" ["89"]
     "fib-flat" ["89"]))
 
-#_(deftest gc
+(deftest gc
   (let [fib (s/m-eval (s/parse (->lines ["def fib(n):"
                                          "  if n == 0:"
                                          "    return 1"
@@ -211,8 +211,8 @@
                                         "  return fib(n + -1) + fib(n + -2)"
                                         "fib(25)"]))))
   (with-out-str (time (s/mrun-envs fib)))
-"\"Elapsed time: 3769.785542 msecs\"\n"
+"\"Elapsed time: 37619.556417 msecs\"\n"
   (with-out-str (time (binding [s/+enable-gc+ true]
                         (s/mrun-envs fib))))
-"\"Elapsed time: 5483.278375 msecs\"\n"
+"\"Elapsed time: 40082.0085 msecs\"\n"
 )
