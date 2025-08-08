@@ -160,6 +160,49 @@
      [:print v] (do (println (second v))
                     [:pure [[:int 0] t m]]))))
 
+(comment
+
+  (defn step
+    [mv]
+    (vatch mv
+      [:pure a] [:pure a]
+      [:bind mv f] (vatch mv
+                     [:pure a] (f a)
+                     [:bind i-mv i-f] [:bind (step i-mv) f])))
+
+  (defn run-parallel
+    [mvs]
+    (loop [ret []
+           output []
+           ongoing (into mt-q mvs)]
+      (if (empty? ongoing)
+        [ret output]
+        (let [t (peek ongoing)
+              ongoing (pop ongoing)]
+          (vatch t
+            [:pure a] (recur (conj ret a) output ongoing)
+            [:bind ma f] (recur ret output (conj ongoing (step t))))))))
+
+  (def t1 (monad
+            a :<< [:pure 5]
+            b :<< [:pure 6]
+            #_[:print a]
+            [:pure (+ a b)]))
+
+  (def t2 (monad
+            a :<< [:pure 2]
+            b :<< [:pure 3]
+            #_[:print a]
+            #_[:print b]
+            #_[:print (* a b)]
+            [:pure (+ a b)]))
+
+  (run-parallel [t1 t2])
+[[11 5] []]
+
+
+  )
+
 (defn mrun-envs
   ([mv] (let [m (init-m)
               [t m] (init-thread m)]
