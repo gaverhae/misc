@@ -169,8 +169,8 @@
       [:print a] [[:pure nil] (conj output a)]
       [:bind mv f] (vatch mv
                      [:pure a] [(f a) output]
-                     [:bind i-mv i-f] (let [[i-mv output] (step i-mv output)]
-                                        [:bind i-mv f])
+                     [:bind _ _] (let [[mv output] (step mv output)]
+                                        [[:bind mv f] output])
                      otherwise (let [[mv output] (step mv output)]
                                  [[:bind mv f] output]))))
 
