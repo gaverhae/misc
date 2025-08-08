@@ -169,9 +169,10 @@
       [:print a] [[:pure nil] (conj output a)]
       [:bind mv f] (vatch mv
                      [:pure a] [(f a) output]
-                     [:print a] [(f nil) (conj output a)]
                      [:bind i-mv i-f] (let [[i-mv output] (step i-mv output)]
-                                        [:bind i-mv f])))))
+                                        [:bind i-mv f])
+                     otherwise (let [[mv output] (step mv output)]
+                                 [[:bind mv f] output]))))
 
   (defn run-parallel
     [mvs]
