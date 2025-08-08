@@ -125,104 +125,54 @@
 (defn mrun-step
   ([mv t m]
    (vatch mv
-     [:pure v] [:pure [v t m]]
-     [:bind mv f] (mdo [[v t m] (mrun-step mv t m)
-                        _ (mrun-step (f v) t m)])
-     (let [[v t m] (mrun-step mv t m)]
-                    )
+     [:pure v] [[:pure v] t m]
+     [:bind mv f] (vatch mv
+                    [:pure v] [(f v) t m]
+                    otherwise (let [[mv t m] (mrun-step mv t m)]
+                                [[:bind mv f] t m]))
      [:assert bool msg] (if bool
-                          [:pure [nil t m]]
+                          [[:pure nil] t m]
                           (throw (ex-info msg {})))
      [:add-to-env n v] (if-let [addr (get (:env t) n)]
-                         [:pure [nil t (update m :mem assoc addr v)]]
+                         [[:pure nil] t (update m :mem assoc addr v)]
                          (let [addr (:next-addr m)]
-                           [:pure [nil
-                                   (-> t (update :env assoc n addr))
-                                   (-> m
-                                       (update :next-addr inc)
-                                       (update :mem assoc addr v))]]))
+                           [[:pure nil]
+                            (-> t (update :env assoc n addr))
+                            (-> m
+                                (update :next-addr inc)
+                                (update :mem assoc addr v))]))
      [:get-from-env n] (loop [env (:env t)]
                          (if (nil? env)
                            (throw (ex-info "Name not found." {:name n}))
                            (if-let [addr (get env n)]
-                             [:pure [(get (:mem m) addr) t m]]
+                             [[:pure (get (:mem m) addr)] t m]
                              (recur (::parent env)))))
-     [:get-env] [:pure [(:env t) t m]]
-     [:push-env base] [:pure [nil (-> t
-                                      (update :stack conj (:env t))
-                                      (assoc :env {::parent base}))
-                              m]]
-     [:pop-env] [:pure [nil
-                        (-> t
-                            (assoc :env (peek (:stack t)))
-                            (update :stack pop))
-                        (run-gc t m)]]
+     [:get-env] [[:pure (:env t)] t m]
+     [:push-env base] [[:pure nil]
+                       (-> t
+                           (update :stack conj (:env t))
+                           (assoc :env {::parent base}))
+                       m]
+     [:pop-env] [[:pure nil]
+                 (-> t
+                     (assoc :env (peek (:stack t)))
+                     (update :stack pop))
+                 (run-gc t m)]
      [:print v] (do (println (second v))
-                    [:pure [[:int 0] t m]]))))
-
-(comment
-
-  (defn step
-    [mv output]
-    (vatch mv
-      [:pure a] [[:pure a] output]
-      [:print a] [[:pure nil] (conj output a)]
-      [:bind mv f] (vatch mv
-                     [:pure a] [(f a) output]
-                     otherwise (let [[mv output] (step mv output)]
-                                 [[:bind mv f] output]))))
-
-  (defn run-parallel
-    [mvs]
-    (loop [ret []
-           output []
-           ongoing (into mt-q (map-indexed (fn [idx mv] {:id idx, :pc mv}) mvs))]
-      (if (empty? ongoing)
-        [ret output]
-        (let [{:keys [id pc]} (peek ongoing)
-              ongoing (pop ongoing)]
-          (vatch pc
-            [:pure a] (recur (conj ret {:id id, :ret a}) output ongoing)
-            [:print x] (recur (conj ret {:id id, :ret :print}) output ongoing)
-            [:bind ma f] (let [[pc output] (step pc output)]
-                           (recur ret output (conj ongoing {:id id, :pc pc}))))))))
-
-  (def t1 (monad
-            a :<< [:pure 5]
-            b :<< [:pure 6]
-            [:print a]
-            c :<< [:pure (+ a b)]
-            [:print c]
-            [:pure c]))
-
-  (def t2 (monad
-            a :<< [:pure 2]
-            b :<< [:pure 3]
-            [:print a]
-            [:print b]
-            [:print (* a b)]
-            [:pure (+ a b)]))
-
-  (run-parallel [t1 t2])
-[[{:id 0, :ret 11} {:id 1, :ret 5}] [5 2 3 11 6]]
-
-
-  )
+                    [[:pure [:int 0]] t m]))))
 
 (defn mrun-envs
   ([mv] (let [m (init-m)
               [t m] (init-thread m)]
           (mrun-envs mv t m)))
   ([mv t m]
-   (prn [:step mv t])
-   ;; TODO
-   (vatch (mrun-step mv t m)
-     [:step f v t m] (recur (f v) t m)
-     [v t m] [v t m])))
+   (let [[mv t m] (mrun-step mv t m)]
+     (vatch mv
+       [:pure v] [v t m]
+       otherwise (recur mv t m)))))
 
 (defn all-numbers?
   [vs]
-  (prn [:all-nums vs])
   (every? (fn [[tag value]] (= :int tag)) vs))
 
 (defn m-eval
