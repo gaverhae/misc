@@ -159,25 +159,23 @@
                     (assoc :env (peek (:stack t)))
                     (update :stack pop))
                 (run-gc t m)]
+    [:start-thread mv] (let [id (:next-thread-id m)]
+                         [[:pure [:thread-id id]] t (add-thread m mv)])
     [:print v] (do (println (second v))
                    [[:pure [:int 0]] t m])))
 
 (defn mrun
   [m]
   (loop [m m]
-    (let [threads (:threads m)]
-      (if (empty? threads)
-        (let [[v0 t0] (get-in m [:done-threads 0])]
-          [v0 t0 m])
-        (let [[mv t] (peek threads)
-              threads (pop threads)
-              [mv t m] (mrun-step mv t m)]
-          (vatch mv
-            [:pure v] (recur (-> m
-                                 (assoc-in [:done-threads (:id t)] [v t])
-                                 (assoc :threads threads)))
-            otherwise (recur (-> m
-                                 (assoc :threads (conj threads [mv t]))))))))))
+    (if (empty? (:threads m))
+      (let [[v0 t0] (get-in m [:done-threads 0])]
+        [v0 t0 m])
+      (let [[mv t] (peek (:threads m))
+            m (update m :threads pop)
+            [mv t m] (mrun-step mv t m)]
+        (vatch mv
+          [:pure v] (recur (update m :done-threads assoc (:id t) [v t]))
+          otherwise (recur (update m :threads conj [mv t])))))))
 
 (defn mrun-envs
   [mv]
@@ -194,6 +192,7 @@
     [:bool s] (case s
                 "True" [:pure [:bool true]]
                 "False" [:pure [:bool false]])
+    [:fn args body env] [:pure [:fn args body env]]
     [:sum & args] (monad
                     args :<< (m/m-seq (map m-eval args))
                     [:assert (all-numbers? args) "Tried to add non-numeric values."]
@@ -234,6 +233,9 @@
     [:print expr] (monad
                     v :<< (m-eval expr)
                     [:print v])
+    [:start_t f] (monad
+                   f :<< (m-eval f)
+                   [:start-thread (m-eval [:app f])])
     [:S] [:pure nil]
     [:S head] (m-eval head)
     [:S head & tail] (mdo [[ret? v] (m-eval head)
