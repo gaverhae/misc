@@ -196,7 +196,43 @@
     (is (= [:int 8] v))
     (is (= [:int 8] (get-in m [:done-threads 0 0])))
     (is (= [:int 3] (get-in m [:done-threads 1 0])))
-    (is (= [:int 5] (get-in m [:done-threads 2 0])))))
+    (is (= [:int 5] (get-in m [:done-threads 2 0]))))
+  (let [multiprint (s/m-eval (s/parse (->lines ["def prints(n):"
+                                                "  def h():"
+                                                "    print(n)"
+                                                "    print(n)"
+                                                "    print(n)"
+                                                "    print(n)"
+                                                "    print(n)"
+                                                "    return n"
+                                                "  return h"
+                                                "print(0)"
+                                                "t1 = start_t(prints(1))"
+                                                "t2 = start_t(prints(2))"
+                                                "print(0)"
+                                                "r1 = wait_t(t1)"
+                                                "r2 = wait_t(t2)"
+                                                "print(0)"
+                                                "r1 + r2"])))]
+    (binding [*out* (java.io.StringWriter.)]
+      (let [[v t m] (s/mrun-envs multiprint)
+            output (-> (str *out*) string/split-lines)]
+        (is (= output
+               [;; before we start any other thread, we have one print from 0
+                "0"
+                ;; while 0 prepares 2, 1 starts running
+                "1" "1" "1"
+                ;; 2 starts running, and now w're interleaved
+                "2"
+                "0"
+                "1"
+                "2"
+                "1"
+                ;; 1 has finished, and 0 is waiting for 1 and 2, so just 2 for a while
+                "2" "2" "2"
+                ;; final print from 0
+                "0"]))
+        (is (= v [:int 3]))))))
 
 (comment
   (def fib (s/m-eval (s/parse (->lines ["def fib(n):"
