@@ -217,25 +217,26 @@
               {:path p
                :size (Files/size p)}))
        (group-by :size)
+       (sort-by (comp - key))
        (filter (fn [[s ms]]
                  (>= (count ms) 2)))
-       (map (fn [[_ ms]]
+       (map (fn [[size ms]]
               (let [same-file? (fn [m1] (fn [m2] (Files/isSameFile (:path m1) (:path m2))))]
-                (loop [valid []
+                (loop [distincts []
                        to-check ms]
                   (if (empty? to-check)
-                    valid
+                    [size distincts]
                     (let [[f & to-check] to-check]
-                      (recur (conj valid f)
+                      (recur (conj distincts f)
                              (vec (remove (same-file? f) to-check)))))))))
-       (filter (fn [v] (>= (count v) 2)))
-       (mapcat identity)
-       (map (fn [m] (merge m (hashes (Path/.toFile (:path m))))))
-       (group-by (juxt :md5 :sha1 :size))
-       (filter (fn [[[md5 sha1 size] ms]]
+       (filter (fn [[_ ms]]
                  (>= (count ms) 2)))
-       (sort-by (fn [[[md5 sha1 size] ms]]
-                  (- (long size))))))
+       (mapcat (fn [[_ ms]]
+                 (->> ms
+                      (map (fn [m] (merge m (hashes (Path/.toFile (:path m))))))
+                      (group-by (juxt :md5 :sha1 :size)))))
+       (filter (fn [[[md5 sha1 size] ms]]
+                 (>= (count ms) 2)))))
 
 (defn show-dups
   [env-roots n]
