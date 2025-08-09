@@ -149,8 +149,7 @@
                           [typ
                            (cond->> ps
                              true (map (fn [p] (subs (str p) (count (str (->path d))))))
-                             (= :files typ) (remove ds?)
-                             true set)]))
+                             (= :files typ) (remove ds?))]))
                    (into {})))
       exists? (fn [p] (Files/exists p no-follow-symlinks))
       same-files? (fn [p1 p2]
@@ -187,8 +186,8 @@
               (let [under-d2 (under d2)]
                 (doseq [d (:dirs under-d2)]
                   (create-path (p d1 d)))
-                (doseq [f (sort (set/union (:files under-d2)
-                                           (:symlinks under-d2)))]
+                (doseq [f (sort (concat (:files under-d2)
+                                        (:symlinks under-d2)))]
                   (if (exists? (p d1 f))
                     (if (same-files? (p d1 f) (p d2 f))
                       (delete (p d2 f))
