@@ -7,6 +7,7 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     bash
     curl
+    jdk
     jq
     (leiningen.override { jdk = jdk; })
   ];
