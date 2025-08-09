@@ -266,8 +266,8 @@
         (print "> ") (flush)
         (let [kept-idx (loop [r (read-line)]
                          (if (when-let[r (parse-long r)]
-                               (< 0 r (count ms)))
-                           r
+                               (<= 0 r (dec (count ms))))
+                           (parse-long r)
                            (do (println "Try again.")
                                (print "> ") (flush)
                                (recur (read-line)))))
