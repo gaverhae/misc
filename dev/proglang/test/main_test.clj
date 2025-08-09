@@ -126,8 +126,11 @@
     ["" "" "(1  +  2)* 3 "] [:int 9]
     ["a = 1" "a + 2"] [:int 3]
     ["if True:"  "  1" "else:" "  2"] [:int 1]
-    ["if False:" "  1" "else:" "  2"] [:int 2]))
-
+    ["if False:" "  1" "else:" "  2"] [:int 2]
+    ["def has_dead_code():"
+     "  return 5"
+     "  2"
+     "has_dead_code()"] [:int 5]))
 
 (deftest files
   (are [path result] (= result (s/run-file (str "test-resources/" path ".py")))
