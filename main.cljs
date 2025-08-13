@@ -18,23 +18,19 @@
    [:defs
     [:path {:id "curve" :d "M 100 150 C 200 100 500 100 600 150"}]
     [:filter {:id "drop-shadow"}
-     ["feOffset" {:in "SourceGraphic" :dx "0" :dy "10" :result "offset"}]
-     ["feMerge" {}
+     ["feFlood" {:result "flood"}]
+     ["feComposite" {:in "flood" :in2 "SourceAlpha"
+                     :operator "in" :result "clip"}]
+     ["feOffset" {:in "clip" :dx "0" :dy "10" :result "offset"}]
+     ["feMerge"
       ["feMergeNode" {:in "offset"}]
       ["feMergeNode" {:in "SourceGraphic"}]]]]
-   [:text {:class "title-text-under"
-           :stroke-width "10px"
-           :fill "none"
+   [:text {:stroke-width "10px"
            :filter "url(#drop-shadow)"
            :stroke-linecap "round"
            :stroke-linejoin "round"}
     [:textPath {:href "#curve" :textAnchor "middle" :startOffset "50%"}
-     [:tspan.game-title-text
-      game-title]]]
-   [:text {:class "title-text-over" :stroke-width "10px"}
-    [:textPath {:href "#curve" :textAnchor "middle" :startOffset "50%"}
-     [:tspan.game-title-text
-      game-title]]]])
+     [:tspan game-title]]]])
 
 (defn component:game []
   [:main

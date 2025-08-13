@@ -44,12 +44,14 @@ html, body, #app, main {
   font-family: var(--font-title);
 }
 
-#game-title text.title-text-under {
+#game-title text {
   stroke: var(--color-shadow);
+  fill: var(--color-fg);
+  paint-order: stroke fill markers;
 }
 
-#game-title text.title-text-over {
-  fill: var(--color-fg);
+#game-title feFlood {
+  flood-color: var(--color-shadow);
 }
 
 @keyframes bob {
@@ -101,6 +103,10 @@ main.title::before {
   animation: bgpan 10s linear infinite;
 }
 
+main.title.page {
+  font-size: 2em;
+}
+
 /*** menu ***/
 
 nav.menu {
@@ -137,7 +143,7 @@ nav.menu a:nth-child(6) { --rotation: 1deg; }
 nav.menu a:nth-child(7) { --rotation: -3deg; }
 nav.menu a:nth-child(8) { --rotation: 2deg; }
 
-nav.menu a.button.cta {
+button.cta, .button.cta {
   background-color: var(--color-accent);
   color: var(--color-fg);
   padding: 0.75rem 2.5rem;
@@ -146,9 +152,10 @@ nav.menu a.button.cta {
   box-shadow: 0 5px 0 var(--color-accent-shadow);
   font-weight: bold;
   cursor: pointer;
+  text-decoration: none;
 }
 
-nav.menu a.button.cta:active {
+button.cta:active, .button.cta:active {
   box-shadow: none;
-  transform: rotate(var(--rotation)) translateY(5px) scale(1.2);
+  transform: rotate(var(--rotation, 0deg)) translateY(5px) scale(1.2);
 }
