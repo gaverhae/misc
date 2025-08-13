@@ -5,7 +5,20 @@
 
 (def game-title "Game Title")
 
-(defonce state (r/atom nil))
+(defn screen-from-hash []
+  (let [frag (.. js/window -location -hash)]
+    (js/console.log frag)
+    (if (> (count frag) 1)
+      (keyword (subs frag 1))
+      :title)))
+
+(defonce state (r/atom {:screen (screen-from-hash)}))
+
+; set up basic history popstate management
+(.addEventListener js/window "popstate"
+  (fn [_]
+    (js/console.log "pop")
+    (swap! state assoc :screen (screen-from-hash))))
 
 (defn component:icon [id]
   [:img.icon
@@ -44,17 +57,53 @@
        "--x" 0
        "--y" 0}}]]])
 
+(defn component:back-button []
+  [:a.button.cta {:href "#"
+                  :on-click #(swap! state assoc :screen :title)} "Back"])
+
+(defn component:instructions []
+  [:main.title.page
+   [:h1 "Instructions"]
+   [:p "This is a placeholder for the instructions screen."]
+   [component:back-button]])
+
+(defn component:settings []
+  [:main.title.page
+   [:h1 "Settings"]
+   [:p "This is a placeholder for the settings screen."]
+   [component:back-button]])
+
+(defn component:credits []
+  [:main.title.page
+   [:h1 "Credits"]
+   [:p "This is a placeholder for the credits screen."]
+   [component:back-button]])
+
 (defn component:menu []
   [:nav.menu
-   [:a {:href "#instructions"} "instructions"]
-   [:a {:href "#settings"} "settings"]
-   [:a {:href "#credits"} "credits"]
-   [:a.button.cta "Play"]])
+   [:a {:href "#instructions"
+        :on-click #(swap! state assoc :screen :instructions)} "instructions"]
+   [:a {:href "#settings"
+        :on-click #(swap! state assoc :screen :settings)} "settings"]
+   [:a {:href "#credits"
+        :on-click #(swap! state assoc :screen :credits)} "credits"]
+   [:a.button.cta {:href "#game"
+                   :on-click #(swap! state assoc :screen :game)} "Play"]])
 
-(defn component:app []
+(defn component:title-screen []
   [:main.title
    [component:title game-title]
    [component:menu]
    #_ [component:icon "1f3ae"]])
+
+(defn component:app []
+  (let [screen (:screen @state)]
+    (case screen
+      :title [component:title-screen]
+      :game [component:game]
+      :instructions [component:instructions]
+      :settings [component:settings]
+      :credits [component:credits]
+      [:h1 "Unknown screen: " screen])))
 
 (rdom/render [component:app] (.getElementById js/document "app"))
