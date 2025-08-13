@@ -7,7 +7,6 @@
 
 (defn screen-from-hash []
   (let [frag (.. js/window -location -hash)]
-    (js/console.log frag)
     (if (> (count frag) 1)
       (keyword (subs frag 1))
       :title)))
@@ -17,7 +16,6 @@
 ; set up basic history popstate management
 (.addEventListener js/window "popstate"
   (fn [_]
-    (js/console.log "pop")
     (swap! state assoc :screen (screen-from-hash))))
 
 (defn component:icon [id]
@@ -59,7 +57,10 @@
 
 (defn component:back-button []
   [:a.button.cta {:href "#"
-                  :on-click #(swap! state assoc :screen :title)} "Back"])
+                  :on-click (fn [e]
+                              (.preventDefault e)
+                              (.replaceState js/history nil "" (.. js/window -location -pathname))
+                              (swap! state assoc :screen :title))} "Back"])
 
 (defn component:instructions []
   [:main.title.page
