@@ -89,6 +89,10 @@ main.title {
   position: relative;
 }
 
+main.title > * {
+  z-index: 1;
+}
+
 main.title::before {
   content: "";
   position: absolute;
@@ -101,6 +105,8 @@ main.title::before {
   opacity: 0.05;
   transform: rotate(5deg);
   animation: bgpan 10s linear infinite;
+  pointer-events: none;
+  z-index: 0;
 }
 
 main.title.page {
@@ -143,6 +149,10 @@ nav.menu a:nth-child(6) { --rotation: 1deg; }
 nav.menu a:nth-child(7) { --rotation: -3deg; }
 nav.menu a:nth-child(8) { --rotation: 2deg; }
 
+button, .button {
+  cursor: pointer;
+}
+
 button.cta, .button.cta {
   background-color: var(--color-accent);
   color: var(--color-fg);
@@ -151,7 +161,6 @@ button.cta, .button.cta {
   margin-top: 1rem;
   box-shadow: 0 5px 0 var(--color-accent-shadow);
   font-weight: bold;
-  cursor: pointer;
   text-decoration: none;
 }
 
