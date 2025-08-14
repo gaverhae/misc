@@ -1,7 +1,5 @@
 (ns main
-  (:require
-    [reagent.core :as r]
-    [reagent.dom :as rdom]))
+  (:require [replicant.dom :as d]))
 
 (def game-title "Game 1")
 
@@ -11,7 +9,7 @@
       (keyword (subs frag 1))
       :title)))
 
-(defonce state (r/atom {:screen (screen-from-hash)}))
+(defonce state (atom {:screen (screen-from-hash)}))
 
 ; set up basic history popstate management
 (.addEventListener js/window "popstate"
@@ -29,18 +27,18 @@
    [:defs
     [:path {:id "curve" :d "M 100 150 C 200 100 500 100 600 150"}]
     [:filter {:id "drop-shadow"}
-     ["feFlood" {:result "flood"}]
-     ["feComposite" {:in "flood" :in2 "SourceAlpha"
+     [:feFlood {:result "flood"}]
+     [:feComposite {:in "flood" :in2 "SourceAlpha"
                      :operator "in" :result "clip"}]
-     ["feOffset" {:in "clip" :dx "0" :dy "10" :result "offset"}]
-     ["feMerge"
-      ["feMergeNode" {:in "offset"}]
-      ["feMergeNode" {:in "SourceGraphic"}]]]]
+     [:feOffset {:in "clip" :dx "0" :dy "10" :result "offset"}]
+     [:feMerge
+      [:feMergeNode {:in "offset"}]
+      [:feMergeNode {:in "SourceGraphic"}]]]]
    [:text {:stroke-width "10px"
            :filter "url(#drop-shadow)"
            :stroke-linecap "round"
            :stroke-linejoin "round"}
-    [:textPath {:href "#curve" :textAnchor "middle" :startOffset "50%"}
+    [:textPath {:href "#curve" :text-anchor "middle" :startOffset "50%"}
      [:tspan game-title]]]])
 
 (defn component:game []
@@ -66,19 +64,19 @@
   [:main.title.page
    [:h1 "Instructions"]
    [:p "This is a placeholder for the instructions screen."]
-   [component:back-button]])
+   (component:back-button)])
 
 (defn component:settings []
   [:main.title.page
    [:h1 "Settings"]
    [:p "This is a placeholder for the settings screen."]
-   [component:back-button]])
+   (component:back-button)])
 
 (defn component:credits []
   [:main.title.page
    [:h1 "Credits"]
    [:p "This is a placeholder for the credits screen."]
-   [component:back-button]])
+   (component:back-button)])
 
 (defn component:menu []
   [:nav.menu
@@ -93,18 +91,19 @@
 
 (defn component:title-screen []
   [:main.title
-   [component:title game-title]
-   [component:menu]
-   #_ [component:icon "1f3ae"]])
+   (component:title game-title)
+   (component:menu)
+   #_ (component:icon "1f3ae")])
 
 (defn component:app []
   (let [screen (:screen @state)]
     (case screen
-      :title [component:title-screen]
-      :game [component:game]
-      :instructions [component:instructions]
-      :settings [component:settings]
-      :credits [component:credits]
+      :title (component:title-screen)
+      :game (component:game)
+      :instructions (component:instructions)
+      :settings (component:settings)
+      :credits (component:credits)
       [:h1 "Unknown screen: " screen])))
 
-(rdom/render [component:app] (.getElementById js/document "app"))
+(d/render (.getElementById js/document "app")
+          (component:app @state))
