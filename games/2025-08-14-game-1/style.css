@@ -25,6 +25,16 @@ html, body, #app, main {
   user-select: none;
 }
 
+.cgv-entity {
+  -webkit-transform: translate(calc(var(--ox) * 1vmin),
+                               calc(var(--oy) * -1vmin))
+                     translateX(calc(var(--x) * 1vmin))
+                     translateY(calc(var(--y) * -1vmin))
+                     scale(var(--s))
+                     scale(var(--sx), var(--sy))
+                     rotate(var(--r));
+}
+
 .icon {
   width: 48px;
   height: 48px;
