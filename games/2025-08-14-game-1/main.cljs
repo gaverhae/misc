@@ -3,7 +3,7 @@
     [reagent.core :as r]
     [reagent.dom :as rdom]))
 
-(def game-title "Game Title")
+(def game-title "Game 1")
 
 (defn screen-from-hash []
   (let [frag (.. js/window -location -hash)]
