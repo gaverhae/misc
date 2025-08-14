@@ -1,0 +1,6 @@
+.envrc.private
+/target
+/.lein-*
+/.nrepl-port
+/data/puzzle/
+/.lead/

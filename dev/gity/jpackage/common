@@ -1,0 +1,4 @@
+--input target
+--main-jar gity.jar
+--name "gity"
+--main-class main

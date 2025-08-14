@@ -1,0 +1,4 @@
+.envrc.private
+/.cpcache/
+.nrepl-port
+/target/

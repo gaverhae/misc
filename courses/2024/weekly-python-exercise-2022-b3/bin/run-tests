@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
+
+path_to_watch=$(realpath ${1:-.})
+
+fswatch -o "$path_to_watch" | xargs -I{} poetry run pytest

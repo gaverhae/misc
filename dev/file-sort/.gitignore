@@ -1,0 +1,6 @@
+.envrc.private
+/target
+/.lein-*
+/.nrepl-port
+/.prepl-port
+_data

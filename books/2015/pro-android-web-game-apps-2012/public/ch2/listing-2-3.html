@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function init() {
+      var canvas = document.getElementById('mainCanvas');
+      var ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = "gray";
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 3;
+      ctx.fillRect(50, 50, 100, 100);
+      ctx.strokeRect(4.5, 30.5, 70, 70);
+    }
+  </script>
+</head>
+<body onload="init()">
+  <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>

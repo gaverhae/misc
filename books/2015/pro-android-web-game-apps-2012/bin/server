@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
+cd "$DIR"
+
+if [ -z "${1:-}" ]; then
+  echo "Need an arg: start, stop, reload, deploy"
+fi
+
+ALL_CHAPTERS="ch2 ch3 ch4 ch5"
+
+_go() (
+  nginx -p "$(pwd)" -e logs/error.log $@
+)
+
+_compile() (
+  cd "$DIR"/cljs
+  for arg in $@; do
+    npx shadow-cljs release $arg
+  done
+)
+
+_deploy() (
+  if ! [ -d .heroku ]; then
+    mkdir .heroku
+    app_name=pawga-$(tr -dc a-z </dev/urandom | head -c 8 || true)
+    echo $app_name > .heroku/app_name
+    heroku apps:create --no-remote $app_name
+  fi
+  app_name=$(cat .heroku/app_name)
+  rm -rf public .heroku/git
+  git checkout public
+  _compile $ALL_CHAPTERS
+  mkdir .heroku/git
+  cp -r public .heroku/git/
+  cd .heroku/git
+  cat <<EOF > package.json
+{"scripts": {"start":"serve public"},
+ "dependencies": {"serve":"14.2.4"}}
+EOF
+  git init
+  git add .
+  git commit -m "ploup"
+  heroku git:remote -a $app_name
+  git push -f heroku main:main
+)
+
+case $1 in
+  start)
+    _compile $ALL_CHAPTERS
+    echo "Probable address:"
+    echo "http://$(ifconfig | grep "inet 192" | awk '{print $2}'):8080"
+    echo "Compiling ClojureScript..."
+    echo "Starting server..."
+    _go
+    ;;
+  stop)
+    _go -s stop
+    ;;
+  reload)
+    _go -s reload
+    ;;
+  deploy)
+    _deploy
+    ;;
+  *)
+    echo "ERROR"
+    exit 1
+    ;;
+esac
+

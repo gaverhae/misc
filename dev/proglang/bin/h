@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
+cd "$DIR"
+
+log=$(mktemp)
+trap "echo 'Something went wrong. Logs of last step:'; cat $log" EXIT
+
+_help() (
+  echo "Available commands:"
+  echo "  h test        Watches src and test directories, and runs \`clj -X:test\`"
+  echo "                on each change."
+  echo "  h repl        Starts a Cider REPL."
+)
+
+_test() (
+  fswatch -o -0 . | xargs -0 -n 1 bash -c 'clj -X:test'
+)
+
+_repl() (
+  clj -M:cider-clj
+)
+
+case $1 in
+  repl)
+    _repl
+    ;;
+  test)
+    _test
+    ;;
+  *)
+    _help
+    trap - EXIT
+    exit 1
+    ;;
+esac
+
+trap - EXIT

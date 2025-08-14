@@ -1,0 +1,34 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies
+ [[org.clojure/core.match "1.1.0"]]
+
+ :builds
+ {:ch2
+  {:target :browser
+   :asset-path "/ch2/cljs"
+   :output-dir "../public/ch2/cljs"
+   :devtools {:after-load ch2.main/init}
+   :modules {:main {:init-fn ch2.main/init}}}
+  :ch3
+  {:target :browser
+   :asset-path "/ch3/cljs"
+   :output-dir "../public/ch3/cljs"
+   :devtools {:after-load ch3.main/init}
+   :modules {:main {:init-fn ch3.main/init}}}
+  :ch4
+  {:target :browser
+   :asset-path "/ch4/cljs"
+   :output-dir "../public/ch4/cljs"
+   :devtools {:after-load ch4.main/init}
+   :modules {:main {:init-fn ch4.main/init}}}
+  :ch5
+  {:target :browser
+   :asset-path "/ch5/cljs"
+   :output-dir "../public/ch5/cljs"
+   :devtools {:after-load ch5.main/init}
+   :modules {:main {:init-fn ch5.main/init}}}}}

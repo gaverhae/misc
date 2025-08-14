@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+  </style>
+  <script src="my/GameRenderer.js"></script>
+  <script src="my/GameModel.js"></script>
+  <script src="my/ResizeableCanvas.js"></script>
+  <script src="my/GameController.js"></script>
+  <!-- Order matters! This one must be last: -->
+  <script src="my/Game.js"></script>
+  <script>
+    function init() {
+      Game.init("mainCanvas");
+    }
+  </script>
+</head>
+<body onload=init()>
+  <canvas id="mainCanvas" width="100" height="100"></canvas>
+</body>
+</html>

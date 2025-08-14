@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function init() {
+      var canvas = document.getElementById('mainCanvas');
+      var ctx = canvas.getContext('2d');
+      var cellSize = 40;
+      ctx.beginPath();
+
+      for (var i = 0; i < 8; i++) {
+        ctx.moveTo(i * cellSize + 0.5, 0);
+        ctx.lineTo(i * cellSize + 0.5, cellSize * 6);
+      }
+
+      for (var j = 0; j < 7; j++) {
+        ctx.moveTo(0, j * cellSize + 0.5);
+        ctx.lineTo(cellSize * 7, j * cellSize + 0.5);
+      }
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#989681";
+      ctx.stroke();
+    }
+  </script>
+</head>
+<body onload="init()">
+  <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>

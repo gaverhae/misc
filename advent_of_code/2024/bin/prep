@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd)"
+cd "$DIR"
+
+DAY=$(printf "%02d" $1)
+
+PREV_DAY=$(printf "%02d" $(( $1 - 1 )))
+
+if [ -f src/t/day$PREV_DAY.clj ]; then
+  sed -i '1s|\^:test-refresh/focus ||' src/t/day$PREV_DAY.clj
+fi
+
+cat <<EOF > src/t/day$DAY.clj
+(ns ^:test-refresh/focus t.day$DAY
+  (:require [clojure.core.match :refer [match]]
+            [clojure.set :as set]
+            [clojure.string :as string]
+            [instaparse.core :refer [parser]]
+            [t.lib :as lib :refer [->long]]))
+
+(defn parse
+  [lines]
+  lines)
+
+(defn part1
+  [input]
+  input)
+
+(defn part2
+  [input]
+  input)
+
+(lib/check
+  [part1 sample] 0
+  #_#_[part1 puzzle] 0
+  #_#_[part2 sample] 0
+  #_#_[part2 puzzle] 0)
+EOF
+
+touch data/sample/day$DAY
+git add . && git commit -m "aoc/2024/$DAY: prep"
+vim -O src/t/day$DAY.clj data/sample/day$DAY

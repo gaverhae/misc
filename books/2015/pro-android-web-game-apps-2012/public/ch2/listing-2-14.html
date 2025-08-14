@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style></style>
+  <script>
+    function loadImage(imageUrl, then) {
+      var image = new Image();
+      image.onload = function() {
+        // At this point, image has finished loading.
+        then(image);
+      };
+      image.onerror = function() {
+        alert("Image loading failed: " + imageUrl);
+      };
+      // this starts the image loading:
+      image.src = imageUrl;
+    }
+
+    function drawScene(image) {
+      // here, we assume the image we receive has finished loading
+      var canvas = document.getElementById('mainCanvas');
+      var ctx = canvas.getContext('2d');
+      var pattern = ctx.createPattern(image, "repeat");
+      ctx.fillStyle = pattern;
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(150, 150);
+      ctx.arc(150, 150, 150, 0, 1.7 * Math.PI, false);
+      ctx.fill();
+    }
+
+    // entrypoint
+    function init() {
+      var imageUrl = "https://developer.android.com/static/images/brand/android-head_3D.png";
+      loadImage(imageUrl, function(loadedImage) {
+          drawScene(loadedImage);
+        });
+    }
+  </script>
+</head>
+<body onload="init()">
+  <canvas id="mainCanvas" width="300px" height="300px"></canvas>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{:deps
+ {instaparse/instaparse {:mvn/version "1.5.0"}}
+ :aliases
+ {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.9" :git/sha "e405aac"}}
+          :ns-default build}
+  :cider-clj {:extra-deps {org.clojure/clojure {:mvn/version "1.12.1"}
+                          cider/cider-nrepl {:mvn/version "0.56.0"}
+                          fipp/fipp {:mvn/version "0.6.27"}}
+              :extra-paths ["test"]
+              :main-opts ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
+  :test {:extra-paths ["test"]
+         :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}}}
