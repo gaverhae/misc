@@ -4,4 +4,4 @@
 
 (let [args *command-line-args*]
   (cond
-    (= ["dups"] args) (p/exec "lein trampoline run ploup")))
+    (= ["dups"] args) (p/exec "lein trampoline run dups")))
