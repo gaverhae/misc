@@ -1,0 +1,7 @@
+#!/usr/bin/env bb
+
+(require '[babashka.process :as p])
+
+(let [args *command-line-args*]
+  (cond
+    (= ["dups"] args) (p/exec "lein trampoline run ploup")))
