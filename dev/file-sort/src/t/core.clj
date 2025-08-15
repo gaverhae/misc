@@ -196,7 +196,7 @@
                       (delete (p d2 f))
                       (let [h (hashes (Path/.toFile (p d2 f)))
                             ext (string/replace (Path/.getFileName (p d2 f)) #".*\." "")
-                            target (str f "__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
+                            target (str f "__FS_DUPS__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
                         (if (exists? (p d1 target))
                           (delete (p d2 f))
                           (do (println "C: " (subs f 1))
