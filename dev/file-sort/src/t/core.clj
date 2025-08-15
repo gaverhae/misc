@@ -248,9 +248,9 @@
   (->> (find-dups env-roots)
        (take n)
        reverse
-       (map (fn [[[md5 sha1 size] ms]]
+       (map (fn [[sig ms]]
               (println)
-              (println (format "%s / %s / %s" (show-size size) md5 sha1))
+              (println sig)
               (->> ms (map (comp str :path)) sort (map println) doall)
               (println)))
        doall))
@@ -267,8 +267,8 @@
                    (recur to-handle)))))
         q2 (async/thread
              (loop []
-               (when-let [[[md5 sha1 size] paths] (async/<!! ch)]
-                 (println (format "%s / %s / %s" (show-size size) md5 sha1))
+               (when-let [[sig paths] (async/<!! ch)]
+                 (println sig)
                  (case (loop [kept (first paths)
                               th (rest paths)]
                          (if (empty? th)
