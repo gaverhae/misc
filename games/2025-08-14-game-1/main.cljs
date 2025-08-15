@@ -14,6 +14,17 @@
    {:src
     (str "https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/" id ".svg")}])
 
+(defn component:entity
+  [e]
+  [:img.cgv-entity
+   {:src (str "https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/"
+              (:img e)
+              ".svg")
+    :style {"--w" 1
+            "--h" 1
+            "--x" (:x e)
+            "--y" (:y e)}}])
+
 (defn component:title [game-title]
   [:svg#game-title {:viewBox "0 0 700 200"
                     :xmlns "http://www.w3.org/2000/svg"}
@@ -37,14 +48,9 @@
 (defn component:game []
   [:main
    [:div.cgv {:style {"--size" 10}}
-    [:img.cgv-entity
-     {:src
-      "https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/1f47b.svg"
-      :style
-      {"--w" 1
-       "--h" 1
-       "--x" 0
-       "--y" 0}}]]])
+    (component:entity {:img "1f47b"
+                       :x 0
+                       :y 0})]])
 
 (defn component:back-button []
   [:a.button.cta {:href "#"
