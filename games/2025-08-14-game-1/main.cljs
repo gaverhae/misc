@@ -48,8 +48,7 @@
 
 (defn component:back-button []
   [:a.button.cta {:href "#"
-                  :on {:click [[:action/prevent-default]
-                               [:history/replace :title]]}}
+                  :on {:click [[:history/navigate :title]]}}
    "Back"])
 
 (defn component:instructions []
@@ -107,11 +106,6 @@
   [trig actions]
   (doseq [[kw & args] actions]
     (case kw
-      :action/prevent-default (let [ev (:replicant/dom-event trig)]
-                                (.preventDefault ev))
-      :history/replace (let [[route] args]
-                         (.replaceState js/history nil "" (.. js/window -location -pathname))
-                         (swap! +state+ assoc :screen route))
       :history/navigate (let [[route] args]
                           (swap! +state+ assoc :screen route))
       (prn [:unhandled (apply vector kw args)]))))
@@ -127,7 +121,7 @@
            (fn [_ _ _ state]
              (render state)))
 
-; set up basic history popstate management
+;; make back button work as expected
 (.addEventListener js/window "popstate"
   (fn [_]
     (swap! +state+ assoc :screen (screen-from-hash))))
