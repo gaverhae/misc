@@ -9,13 +9,6 @@
       (keyword (subs frag 1))
       :title)))
 
-(defonce state (atom {:screen (screen-from-hash)}))
-
-; set up basic history popstate management
-(.addEventListener js/window "popstate"
-  (fn [_]
-    (swap! state assoc :screen (screen-from-hash))))
-
 (defn component:icon [id]
   [:img.icon
    {:src
@@ -55,10 +48,9 @@
 
 (defn component:back-button []
   [:a.button.cta {:href "#"
-                  :on-click (fn [e]
-                              (.preventDefault e)
-                              (.replaceState js/history nil "" (.. js/window -location -pathname))
-                              (swap! state assoc :screen :title))} "Back"])
+                  :on {:click [[:action/prevent-default]
+                               [:history/replace :title]]}}
+   "Back"])
 
 (defn component:instructions []
   [:main.title.page
@@ -81,13 +73,17 @@
 (defn component:menu []
   [:nav.menu
    [:a {:href "#instructions"
-        :on-click #(swap! state assoc :screen :instructions)} "instructions"]
+        :on {:click [[:history/navigate :instructions]]}}
+    "instructions"]
    [:a {:href "#settings"
-        :on-click #(swap! state assoc :screen :settings)} "settings"]
+        :on {:click [[:history/navigate :settings]]}}
+    "settings"]
    [:a {:href "#credits"
-        :on-click #(swap! state assoc :screen :credits)} "credits"]
+        :on {:click [[:history/navigate :credits]]}}
+    "credits"]
    [:a.button.cta {:href "#game"
-                   :on-click #(swap! state assoc :screen :game)} "Play"]])
+                   :on {:click [[:history/navigate :game]]}}
+    "Play"]])
 
 (defn component:title-screen []
   [:main.title
@@ -95,8 +91,8 @@
    (component:menu)
    #_ (component:icon "1f3ae")])
 
-(defn component:app []
-  (let [screen (:screen @state)]
+(defn component:app [state]
+  (let [screen (:screen state)]
     (case screen
       :title (component:title-screen)
       :game (component:game)
@@ -105,5 +101,35 @@
       :credits (component:credits)
       [:h1 "Unknown screen: " screen])))
 
-(d/render (.getElementById js/document "app")
-          (component:app @state))
+(defonce +state+ (atom {:screen (screen-from-hash)}))
+
+(defn handle-event
+  [trig actions]
+  (doseq [[kw & args] actions]
+    (case kw
+      :action/prevent-default (let [ev (:replicant/dom-event trig)]
+                                (.preventDefault ev))
+      :history/replace (let [[route] args]
+                         (.replaceState js/history nil "" (.. js/window -location -pathname))
+                         (swap! +state+ assoc :screen route))
+      :history/navigate (let [[route] args]
+                          (swap! +state+ assoc :screen route))
+      (prn [:unhandled (apply vector kw args)]))))
+
+(d/set-dispatch! handle-event)
+
+(defn render
+  [state]
+  (d/render (.getElementById js/document "app")
+            (component:app state)))
+
+(add-watch +state+ ::render
+           (fn [_ _ _ state]
+             (render state)))
+
+; set up basic history popstate management
+(.addEventListener js/window "popstate"
+  (fn [_]
+    (swap! +state+ assoc :screen (screen-from-hash))))
+
+(render @+state+)
