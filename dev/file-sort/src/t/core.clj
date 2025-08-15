@@ -208,6 +208,31 @@
 
 (defn find-dups
   [env-roots]
+  (let [remove-same-files (fn [files]
+                            (->> files
+                                 (map (fn [f]
+                                        [(Files/getAttribute (:path f) "unix:ino" no-follow-symlinks)
+                                         f]))
+                                 (into {})
+                                 (map val)))
+        compute-signature (fn [file]
+                            (let [{:keys [md5 sha1]} (hashes (Path/.toFile (:path file)))]
+                              (format "%s / %s / %s" (show-size (:size file)) md5 sha1)))
+        stop-if-one (fn [files]
+                      (when (>= (count files) 2)
+                        files))
+        make-chunks (fn ! [files]
+                      (loop [files files]
+                        (if (empty? files)
+                          nil
+                          (let [size (:size (first files))
+                                chunks (->> files
+                                            (take-while #(= size (:size %)))
+                                            (remove-same-files)
+                                            (stop-if-one)
+                                            (group-by compute-signature)
+                                            (filter (fn [[sig ms]] (>= (count ms) 2))))]
+                            (concat chunks (lazy-seq (! (drop-while #(= size (:size %)) files))))))))]
   (->> env-roots
        (map ->path)
        (map all-paths-under)
@@ -215,27 +240,8 @@
        (map (fn [p]
               {:path p
                :size (Files/size p)}))
-       (group-by :size)
-       (sort-by (comp - key))
-       (filter (fn [[s ms]]
-                 (>= (count ms) 2)))
-       (map (fn [[size ms]]
-              (let [same-file? (fn [m1] (fn [m2] (Files/isSameFile (:path m1) (:path m2))))]
-                (loop [distincts []
-                       to-check ms]
-                  (if (empty? to-check)
-                    [size distincts]
-                    (let [[f & to-check] to-check]
-                      (recur (conj distincts f)
-                             (vec (remove (same-file? f) to-check)))))))))
-       (filter (fn [[_ ms]]
-                 (>= (count ms) 2)))
-       (mapcat (fn [[_ ms]]
-                 (->> ms
-                      (map (fn [m] (merge m (hashes (Path/.toFile (:path m))))))
-                      (group-by (juxt :md5 :sha1 :size)))))
-       (filter (fn [[[md5 sha1 size] ms]]
-                 (>= (count ms) 2)))))
+       (sort-by (comp - :size))
+       make-chunks)))
 
 (defn show-dups
   [env-roots n]
