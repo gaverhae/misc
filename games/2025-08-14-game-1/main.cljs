@@ -15,8 +15,8 @@
    {:src (str "https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/"
               (:img e)
               ".svg")
-    :style {"--w" 1
-            "--h" 1
+    :style {"--w" "1"
+            "--h" "1"
             "--x" (:x e)
             "--y" (:y e)}}])
 
@@ -42,7 +42,7 @@
 
 (defn component:game []
   [:main
-   [:div.cgv {:style {"--size" 10}}
+   [:div.cgv {:style {"--size" "10"}}
     (component:entity {:img "1f47b"
                        :x 0
                        :y 0})]])
