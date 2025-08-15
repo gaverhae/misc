@@ -265,6 +265,21 @@
               (println)))
        doall))
 
+(defmacro with-raw-terminal
+  [& body]
+  `(try
+     (p/exec "bash" "-c" "stty raw -F /dev/tty")
+     (with-open [r# (io/reader System/in)]
+       ;; This is dirty. Is it _too_ dirty? :thinking:
+       (let [~'get-char (fn [] (str (char (.read r#))))
+             ;; Normally `(println x)` is equivalent to `(print x "\n")` but in
+             ;; raw mode we need the carriage return.
+             ~'println (fn [& args#] (apply print args# "\n\r"))]
+         ~@body))
+     (finally
+       (p/exec {:err :discard} "bash" "-c" "stty cooked -F /dev/tty || true")
+       (println))))
+
 (defn rem-dups
   [env-roots]
   (let [ch (async/chan)
@@ -278,33 +293,34 @@
                      [stop] (async/close! ch)
                      [[ch t]] (recur to-handle))))))
         q2 (async/thread
-             (loop []
-               (when-let [[sig paths] (async/<!! ch)]
-                 (println sig)
-                 (case (loop [kept (first paths)
-                              th (rest paths)]
-                         (if (empty? th)
-                           :done
-                           (let [[m & th] th]
-                             (println (format "Original:  \"%s\"." (:path kept)))
-                             (println (format "Next item: \"%s\"." (:path m)))
-                             (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
-                             (print "> ") (flush)
-                             (case (read-line)
-                               "S" (recur m (conj th kept))
-                               "s" (recur kept th)
-                               "d" (do (delete (:path m))
-                                       (recur kept th))
-                               "q" :quit
-                               nil :quit
-                               "h" (do (delete (:path m))
-                                       (make-hard-link (:path kept) (:path m))
-                                       (recur kept th))
-                               (do (println "Please enter S, s, d, q, or h.")
-                                   (recur kept (cons m th)))))))
-                   :done (recur)
-                   :quit (do (async/put! stop :done)
-                             (println "Bye!"))))))]
+             (with-raw-terminal
+               (loop []
+                 (when-let [[sig paths] (async/<!! ch)]
+                   (println sig)
+                   (case (loop [kept (first paths)
+                                th (rest paths)]
+                           (if (empty? th)
+                             :done
+                             (let [[m & th] th]
+                               (println (format "Original:  \"%s\"." (:path kept)))
+                               (println (format "Next item: \"%s\"." (:path m)))
+                               (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
+                               (print "> ") (flush)
+                               (case (get-char)
+                                 "S" (recur m (conj th kept))
+                                 "s" (recur kept th)
+                                 "d" (do (delete (:path m))
+                                         (recur kept th))
+                                 "q" :quit
+                                 nil :quit
+                                 "h" (do (delete (:path m))
+                                         (make-hard-link (:path kept) (:path m))
+                                         (recur kept th))
+                                 (do (println "Please enter S, s, d, q, or h.")
+                                     (recur kept (cons m th)))))))
+                     :done (recur)
+                     :quit (do (async/put! stop :done)
+                               (println "Bye!")))))))]
     (async/<!! q1)
     (async/<!! q2)))
 
@@ -374,28 +390,6 @@
       (println (str f))
       (delete-rec f))))
 
-(defmacro with-raw-terminal
-  [& body]
-  `(try
-     (p/exec "bash" "-c" "stty raw -F /dev/tty")
-     ~@body
-     (finally
-       (p/exec {:err :discard} "bash" "-c" "stty cooked -F /dev/tty || true")
-       (println))))
-
-(defn ploup
-  []
-  (with-open [r (io/reader System/in)]
-    (with-raw-terminal
-      (loop []
-        (print "> ") (flush)
-        (let [c (char (.read r))]
-          (when (not= \q c)
-            (print "\n\r")
-            (print "Got: " c)
-            (print "\n\r")
-            (recur)))))))
-
 (defn -main
   [& args]
   (when-let [lang (System/getenv "LANG")]
@@ -405,9 +399,6 @@
         save-result (System/getenv "SAVE_RESULT")]
     (cond (empty? args)
           (count-files env-roots save-result)
-
-          (= ["ploup"] args)
-          (ploup)
 
           (and (= "merge" (first args))
                (>= (count (rest args)) 2))
