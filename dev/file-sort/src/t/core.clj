@@ -57,7 +57,7 @@
 
 (defn all-paths-under
   "List all the paths under the given path. Returns a map with these keys:
-   :dirs, :files, :symlinks, :error."
+  :dirs, :files, :symlinks, :error."
   [path]
   (cond ;; do not traverse symbolic links at all
         (Files/isSymbolicLink path) {:symlinks [path]}
@@ -124,23 +124,23 @@
        (apply str)))
 
 (defn hashes
-  ([f] (hashes f true))
-  ([f loop?]
-   (let [buffer-size (* 64 1024)
-         buffer (byte-array buffer-size)
-         md5 (MessageDigest/getInstance "md5")
-         sha1 (MessageDigest/getInstance "sha1")]
-     (with-open [is (io/input-stream f)]
-       (loop []
-         (let [n (.read is buffer)]
-           (when (pos? n)
-             (.update md5 buffer 0 n)
-             (.update sha1 buffer 0 n))
-           (if (and loop?
-                    (= n buffer-size))
-             (recur)
-             {:md5 (bytes-to-hex (.digest md5))
-              :sha1 (bytes-to-hex (.digest sha1))})))))))
+  [f max-iter]
+  (let [buffer-size (* 64 1024)
+        buffer (byte-array buffer-size)
+        md5 (MessageDigest/getInstance "md5")
+        sha1 (MessageDigest/getInstance "sha1")]
+    (with-open [is (io/input-stream f)]
+      (loop [i 0]
+        (let [n (.read is buffer)]
+          (when (pos? n)
+            (.update md5 buffer 0 n)
+            (.update sha1 buffer 0 n))
+          (if (and (or (= -1 max-iter)
+                       (< i max-iter))
+                   (= n buffer-size))
+            (recur (inc i))
+            {:md5 (bytes-to-hex (.digest md5))
+             :sha1 (bytes-to-hex (.digest sha1))}))))))
 
 (let [no-copy-opt ^"[Ljava.nio.file.CopyOption;" (make-array CopyOption 0)
       no-file-attr (make-array FileAttribute 0)
@@ -195,7 +195,7 @@
                   (if (exists? (p d1 f))
                     (if (same-files? (p d1 f) (p d2 f))
                       (delete (p d2 f))
-                      (let [h (hashes (Path/.toFile (p d2 f)))
+                      (let [h (hashes (Path/.toFile (p d2 f)) -1)
                             ext (string/replace (Path/.getFileName (p d2 f)) #".*\." "")
                             target (str f "__FS_DUPS__" (:sha1 h) "__" (:md5 h) (when ext ".") ext)]
                         (if (exists? (p d1 target))
@@ -218,40 +218,45 @@
                                          f]))
                                  (into {})
                                  (map val)))
-        fast-signature (fn [file]
-                         (let [{:keys [md5 sha1]} (hashes (Path/.toFile (:path file))
-                                                          false)]
-                           (format "%s / %s / %s" (show-size (:size file)) md5 sha1)))
+        signature (fn [n]
+                    (fn [file]
+                      (let [{:keys [md5 sha1]} (hashes (Path/.toFile (:path file))
+                                                       n)]
+                        (format "%s / %s / %s" (show-size (:size file)) md5 sha1))))
         complete-signature (fn [file]
-                            (let [{:keys [md5 sha1]} (hashes (Path/.toFile (:path file)))]
-                              (format "%s / %s / %s" (show-size (:size file)) md5 sha1)))
-        stop-if-one (fn [files]
-                      (when (>= (count files) 2)
-                        files))
+                             (prn [:h (:path file)])
+                             ((signature -1) file))
+        re-chunk (fn [f chunks]
+                   (->> chunks
+                        (mapcat (fn [[chunk-id chunk-elems]]
+                                  (group-by f chunk-elems)))
+                        (filter (fn [[chunk-id chunk-elems]]
+                                  (>= (count chunk-elems) 2)))))
+        nil-if-one (fn [files]
+                     (when (>= (count files) 2)
+                       files))
         make-chunks (fn ! [files]
-                      (loop [files files]
-                        (if (empty? files)
-                          nil
-                          (let [size (:size (first files))
-                                chunks (->> files
-                                            (take-while #(= size (:size %)))
-                                            (remove-same-files)
-                                            (stop-if-one)
-                                            (group-by fast-signature)
-                                            (filter (fn [[fsig ms]] (>= (count ms) 2)))
-                                            (mapcat (fn [[fsig ms]]
-                                                      (group-by complete-signature ms)))
-                                            (filter (fn [[sig ms]] (>= (count ms) 2))))]
-                            (concat chunks (lazy-seq (! (drop-while #(= size (:size %)) files))))))))]
-  (->> env-roots
-       (map ->path)
-       (map all-paths-under)
-       (mapcat :files)
-       (map (fn [p]
-              {:path p
-               :size (Files/size p)}))
-       (sort-by (comp - :size))
-       make-chunks)))
+                      (if (empty? files)
+                        nil
+                        (let [size (:size (first files))
+                              [this-chunk files] (split-with #(= size (:size %)) files)
+                              chunks (->> [[nil (->> this-chunk
+                                                     (remove-same-files)
+                                                     (nil-if-one))]]
+                                          (re-chunk (signature 1))
+                                          (re-chunk (signature 100))
+                                          (re-chunk (signature -1)))]
+                          (concat chunks
+                                  (lazy-seq (! files))))))]
+    (->> env-roots
+         (map ->path)
+         (map all-paths-under)
+         (mapcat :files)
+         (map (fn [p]
+                {:path p
+                 :size (Files/size p)}))
+         (sort-by (comp - :size))
+         make-chunks)))
 
 (defn show-dups
   [env-roots n]
