@@ -267,13 +267,15 @@
 (defn rem-dups
   [env-roots]
   (let [ch (async/chan)
+        stop (async/chan)
         q1 (async/thread
              (loop [to-handle (find-dups env-roots)]
                (if (empty? to-handle)
                  (async/close! ch)
                  (let [[t & to-handle] to-handle]
-                   (async/>!! ch t)
-                   (recur to-handle)))))
+                   (async/alt!!
+                     [stop] (async/close! ch)
+                     [[ch t]] (recur to-handle))))))
         q2 (async/thread
              (loop []
                (when-let [[sig paths] (async/<!! ch)]
@@ -300,7 +302,8 @@
                                (do (println "Please enter S, s, d, q, or h.")
                                    (recur kept (cons m th)))))))
                    :done (recur)
-                   :quit (println "Bye!")))))]
+                   :quit (do (async/put! stop :done)
+                             (println "Bye!"))))))]
     (async/<!! q1)
     (async/<!! q2)))
 
