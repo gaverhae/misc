@@ -111,7 +111,7 @@
       (when (= "true" save-result)
         (spit (str "_data/" n ".edn") (pr-str cs)))
       (prn cs)
-      (println (format "Total files, size: %d %s"
+      (println (format "Total files, size: %d, %s"
                        (->> cs :data vals (map :count) (reduce + 0))
                        (-> cs :data vals
                            (->> (map :total-size)
