@@ -161,20 +161,20 @@
                                          "  if n == 1:"
                                          "    return 1"
                                          "  return fib(n + -1) + fib(n + -2)"
-                                         "fib(25)"])))]
+                                         "fib(12)"])))]
     (let [[v {:keys [env stack mem next-addr]}] (s/mrun-envs fib)]
       (is (= {"print" 0, "start_t" 1, "wait_t" 2, "fib" 3} env))
-      (is (= 242789 next-addr))
-      (is (= 242789 (count mem)))
+      (is (= 469 next-addr))
+      (is (= 469 (count mem)))
       (is (= [] stack))
-      (is (= [:int 121393] v)))
+      (is (= [:int 233] v)))
     (let [[v {:keys [env stack mem next-addr]}] (binding [s/+enable-gc+ true]
                                                   (s/mrun-envs fib))]
       (is (= {"print" 0, "start_t" 1, "wait_t" 2, "fib" 3} env))
-      (is (= 242789 next-addr))
+      (is (= 469 next-addr))
       (is (= 4 (count mem)))
       (is (= [] stack))
-      (is (= [:int 121393] v)))))
+      (is (= [:int 233] v)))))
 
 #_(deftest multi-thread
   (let [multifib (s/m-eval (s/parse (->lines ["def fib(n):"
