@@ -138,8 +138,9 @@
                                            (map vector params evaled-args))
                [closure-env mem app-val] (eval-pl closure-env mem body)]
            [env mem app-val])
-    :return (let [[_ expr] node]
-              (eval-pl env mem expr))
+    :return (let [[_ expr] node
+                  [env mem r] (eval-pl env mem expr)]
+              [env mem [:return r]])
     :identifier (let [[_ n] node]
                   (get-value env mem n))
     :equal (let [[_ left-expr right-expr] node
@@ -156,7 +157,10 @@
     :S (let [[_ & stmts] node]
          (reduce (fn [[env mem v] stmt]
                    (let [[env mem v] (eval-pl env mem stmt)]
-                     [env mem v]))
+                     (if (and (= 2 (count v))
+                              (= :return (first v)))
+                       (reduced [env mem (second v)])
+                       [env mem v])))
                  [env mem nil]
                  stmts))))
 
