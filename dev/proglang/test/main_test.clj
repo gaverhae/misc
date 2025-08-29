@@ -130,7 +130,12 @@
     ["def has_dead_code():"
      "  return 5"
      "  2"
-     "has_dead_code()"] [:int 5]))
+     "has_dead_code()"] [:int 5]
+    ["def fib(n):"
+     "  if n == 0:"
+     "    return 5"
+     "  return 2"
+     "fib(0)"] [:int 5]))
 
 (deftest files
   (are [path result] (= result (s/run-file (str "test-resources/" path ".py")))
@@ -143,4 +148,5 @@
     "global-shadowing" [:int 2]
     "global-unaffected" [:int 5]
     "fact" [:int 3628800]
-    "fib" [:int 89]))
+    "fib" [:int 89]
+    "fib-flat" [:int 89]))
