@@ -6,4 +6,4 @@ def unaffecting(a):
 
 unaffecting(5)
 
-b
+print(b)

@@ -5,4 +5,4 @@ def fib(n):
     return 1
   return fib(n + -2) + fib(n + -1)
 
-fib(10)
+print(fib(10))

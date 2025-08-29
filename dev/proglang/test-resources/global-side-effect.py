@@ -5,4 +5,4 @@ def side_effect_y(a):
 
 b = 7
 
-side_effect_y(5)
+print(side_effect_y(5))
