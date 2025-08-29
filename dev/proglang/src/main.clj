@@ -75,17 +75,27 @@
 (defn init-m-state
   []
   {:thread-id 0
-   :env {"print" 0}
+   :env {"print" 0
+         "start_t" 1
+         "wait_t" 2}
    :stack []
    :ready-threads mt-q
    :suspended-threads {}
    :done-threads {}
-   :next-addr 1
+   :next-addr 3
    :next-thread-id 1
    :mem {0 [:fn ["s"]
             [:S
              [:print [:identifier "s"]]
              [:return [:int "0"]]]
+            {}]
+         1 [:fn ["f"]
+            [:S
+             [:return [:start_t [:identifier "f"]]]]
+            {}]
+         2 [:fn ["t"]
+            [:S
+             [:return [:wait_t [:identifier "t"]]]]
             {}]}})
 
 (def ^:dynamic +enable-gc+ false)
