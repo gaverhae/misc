@@ -90,9 +90,10 @@
 
 (defn show-size
   [^long n]
-  (let [suf ["B" "kB" "MB" "GB" "TB"]]
+  (let [suf ["B" "kB" "MB" "GB"]]
     (loop [n (* 1.0 n) e 0]
-      (if (>= n 1024)
+      (if (and (>= n 1024)
+               (> (count suf) (inc e)))
         (recur (/ n 1024.0) (inc e))
         (format "%.2f%s" n (suf e))))))
 
