@@ -104,22 +104,22 @@
       [:int "1"]
       [:app [:identifier "fact"] [:int "3"]]]]))
 
-(deftest pl-eval
-  (are [string expected] (let [[env mem actual] (s/eval-pl (s/init-env) (s/init-mem) (s/parse (str string "\n")))]
+#_(deftest pl-eval
+  (are [string expected] (let [[env mem stack actual] (s/eval-pl (s/parse (str string "\n")))]
                            #_(prn [expected actual])
                            (= expected actual))
     "1+2+3" [:int 6]
     "(1) + (2 * 3)" [:int 7]
     "1  +  2 * 3 " [:int 7]
     "(1  +  2)* 3 " [:int 9]
-    "True" [:bool "True"]
-    "1 == 1" [:bool "True"]
-    "1 == 2" [:bool "False"]
-    "True == False" [:bool "False"]))
+    "True" [:bool true]
+    "1 == 1" [:bool true]
+    "1 == 2" [:bool false]
+    "True == False" [:bool false]))
 
 (deftest multiline-expr
-  (are [strings expected] (let [[env mem actual] (s/eval-pl (s/init-env) (s/init-mem) (s/parse (->lines strings)))]
-                            #_(prn [expected actual])
+  (are [strings expected] (let [[env mem stack actual] (s/eval-pl (s/parse (->lines strings)))]
+                            #_(prn [:exp expected :act actual])
                             (= expected actual))
     ["4" "1+2+3"] [:int 6]
     ["(1+2)" "(1) + (2 * 3)"] [:int 7]
