@@ -1,5 +1,6 @@
 (ns main
-  (:require [instaparse.core :as insta])
+  (:require [instaparse.core :as insta]
+            [io.github.gaverhae.clonad :refer [mdo match]])
   (:gen-class))
 
 (def parse-string
@@ -67,39 +68,6 @@
        (parse-blocks 0)
        (cons :S)))
 
-(declare eval-pl)
-
-(defn eval-args
-  [env mem args]
-  (reduce (fn [[env mem vs] n]
-            (let [[env mem v] (eval-pl env mem n)]
-              [env mem (conj vs v)]))
-          [env mem []]
-          args))
-
-(defn add-env
-  [env mem n v]
-  (if-let [addr (get env n)]
-    [env (update mem :mem assoc addr v) nil]
-    (let [addr (:next-addr mem)]
-      [(assoc env n addr)
-       (-> mem
-           (update :mem assoc addr v)
-           (update :next-addr inc))
-       nil])))
-
-(defn get-value
-  [env mem n]
-  (loop [e env]
-    (if-let [addr (get e n)]
-      [env mem (get-in mem [:mem addr])]
-      (when-let [p (get e ::parent)]
-        (recur p)))))
-
-(defn create-env
-  [env mem]
-  [{::parent env} mem nil])
-
 (defn init-mem
   []
   {:next-addr 1
@@ -113,70 +81,98 @@
   []
   {"print" 0})
 
+(defn mrun-envs
+  ([mv] (mrun-envs mv (init-env) (init-mem) []))
+  ([mv env mem stack]
+   (match mv
+     [:pure v] [env mem stack v]
+     [:bind mv f] (let [[env mem stack v] (mrun-envs mv env mem stack)]
+                    (if (not= v :m/stop)
+                      (mrun-envs (f v) env mem stack)))
+     [:assert bool msg] [env mem stack (if bool :m/continue :m/stop)]
+     [:add-to-env n v] (if-let [addr (get env n)]
+                         [env (update mem :mem assoc addr v) stack nil]
+                         (let [addr (:next-addr mem)]
+                           [(assoc env n addr)
+                            (-> mem
+                                (update :mem assoc addr v)
+                                (update :next-addr inc))
+                            stack
+                            nil]))
+     [:get-from-env n] [env mem stack (loop [env env]
+                                        (if (nil? env)
+                                          nil
+                                          (if-let [addr (get env n)]
+                                            (get (:mem mem) addr)
+                                            (recur (::parent env)))))]
+     [:get-env] [env mem stack env]
+     [:push-env base kvs] [{::parent base} mem (conj stack env) nil]
+     [:pop-env] [(peek stack) mem (pop stack) nil]
+     [:print v] (do (println (second v))
+                    [env mem nil]))))
+
+(defn sequenceM
+  "[m v] -> m [v]"
+  [mvs]
+  (if (empty? mvs)
+    [:pure ()]
+    (mdo [v (first mvs)
+          r (sequenceM (rest mvs))
+          _ [:pure (cons v r)]])))
+
+(defn all-numbers?
+  [vs]
+  (every? (fn [[tag value]] (= :int tag)) vs))
+
+(defn m-eval
+  [expr]
+  (match expr
+    [:int s] [:pure [:int (parse-long s)]]
+    [:bool s] (case s
+                "True" [:pure [:bool true]]
+                "False" [:pure [:bool false]])
+    [:sum & args] (mdo [args (sequenceM (map m-eval args))
+                        _ [:assert (all-numbers? args) "Tried to add non-numeric values."]
+                        _ [:pure [:int (reduce + 0 (map second args))]]])
+    [:product & args] (mdo [args (sequenceM (map m-eval args))
+                            _ [:assert (all-numbers? args) "Tried to multiply non-numeric values."]
+                            _ [:pure [:int (reduce * 1 (map second args))]]])
+    [:assign [_ n] v] (mdo [v (m-eval v)
+                            _ [:add-to-env n v]])
+    [:def fn-name args body] (mdo [_ [:add-to-env fn-name nil]
+                                   env [:get-env]
+                                   _ [:add-to-env fn-name [:fn args (cons :S body) env]]])
+    [:app f & args] (mdo [[tag params body captured-env] (m-eval f)
+                          _ [:assert (= :fn tag) "Tried to apply a non-function value."]
+                          args (sequenceM (map m-eval args))
+                          _ [:push-env captured-env ]
+                          _ (sequenceM (map (fn [p a] [:add-to-env p a]) params args))
+                          [ret? v] (m-eval body)
+                          _ [:assert (= :return ret?) "Function ended without a return."]
+                          _ [:pop-env]
+                          _ [:pure v]])
+    [:return expr] (mdo [r (m-eval expr)
+                         _ [:pure [:return r]]])
+    [:identifier n] (mdo [_ [:get-from-env n]])
+    [:equal left right] (mdo [left (m-eval left)
+                              right (m-eval right)
+                              _ [:pure [:bool (= left right)]]])
+    [:if condition if-true if-false] (mdo [condition (m-eval condition)
+                                           _ (if (contains? #{[:bool false] [:int 0]} condition)
+                                               (m-eval (cons :S if-false))
+                                               (m-eval (cons :S if-true)))])
+    [:print expr] (mdo [v (m-eval expr)
+                        _ [:print v]])
+    [:S head & tail] (cond (nil? head) [:pure nil]
+                           (empty? tail) (m-eval head)
+                           :else (mdo [[ret? v] (m-eval head)
+                                       _ (if (= :return ret?)
+                                           [:pure [:return v]]
+                                           (m-eval (cons :S tail)))]))))
+
 (defn eval-pl
-  [env mem node]
-  (case (first node)
-    :int (let [[_ i] node]
-           [env mem [:int (parse-long i)]])
-    :bool [env mem node]
-    :sum (let [[_ & terms] node
-               [env mem vs] (eval-args env mem terms)]
-           (assert (every? (fn [[t v]] (= t :int)) vs))
-           [env mem [:int (reduce + 0 (map second vs))]])
-    :product (let [[_ & factors] node
-                   [env mem vs] (eval-args env mem factors)]
-               (assert (every? (fn [[t v]] (= t :int)) vs))
-               [env mem [:int (reduce * 1 (map second vs))]])
-    :assign (let [[_ [_ n] expr] node
-                  [env mem v] (eval-pl env mem expr)]
-              (add-env env mem n v))
-    :def (let [[_ fn-name args body] node
-               ;; for recursion to work, fn needs to know about itself in its own environment
-               [env mem _] (add-env env mem fn-name nil)
-               [env mem _] (add-env env mem fn-name [:fn args (cons :S body) env])]
-           [env mem nil])
-    :app (let [[_ f & args] node
-               [env mem evaled-f] (eval-pl env mem f)
-               _ (assert (= :fn (first evaled-f)))
-               [_ params body captured-env] evaled-f
-               [env mem evaled-args] (eval-args env mem args)
-               [closure-env mem _] (reduce (fn [[env mem _] [n v]]
-                                             (add-env env mem n v))
-                                           (create-env captured-env mem)
-                                           (map vector params evaled-args))
-               [closure-env mem app-val] (eval-pl closure-env mem body)]
-           (assert (and (= 2 (count app-val))
-                        (= :return (first app-val))))
-           [env mem (second app-val)])
-    :return (let [[_ expr] node
-                  [env mem r] (eval-pl env mem expr)]
-              [env mem [:return r]])
-    :identifier (let [[_ n] node]
-                  (get-value env mem n))
-    :equal (let [[_ left-expr right-expr] node
-                 [env mem left] (eval-pl env mem left-expr)
-                 [env mem right] (eval-pl env mem right-expr)]
-             [env mem (if (= left right)
-                        [:bool "True"]
-                        [:bool "False"])])
-    :if (let [[_ condition-expr true-expr else-expr] node
-              [env mem condition] (eval-pl env mem condition-expr)]
-          (if (contains? #{[:bool "False"] [:int 0]} condition)
-            (eval-pl env mem (cons :S else-expr))
-            (eval-pl env mem (cons :S true-expr))))
-    :print (let [[_ e] node
-                 [env mem v] (eval-pl env mem e)]
-             (println (second v))
-             [env mem nil])
-    :S (let [[_ & stmts] node]
-         (reduce (fn [[env mem v] stmt]
-                   (let [[env mem v] (eval-pl env mem stmt)]
-                     (if (and (= 2 (count v))
-                              (= :return (first v)))
-                       (reduced [env mem v])
-                       [env mem v])))
-                 [env mem nil]
-                 stmts))))
+  [expr]
+  (mrun-envs (m-eval expr)))
 
 (defn shell
   []
@@ -187,13 +183,13 @@
     (let [line (read-line)]
       (when (and (not= line "quit")
                  (not= line nil))
-        (let [[env mem v] (eval-pl env (init-mem) (parse line))]
+        (let [[env mem v] (eval-pl (parse line))]
           (println "    => " (pr-str v))
           (recur env))))))
 
 (defn run-file
   [file]
-  (let [[env mem res] (eval-pl (init-env) (init-mem) (parse (slurp file)))]
+  (let [[env mem res] (eval-pl (parse (slurp file)))]
     res))
 
 (defn usage
