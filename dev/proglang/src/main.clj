@@ -122,45 +122,65 @@
     :stack []}
    (update m :next-thread-id inc)])
 
+(defn mrun-step
+  ([mv t m]
+   (prn [:mrun-step mv t m])
+   (vatch mv
+     [:pure v] [:v [v t m]]
+     [:bind mv f] (do (prn [:bind-res mv :f f :next-v (mrun-step mv t m)])
+                      (vatch (mrun-step mv t m)
+                        [:v [v t m]] (do (prn [:next [(f v) t m]])
+                                         [:mv [(f v) t m]])
+                        [:mv [mv t m]] [:f [mv t m [f]]]
+                        [:f mv t m fs] [:f [mv t m (conj fs f)]]))
+     [:assert bool msg] (if bool
+                          [:v [nil t m]]
+                          (throw (ex-info msg {})))
+     [:add-to-env n v] (if-let [addr (get (:env t) n)]
+                         [:v [nil t (update m :mem assoc addr v)]]
+                         (let [addr (:next-addr m)]
+                           [:v [nil
+                                (-> t (update :env assoc n addr))
+                                (-> m
+                                    (update :next-addr inc)
+                                    (update :mem assoc addr v))]]))
+     [:get-from-env n] (loop [env (:env t)]
+                         (if (nil? env)
+                           (throw (ex-info "Name not found." {:name n}))
+                           (if-let [addr (get env n)]
+                             [:v [(get (:mem m) addr) t m]]
+                             (recur (::parent env)))))
+     [:get-env] [:v [(:env t) t m]]
+     [:push-env base] [:v [nil (-> t
+                                   (update :stack conj (:env t))
+                                   (assoc :env {::parent base}))
+                           m]]
+     [:pop-env] [:v [nil
+                     (-> t
+                         (assoc :env (peek (:stack t)))
+                         (update :stack pop))
+                     (run-gc t m)]]
+     [:print v] (do (println (second v))
+                    [:v [[:int 0] t m]]))))
+
 (defn mrun-envs
   ([mv] (let [m (init-m)
               [t m] (init-thread m)]
           (mrun-envs mv t m)))
   ([mv t m]
-   (vatch mv
-     [:pure v] [v t m]
-     [:bind mv f] (let [[v t m] (mrun-envs mv t m)]
-                    (mrun-envs (f v) t m))
-     [:assert bool msg] (if bool
-                          [nil t m]
-                          (throw (ex-info msg {})))
-     [:add-to-env n v] (if-let [addr (get (:env t) n)]
-                         [nil t (update m :mem assoc addr v)]
-                         (let [addr (:next-addr m)]
-                           [nil
-                            (-> t (update :env assoc n addr))
-                            (-> m
-                                (update :next-addr inc)
-                                (update :mem assoc addr v))]))
-     [:get-from-env n] [(loop [env (:env t)]
-                          (if (nil? env)
-                            (throw (ex-info "Name not found." {:name n}))
-                            (if-let [addr (get env n)]
-                              (get (:mem m) addr)
-                              (recur (::parent env)))))
-                        t m]
-     [:get-env] [(:env t) t m]
-     [:push-env base] [nil (-> t
-                               (update :stack conj (:env t))
-                               (assoc :env {::parent base}))
-                       m]
-     [:pop-env] [nil
-                 (-> t
-                     (assoc :env (peek (:stack t)))
-                     (update :stack pop))
-                 (run-gc t m)]
-     [:print v] (do (println (second v))
-                    [[:int 0] t m]))))
+   (loop [mv mv
+          t t
+          m m
+          fs []]
+     (prn [:step mv t])
+     (prn [:step-v (mrun-step mv t m)])
+     (vatch (mrun-step mv t m)
+       [:v [v t m]] (if (empty? fs)
+                      [v t m]
+                      (let [[f & fs] fs]
+                        (recur (f v) t m fs)))
+       [:f [mv t m new-fs]] (recur mv t m (reduce conj fs new-fs))
+       [:mv [mv t m]] (recur mv t m fs)))))
 
 (defn all-numbers?
   [vs]
