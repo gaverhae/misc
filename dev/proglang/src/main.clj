@@ -1,5 +1,6 @@
 (ns main
-  (:require [instaparse.core :as insta]
+  (:require [clojure.string :as string]
+            [instaparse.core :as insta]
             [io.github.gaverhae.clonad :refer [mdo match]])
   (:gen-class))
 
@@ -176,16 +177,43 @@
 
 (defn shell
   []
-  :todo
-  #_(loop [env (init-env)]
-    (print "> ")
+  (loop [env (init-env)
+         mem (init-mem)
+         prev-lines ""
+         multi-line? false]
+    (if multi-line?
+      (print "...")
+      (print ">  "))
     (flush)
-    (let [line (read-line)]
-      (when (and (not= line "quit")
-                 (not= line nil))
-        (let [[env mem v] (eval-pl (parse line))]
-          (println "    => " (pr-str v))
-          (recur env))))))
+    (let [entry (read-line)
+          line (str entry "\n")]
+      (cond (or (= entry "quit") (= entry nil))
+            (println "Bye!")
+            (= entry ":env")
+            (do (prn env)
+                (recur env mem "" false))
+            (= entry ":mem")
+            (do (printf "{:next-addr %d,\n :mem %s\n"
+                        (:next-addr mem)
+                        (if (< (count (:mem mem)) 10)
+                          (pr-str (:mem mem))
+                          (format "<:count %d, :sample %s>}"
+                                  (count (:mem mem))
+                                  (->> mem :mem seq shuffle (take 10) (into {})))))
+                (recur env mem "" false))
+            (and (not multi-line?) (not (string/ends-with? (string/trim line) ":")))
+            (let [[env mem _ v] (mrun-envs (m-eval (parse line)) env mem [])]
+              (println "=> " v)
+              (recur env mem "" false))
+            (and (not multi-line?) (string/ends-with? (string/trim line) ":"))
+            (recur env mem line true)
+            (and multi-line? (= line "\n"))
+            (let [[env mem _ v] (mrun-envs (m-eval (parse prev-lines)) env mem [])]
+              (println "=> " v)
+              (recur env mem "" false))
+            multi-line?
+            (recur env mem (str prev-lines line) true)
+            :else "Unsupported sequence"))))
 
 (defn run-file
   [file]
