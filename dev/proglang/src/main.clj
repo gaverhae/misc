@@ -107,7 +107,7 @@
                                             (get (:mem mem) addr)
                                             (recur (::parent env)))))]
      [:get-env] [env mem stack env]
-     [:push-env base kvs] [{::parent base} mem (conj stack env) nil]
+     [:push-env base] [{::parent base} mem (conj stack env) nil]
      [:pop-env] [(peek stack) mem (pop stack) nil]
      [:print v] (do (println (second v))
                     [env mem nil]))))
