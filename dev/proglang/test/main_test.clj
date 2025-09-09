@@ -166,4 +166,26 @@
       (is (= 242787 (:next-addr mem)))
       (is (= 242787 (count (:mem mem))))
       (is (= [] stack))
+      (is (= [:int 121393] v)))
+    (let [[env mem stack v] (binding [s/+enable-gc+ true]
+                              (s/mrun-envs fib))]
+      (is (= {"print" 0, "fib" 1} env))
+      (is (= 242787 (:next-addr mem)))
+      (is (= 2 (count (:mem mem))))
+      (is (= [] stack))
       (is (= [:int 121393] v)))))
+
+(comment
+  (def fib (s/m-eval (s/parse (->lines ["def fib(n):"
+                                        "  if n == 0:"
+                                        "    return 1"
+                                        "  if n == 1:"
+                                        "    return 1"
+                                        "  return fib(n + -1) + fib(n + -2)"
+                                        "fib(25)"]))))
+  (with-out-str (time (s/mrun-envs fib)))
+"\"Elapsed time: 1659.215625 msecs\"\n"
+  (with-out-str (time (binding [s/+enable-gc+ true]
+                        (s/mrun-envs fib))))
+"\"Elapsed time: 3586.295834 msecs\"\n"
+)
