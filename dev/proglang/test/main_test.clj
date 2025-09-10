@@ -105,7 +105,7 @@
       [:app [:identifier "fact"] [:int "3"]]]]))
 
 (deftest pl-eval
-  (are [string expected] (let [[env mem stack actual] (s/eval-pl (s/parse (str string "\n")))]
+  (are [string expected] (let [[actual current-thread mem ready-threads done-threads] (s/eval-pl (s/parse (str string "\n")))]
                            #_(prn [expected actual])
                            (= expected actual))
     "1+2+3" [:int 6]
@@ -118,7 +118,7 @@
     "True == False" [:bool false]))
 
 (deftest multiline-expr
-  (are [strings expected] (let [[env mem stack actual] (s/eval-pl (s/parse (->lines strings)))]
+  (are [strings expected] (let [[actual current-thread mem ready-threads done-threads] (s/eval-pl (s/parse (->lines strings)))]
                             #_(prn [:exp expected :act actual])
                             (= expected actual))
     ["4" "1+2+3"] [:int 6]
@@ -161,14 +161,14 @@
                                          "    return 1"
                                          "  return fib(n + -1) + fib(n + -2)"
                                          "fib(25)"])))]
-    (let [[env mem stack v] (s/mrun-envs fib)]
+    (let [[v [_ env stack] mem _ _] (s/mrun-envs fib)]
       (is (= {"print" 0, "fib" 1} env))
       (is (= 242787 (:next-addr mem)))
       (is (= 242787 (count (:mem mem))))
       (is (= [] stack))
       (is (= [:int 121393] v)))
-    (let [[env mem stack v] (binding [s/+enable-gc+ true]
-                              (s/mrun-envs fib))]
+    (let [[v [_ env stack] mem _ _] (binding [s/+enable-gc+ true]
+                                      (s/mrun-envs fib))]
       (is (= {"print" 0, "fib" 1} env))
       (is (= 242787 (:next-addr mem)))
       (is (= 2 (count (:mem mem))))
@@ -184,8 +184,8 @@
                                         "  return fib(n + -1) + fib(n + -2)"
                                         "fib(25)"]))))
   (with-out-str (time (s/mrun-envs fib)))
-"\"Elapsed time: 1659.215625 msecs\"\n"
+"\"Elapsed time: 3215.4995 msecs\"\n"
   (with-out-str (time (binding [s/+enable-gc+ true]
                         (s/mrun-envs fib))))
-"\"Elapsed time: 3586.295834 msecs\"\n"
+"\"Elapsed time: 5510.669833 msecs\"\n"
 )
