@@ -90,6 +90,39 @@
 
 (def ^:dynamic +enable-gc+ false)
 
+(defn run-gc
+  [m-state]
+  (if +enable-gc+
+    (let [{:keys [thread-id env stack]} m-state
+          other-thread-stacks (->> (:ready-threads m-state)
+                                   (mapcat (fn [[f v [thread-id env stack]]]
+                                             (conj stack env))))
+          live-mem (loop [envs-to-check (concat stack other-thread-stacks)
+                          mem-to-check []
+                          mem-checked #{}]
+                     (cond (and (empty? envs-to-check)
+                                (empty? mem-to-check)) mem-checked
+                           (empty? mem-to-check)
+                           (let [[e & envs-to-check] envs-to-check
+                                 envs-to-check (if-let [p (::parent e)]
+                                                 (conj envs-to-check p)
+                                                 envs-to-check)
+                                 e (dissoc e ::parent)]
+                             (recur envs-to-check (vals e) mem-checked))
+                           :else
+                           (let [[t & mem-to-check] mem-to-check]
+                             (if (mem-checked t)
+                               (recur envs-to-check mem-to-check mem-checked)
+                               (let [mem-checked (conj mem-checked t)]
+                                 (vatch (get (:mem m-state) t)
+                                   [:int _] (recur envs-to-check mem-to-check mem-checked)
+                                   [:bool _] (recur envs-to-check mem-to-check mem-checked)
+                                   [:fn args body captured-env]
+                                   (recur (conj envs-to-check captured-env)
+                                          mem-to-check mem-checked)))))))]
+      (update m-state :mem select-keys live-mem))
+    m-state))
+
 (defn mrun-envs
   ([mv] (mrun-envs mv (init-m-state)))
   ([mv m-state]
@@ -151,40 +184,10 @@
                                  (assoc :env {::parent base})
                                  (update :stack conj env))])
      [:pop-env] (let [{:keys [thread-id env stack]} m-state]
-                  (if +enable-gc+
-                    (let [other-thread-stacks (->> (:ready-threads m-state)
-                                                   (mapcat (fn [[f v [thread-id env stack]]]
-                                                             (conj stack env))))
-                          live-mem (loop [envs-to-check (concat stack other-thread-stacks)
-                                          mem-to-check []
-                                          mem-checked #{}]
-                                     (cond (and (empty? envs-to-check)
-                                                (empty? mem-to-check)) mem-checked
-                                           (empty? mem-to-check)
-                                           (let [[e & envs-to-check] envs-to-check
-                                                 envs-to-check (if-let [p (::parent e)]
-                                                                 (conj envs-to-check p)
-                                                                 envs-to-check)
-                                                 e (dissoc e ::parent)]
-                                             (recur envs-to-check (vals e) mem-checked))
-                                           :else
-                                           (let [[t & mem-to-check] mem-to-check]
-                                             (if (mem-checked t)
-                                               (recur envs-to-check mem-to-check mem-checked)
-                                               (let [mem-checked (conj mem-checked t)]
-                                                 (vatch (get (:mem m-state) t)
-                                                   [:int _] (recur envs-to-check mem-to-check mem-checked)
-                                                   [:bool _] (recur envs-to-check mem-to-check mem-checked)
-                                                   [:fn args body captured-env]
-                                                   (recur (conj envs-to-check captured-env)
-                                                          mem-to-check mem-checked)))))))]
-                      [nil (-> m-state
-                               (assoc :env (peek (:stack m-state)))
-                               (update :stack pop)
-                               (update :mem select-keys live-mem))])
-                    [nil (-> m-state
-                             (assoc :env (peek (:stack m-state)))
-                             (update :stack pop))]))
+                  [nil (-> m-state
+                           run-gc
+                           (assoc :env (peek (:stack m-state)))
+                           (update :stack pop))])
      [:print v] (do (println (second v))
                     [nil m-state]))))
 
