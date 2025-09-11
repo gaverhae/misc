@@ -79,24 +79,12 @@
          "start_t" 1
          "wait_t" 2}
    :stack []
-   :ready-threads mt-q
-   :suspended-threads {}
    :done-threads {}
    :next-addr 3
    :next-thread-id 1
-   :mem {0 [:fn ["s"]
-            [:S
-             [:print [:identifier "s"]]
-             [:return [:int "0"]]]
-            {}]
-         1 [:fn ["f"]
-            [:S
-             [:return [:start_t [:identifier "f"]]]]
-            {}]
-         2 [:fn ["t"]
-            [:S
-             [:return [:wait_t [:identifier "t"]]]]
-            {}]}})
+   :mem {0 [:fn ["s"] [:S [:return [:print [:identifier "s"]]]] {}]
+         1 [:fn ["f"] [:S [:return [:start_t [:identifier "f"]]]] {}]
+         2 [:fn ["t"] [:S [:return [:wait_t [:identifier "t"]]]] {}]}})
 
 (def ^:dynamic +enable-gc+ false)
 
@@ -165,7 +153,7 @@
                            (update :stack pop)
                            run-gc)])
      [:print v] (do (println (second v))
-                    [nil m-state]))))
+                    [[:int 0] m-state]))))
 
 (defn all-numbers?
   [vs]
