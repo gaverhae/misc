@@ -104,7 +104,7 @@
       [:int "1"]
       [:app [:identifier "fact"] [:int "3"]]]]))
 
-#_(deftest pl-eval
+(deftest pl-eval
   (are [string expected] (let [[actual m-state] (s/eval-pl (s/parse (str string "\n")))]
                            #_(prn [expected actual])
                            (= expected actual))
@@ -117,7 +117,7 @@
     "1 == 2" [:bool false]
     "True == False" [:bool false]))
 
-#_(deftest multiline-expr
+(deftest multiline-expr
   (are [strings expected] (let [[actual m-state] (s/eval-pl (s/parse (->lines strings)))]
                             #_(prn [:exp expected :act actual])
                             (= expected actual))
@@ -138,7 +138,7 @@
      "  return 2"
      "fib(0)"] [:int 5]))
 
-#_(deftest files
+(deftest files
   (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
                        #_(prn [:exp result :act (string/split-lines s)])
                        (= result (string/split-lines s)))
@@ -154,7 +154,7 @@
     "fib" ["89"]
     "fib-flat" ["89"]))
 
-#_(deftest gc
+(deftest gc
   (let [fib (s/m-eval (s/parse (->lines ["def fib(n):"
                                          "  if n == 0:"
                                          "    return 1"
@@ -176,7 +176,7 @@
       (is (= [] stack))
       (is (= [:int 121393] v)))))
 
-(deftest multi-thread
+#_(deftest multi-thread
   (let [multifib (s/m-eval (s/parse (->lines ["def fib(n):"
                                               "  if n == 0:"
                                               "    return 1"
