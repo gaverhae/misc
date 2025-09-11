@@ -1,7 +1,7 @@
 (ns main
   (:require [clojure.string :as string]
             [instaparse.core :as insta]
-            [io.github.gaverhae.clonad :as m :refer [mdo]]
+            [io.github.gaverhae.clonad :as m :refer [mdo monad]]
             [io.github.gaverhae.vatch :refer [vatch]])
   (:gen-class))
 
@@ -202,17 +202,21 @@
     [:bool s] (case s
                 "True" [:pure [:bool true]]
                 "False" [:pure [:bool false]])
-    [:sum & args] (mdo [args (m/m-seq (map m-eval args))
-                        _ [:assert (all-numbers? args) "Tried to add non-numeric values."]
-                        _ [:pure [:int (reduce + 0 (map second args))]]])
-    [:product & args] (mdo [args (m/m-seq (map m-eval args))
-                            _ [:assert (all-numbers? args) "Tried to multiply non-numeric values."]
-                            _ [:pure [:int (reduce * 1 (map second args))]]])
-    [:assign [_ n] v] (mdo [v (m-eval v)
-                            _ [:add-to-env n v]])
-    [:def fn-name args body] (mdo [_ [:add-to-env fn-name nil]
-                                   env [:get-env]
-                                   _ [:add-to-env fn-name [:fn args (cons :S body) env]]])
+    [:sum & args] (monad
+                    args :<< (m/m-seq (map m-eval args))
+                    [:assert (all-numbers? args) "Tried to add non-numeric values."]
+                    [:pure [:int (reduce + 0 (map second args))]])
+    [:product & args] (monad
+                        args :<< (m/m-seq (map m-eval args))
+                        [:assert (all-numbers? args) "Tried to multiply non-numeric values."]
+                        [:pure [:int (reduce * 1 (map second args))]])
+    [:assign [_ n] v] (monad
+                        v :<< (m-eval v)
+                        [:add-to-env n v])
+    [:def fn-name args body] (monad
+                               [:add-to-env fn-name nil]
+                               env :<< [:get-env]
+                               [:add-to-env fn-name [:fn args (cons :S body) env]])
     [:app f & args] (mdo [[tag params body captured-env] (m-eval f)
                           _ [:assert (= :fn tag) "Tried to apply a non-function value."]
                           args (m/m-seq (map m-eval args))
@@ -222,18 +226,22 @@
                           _ [:assert (= :return ret?) "Function ended without a return."]
                           _ [:pop-env]
                           _ [:pure v]])
-    [:return expr] (mdo [r (m-eval expr)
-                         _ [:pure [:return r]]])
-    [:identifier n] (mdo [_ [:get-from-env n]])
-    [:equal left right] (mdo [left (m-eval left)
-                              right (m-eval right)
-                              _ [:pure [:bool (= left right)]]])
-    [:if condition if-true & [if-false]] (mdo [condition (m-eval condition)
-                                               _ (if (contains? #{[:bool false] [:int 0]} condition)
-                                                   (m-eval (cons :S if-false))
-                                                   (m-eval (cons :S if-true)))])
-    [:print expr] (mdo [v (m-eval expr)
-                        _ [:print v]])
+    [:return expr] (monad
+                     r :<< (m-eval expr)
+                     [:pure [:return r]])
+    [:identifier n] [:get-from-env n]
+    [:equal left right] (monad
+                          left :<< (m-eval left)
+                          right :<< (m-eval right)
+                          [:pure [:bool (= left right)]])
+    [:if condition if-true & [if-false]] (monad
+                                           condition :<< (m-eval condition)
+                                           (if (contains? #{[:bool false] [:int 0]} condition)
+                                             (m-eval (cons :S if-false))
+                                             (m-eval (cons :S if-true))))
+    [:print expr] (monad
+                    v :<< (m-eval expr)
+                    [:print v])
     [:S] [:pure nil]
     [:S head] (m-eval head)
     [:S head & tail] (mdo [[ret? v] (m-eval head)
