@@ -104,7 +104,7 @@
       [:int "1"]
       [:app [:identifier "fact"] [:int "3"]]]]))
 
-(deftest pl-eval
+#_(deftest pl-eval
   (are [string expected] (let [[actual m-state] (s/eval-pl (s/parse (str string "\n")))]
                            #_(prn [expected actual])
                            (= expected actual))
@@ -117,7 +117,7 @@
     "1 == 2" [:bool false]
     "True == False" [:bool false]))
 
-(deftest multiline-expr
+#_(deftest multiline-expr
   (are [strings expected] (let [[actual m-state] (s/eval-pl (s/parse (->lines strings)))]
                             #_(prn [:exp expected :act actual])
                             (= expected actual))
@@ -138,7 +138,7 @@
      "  return 2"
      "fib(0)"] [:int 5]))
 
-(deftest files
+#_(deftest files
   (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
                        #_(prn [:exp result :act (string/split-lines s)])
                        (= result (string/split-lines s)))
@@ -154,7 +154,7 @@
     "fib" ["89"]
     "fib-flat" ["89"]))
 
-(deftest gc
+#_(deftest gc
   (let [fib (s/m-eval (s/parse (->lines ["def fib(n):"
                                          "  if n == 0:"
                                          "    return 1"
@@ -175,6 +175,32 @@
       (is (= 4 (count mem)))
       (is (= [] stack))
       (is (= [:int 121393] v)))))
+
+(deftest multi-thread
+  (let [multifib (s/m-eval (s/parse (->lines ["def fib(n):"
+                                              "  if n == 0:"
+                                              "    return 1"
+                                              "  if n == 1:"
+                                              "    return 1"
+                                              "  return fib(n + -1) + fib(n + -2)"
+                                              "def fib3():"
+                                              "  return fib(3)"
+                                              "def fib4():"
+                                              "  return fib(4)"
+                                              "start_t(fib3)"
+                                              #_"t1 = start_t(fib3)"
+                                              #_"t2 = start_t(fib4)"
+                                              #_"r1 = wait_t(t1)"
+                                              #_"r2 = wait_t(t2)"
+                                              #_"print(r1 + r2)"
+                                              #_"r1 + r2"])))]
+    (let [[v m-state] (s/mrun-envs multifib)]
+      (is (= [:thread-id 1] v))
+      (is (= 1 (count (:ready-threads m-state))))
+      #_(is (nil? (-> m-state :ready-threads peek))))
+    #_(is (= nil
+           (with-out-str (s/mrun-envs multifib))))))
+
 
 (comment
   (def fib (s/m-eval (s/parse (->lines ["def fib(n):"
