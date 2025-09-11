@@ -1,7 +1,8 @@
 (ns main
   (:require [clojure.string :as string]
             [instaparse.core :as insta]
-            [io.github.gaverhae.clonad :refer [mdo match]])
+            [io.github.gaverhae.clonad :refer [mdo]]
+            [io.github.gaverhae.vatch :refer [vatch]])
   (:gen-class))
 
 (def parse-string
@@ -92,7 +93,7 @@
 (defn mrun-envs
   ([mv] (mrun-envs mv (init-m-state)))
   ([mv m-state]
-   (match mv
+   (vatch mv
      [:pure v] [v m-state]
      [:bind mv f] (let [[v m-state] (mrun-envs mv m-state)]
                     (cond (= v :m/stop)
@@ -171,7 +172,7 @@
                                              (if (mem-checked t)
                                                (recur envs-to-check mem-to-check mem-checked)
                                                (let [mem-checked (conj mem-checked t)]
-                                                 (match (get (:mem m-state) t)
+                                                 (vatch (get (:mem m-state) t)
                                                    [:int _] (recur envs-to-check mem-to-check mem-checked)
                                                    [:bool _] (recur envs-to-check mem-to-check mem-checked)
                                                    [:fn args body captured-env]
@@ -202,7 +203,7 @@
 
 (defn m-eval
   [expr]
-  (match expr
+  (vatch expr
     [:int s] [:pure [:int (parse-long s)]]
     [:bool s] (case s
                 "True" [:pure [:bool true]]
@@ -233,18 +234,18 @@
     [:equal left right] (mdo [left (m-eval left)
                               right (m-eval right)
                               _ [:pure [:bool (= left right)]]])
-    [:if condition if-true if-false] (mdo [condition (m-eval condition)
-                                           _ (if (contains? #{[:bool false] [:int 0]} condition)
-                                               (m-eval (cons :S if-false))
-                                               (m-eval (cons :S if-true)))])
+    [:if condition if-true & [if-false]] (mdo [condition (m-eval condition)
+                                               _ (if (contains? #{[:bool false] [:int 0]} condition)
+                                                   (m-eval (cons :S if-false))
+                                                   (m-eval (cons :S if-true)))])
     [:print expr] (mdo [v (m-eval expr)
                         _ [:print v]])
-    [:S head & tail] (cond (nil? head) [:pure nil]
-                           (empty? tail) (m-eval head)
-                           :else (mdo [[ret? v] (m-eval head)
-                                       _ (if (= :return ret?)
-                                           [:pure [:return v]]
-                                           (m-eval (cons :S tail)))]))))
+    [:S] [:pure nil]
+    [:S head] (m-eval head)
+    [:S head & tail] (mdo [[ret? v] (m-eval head)
+                           _ (if (= :return ret?)
+                               [:pure [:return v]]
+                               (m-eval (cons :S tail)))])))
 
 (defn eval-pl
   [expr]
