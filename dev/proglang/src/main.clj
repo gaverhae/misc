@@ -1,7 +1,7 @@
 (ns main
   (:require [clojure.string :as string]
             [instaparse.core :as insta]
-            [io.github.gaverhae.clonad :refer [mdo]]
+            [io.github.gaverhae.clonad :as m :refer [mdo]]
             [io.github.gaverhae.vatch :refer [vatch]])
   (:gen-class))
 
@@ -191,15 +191,6 @@
      [:print v] (do (println (second v))
                     [nil m-state]))))
 
-(defn sequenceM
-  "[m v] -> m [v]"
-  [mvs]
-  (if (empty? mvs)
-    [:pure ()]
-    (mdo [v (first mvs)
-          r (sequenceM (rest mvs))
-          _ [:pure (cons v r)]])))
-
 (defn all-numbers?
   [vs]
   (every? (fn [[tag value]] (= :int tag)) vs))
@@ -211,10 +202,10 @@
     [:bool s] (case s
                 "True" [:pure [:bool true]]
                 "False" [:pure [:bool false]])
-    [:sum & args] (mdo [args (sequenceM (map m-eval args))
+    [:sum & args] (mdo [args (m/m-seq (map m-eval args))
                         _ [:assert (all-numbers? args) "Tried to add non-numeric values."]
                         _ [:pure [:int (reduce + 0 (map second args))]]])
-    [:product & args] (mdo [args (sequenceM (map m-eval args))
+    [:product & args] (mdo [args (m/m-seq (map m-eval args))
                             _ [:assert (all-numbers? args) "Tried to multiply non-numeric values."]
                             _ [:pure [:int (reduce * 1 (map second args))]]])
     [:assign [_ n] v] (mdo [v (m-eval v)
@@ -224,9 +215,9 @@
                                    _ [:add-to-env fn-name [:fn args (cons :S body) env]]])
     [:app f & args] (mdo [[tag params body captured-env] (m-eval f)
                           _ [:assert (= :fn tag) "Tried to apply a non-function value."]
-                          args (sequenceM (map m-eval args))
+                          args (m/m-seq (map m-eval args))
                           _ [:push-env captured-env ]
-                          _ (sequenceM (map (fn [p a] [:add-to-env p a]) params args))
+                          _ (m/m-seq (map (fn [p a] [:add-to-env p a]) params args))
                           [ret? v] (m-eval body)
                           _ [:assert (= :return ret?) "Function ended without a return."]
                           _ [:pop-env]
