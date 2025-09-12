@@ -72,16 +72,15 @@
 
 (def mt-q clojure.lang.PersistentQueue/EMPTY)
 
-(defn init-m-state
+(defn init-m
   []
   {:thread-id 0
-   :env {"print" 0
-         "start_t" 1
-         "wait_t" 2}
-   :stack []
    :done-threads {}
    :next-addr 3
    :next-thread-id 1
+   :default-env {"print" 0
+                 "start_t" 1
+                 "wait_t" 2}
    :mem {0 [:fn ["s"] [:S [:return [:print [:identifier "s"]]]] {}]
          1 [:fn ["f"] [:S [:return [:start_t [:identifier "f"]]]] {}]
          2 [:fn ["t"] [:S [:return [:wait_t [:identifier "t"]]]] {}]}})
@@ -89,13 +88,9 @@
 (def ^:dynamic +enable-gc+ false)
 
 (defn run-gc
-  [m-state]
+  [t m]
   (if +enable-gc+
-    (let [{:keys [thread-id env stack]} m-state
-          other-thread-stacks (->> (:ready-threads m-state)
-                                   (mapcat (fn [[f v [thread-id env stack]]]
-                                             (conj stack env))))
-          live-mem (loop [envs-to-check (concat [env] stack other-thread-stacks)
+    (let [live-mem (loop [envs-to-check (:stack t)
                           mem-to-check []
                           mem-checked #{}]
                      (cond (and (empty? envs-to-check)
@@ -112,48 +107,58 @@
                              (if (mem-checked t)
                                (recur envs-to-check mem-to-check mem-checked)
                                (let [mem-checked (conj mem-checked t)]
-                                 (vatch (get (:mem m-state) t)
+                                 (vatch (get (:mem m) t)
                                    [:int _] (recur envs-to-check mem-to-check mem-checked)
                                    [:bool _] (recur envs-to-check mem-to-check mem-checked)
                                    [:fn args body captured-env] (recur (conj envs-to-check captured-env)
                                                                        mem-to-check mem-checked)))))))]
-      (update m-state :mem select-keys live-mem))
-    m-state))
+      (update m :mem select-keys live-mem))
+    m))
+
+(defn init-thread
+  [m]
+  [{:id (:next-thread-id m)
+    :env (:default-env m)
+    :stack []}
+   (update m :next-thread-id inc)])
 
 (defn mrun-envs
-  ([mv] (mrun-envs mv (init-m-state)))
-  ([mv m-state]
+  ([mv] (let [m (init-m)
+              [t m] (init-thread m)]
+          (mrun-envs mv t m)))
+  ([mv t m]
    (vatch mv
-     [:pure v] [v m-state]
-     [:bind mv f] (let [[v m-state] (mrun-envs mv m-state)]
-                    (mrun-envs (f v) m-state))
-     [:assert bool msg] [(if bool :m/continue :m/stop) m-state]
-     [:add-to-env n v] (if-let [addr (get (:env m-state) n)]
-                         [nil (update m-state :mem assoc addr v)]
-                         (let [addr (:next-addr m-state)]
-                           [nil (-> m-state
-                                    (update :next-addr inc)
-                                    (update :mem assoc addr v)
-                                    (update :env assoc n addr))]))
-     [:get-from-env n] [(loop [env (:env m-state)]
+     [:pure v] [v t m]
+     [:bind mv f] (let [[v t m] (mrun-envs mv t m)]
+                    (mrun-envs (f v) t m))
+     [:assert bool msg] [(if bool :m/continue :m/stop) t m]
+     [:add-to-env n v] (if-let [addr (get (:env t) n)]
+                         [nil t (update m :mem assoc addr v)]
+                         (let [addr (:next-addr m)]
+                           [nil
+                            (-> t (update :env assoc n addr))
+                            (-> m
+                                (update :next-addr inc)
+                                (update :mem assoc addr v))]))
+     [:get-from-env n] [(loop [env (:env t)]
                           (if (nil? env)
-                            :m/stop
+                            (throw (ex-info "Name not found." {:name n}))
                             (if-let [addr (get env n)]
-                              (get (:mem m-state) addr)
+                              (get (:mem m) addr)
                               (recur (::parent env)))))
-                        m-state]
-     [:get-env] [(:env m-state) m-state]
-     [:push-env base] (let [{:keys [env stack]} m-state]
-                        [nil (-> m-state
-                                 (assoc :env {::parent base})
-                                 (update :stack conj env))])
-     [:pop-env] (let [{:keys [thread-id env stack]} m-state]
-                  [nil (-> m-state
-                           (assoc :env (peek (:stack m-state)))
-                           (update :stack pop)
-                           run-gc)])
+                        t m]
+     [:get-env] [(:env t) t m]
+     [:push-env base] [nil (-> t
+                               (update :stack conj (:env t))
+                               (assoc :env {::parent base}))
+                       m]
+     [:pop-env] [nil
+                 (-> t
+                     (assoc :env (peek (:stack t)))
+                     (update :stack pop))
+                 (run-gc t m)]
      [:print v] (do (println (second v))
-                    [[:int 0] m-state]))))
+                    [[:int 0] t m]))))
 
 (defn all-numbers?
   [vs]
@@ -219,7 +224,7 @@
 
 (defn shell
   []
-  (loop [m-state (init-m-state)
+  (loop [[t m] (init-thread (init-m))
          prev-lines ""
          multi-line? false]
     (if multi-line?
@@ -231,29 +236,29 @@
       (cond (or (= entry "quit") (= entry nil))
             (println "Bye!")
             (= entry ":env")
-            (do (prn (:env m-state))
-                (recur m-state "" false))
+            (do (prn (:env t))
+                (recur [t m] "" false))
             (= entry ":mem")
             (do (printf "{:next-addr %d,\n :mem %s\n"
-                        (:next-addr m-state)
-                        (if (< (count (:mem m-state)) 10)
-                          (pr-str (:mem m-state))
+                        (:next-addr m)
+                        (if (< (count (:mem m)) 10)
+                          (pr-str (:mem m))
                           (format "<:count %d, :sample %s>}"
-                                  (count (:mem m-state))
-                                  (->> m-state :mem seq shuffle (take 10) (into {})))))
-                (recur m-state "" false))
+                                  (count (:mem m))
+                                  (->> m :mem seq shuffle (take 10) (into {})))))
+                (recur [t m] "" false))
             (and (not multi-line?) (not (string/ends-with? (string/trim line) ":")))
-            (let [[v m-state] (mrun-envs (m-eval (parse line)) m-state)]
+            (let [[v t m] (mrun-envs (m-eval (parse line)) t m)]
               (println "=> " v)
-              (recur m-state "" false))
+              (recur [t m] "" false))
             (and (not multi-line?) (string/ends-with? (string/trim line) ":"))
-            (recur m-state line true)
+            (recur [t m] line true)
             (and multi-line? (= line "\n"))
-            (let [[v state] (mrun-envs (m-eval (parse prev-lines)) m-state)]
+            (let [[v t m] (mrun-envs (m-eval (parse prev-lines)) t m)]
               (println "=> " v)
-              (recur m-state "" false))
+              (recur [t m] "" false))
             multi-line?
-            (recur m-state (str prev-lines line) true)
+            (recur [t m] (str prev-lines line) true)
             :else "Unsupported sequence"))))
 
 (defn run-file
