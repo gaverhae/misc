@@ -1,7 +1,7 @@
 (ns lisp
   (:require [instaparse.core :as insta]))
 
-(def parse-string
+(def parse
   (insta/parser
     "S := (ws* expr ws*)*
      <expr> := list | vector | int | (bool / symbol)
@@ -11,5 +11,3 @@
      int := #'[+-]?[0-9]+'
      bool := 'true' | 'false'
      <ws> = <#'\\s'>"))
-
-(def parse parse-string)
