@@ -90,152 +90,154 @@
        (apply str)))
 
 (deftest ast
-  (are [strings tree l-strings l-tree] (and (= tree (s/parse (->lines strings)))
-                                            (= l-tree (l/parse (->lines l-strings))))
-    ["1 + (2 * 3)"] [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
-    ["(+ 1 (* 2 3))"] [:S [:list [:symbol "+"] [:int "1"] [:list [:symbol "*"] [:int "2"] [:int "3"]]]]
+  (let [p (fn [s] (s/parse (->lines s)))
+        l (fn [s] (l/parse (->lines s)))]
+    (is (= [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
+           (p ["1 + (2 * 3)"])))
+    (is (= [:S [:list [:symbol "+"] [:int "1"] [:list [:symbol "*"] [:int "2"] [:int "3"]]]])
+        (l ["(+ 1 (* 2 3))"]))
 
-    ["a = 2"
-     "b = 5"
-     "a + b"]
-    [:S
-     [:assign [:identifier "a"] [:int "2"]]
-     [:assign [:identifier "b"] [:int "5"]]
-     [:sum [:identifier "a"] [:identifier "b"]]]
-    ["(let [a 2"
-     "      b 5]"
-     "  (+ a b))"]
-    [:S [:list
-         [:symbol "let"]
-         [:vector [:symbol "a"] [:int "2"] [:symbol "b"] [:int "5"]]
-         [:list [:symbol "+"] [:symbol "a"] [:symbol "b"]]]]
+    (is (= [:S
+            [:assign [:identifier "a"] [:int "2"]]
+            [:assign [:identifier "b"] [:int "5"]]
+            [:sum [:identifier "a"] [:identifier "b"]]]
+           (p ["a = 2"
+               "b = 5"
+               "a + b"])))
+    (is (= [:S [:list
+                [:symbol "let"]
+                [:vector [:symbol "a"] [:int "2"] [:symbol "b"] [:int "5"]]
+                [:list [:symbol "+"] [:symbol "a"] [:symbol "b"]]]]
+           (l ["(let [a 2"
+               "      b 5]"
+               "  (+ a b))"])))
 
-    ["def fib(n):"
-     "  return 1"]
-    [:S [:def "fib" ["n"] [[:return [:int "1"]]]]]
-    ["(defn fib [n]"
-     "  1)"]
-    [:S [:list [:symbol "defn"] [:symbol "fib"] [:vector [:symbol "n"]] [:int "1"]]]
+    (is (= [:S [:def "fib" ["n"] [[:return [:int "1"]]]]]
+           (p ["def fib(n):"
+               "  return 1"])))
+    (is (= [:S [:list [:symbol "defn"] [:symbol "fib"] [:vector [:symbol "n"]] [:int "1"]]]
+           (l ["(defn fib [n]"
+               "  1)"])))
 
-    ["1 + 2"
-     "a = 5"
-     "def square(x):"
-     "  return x * x"
-     "b + 2"]
-    [:S
-     [:sum [:int "1"] [:int "2"]]
-     [:assign [:identifier "a"] [:int "5"]]
-     [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
-     [:sum [:identifier "b"] [:int "2"]]]
-    ["(+ 1 2)"
-     "(def a 5)"
-     "(defn square [x] (* x x))"
-     "(+ b 2)"]
-    [:S
-     [:list [:symbol "+"] [:int "1"] [:int "2"]]
-     [:list [:symbol "def"] [:symbol "a"] [:int "5"]]
-     [:list [:symbol "defn"] [:symbol "square"] [:vector [:symbol "x"]] [:list [:symbol "*"] [:symbol "x"] [:symbol "x"]]]
-     [:list [:symbol "+"] [:symbol "b"] [:int "2"]]]
+    (is (= [:S
+            [:sum [:int "1"] [:int "2"]]
+            [:assign [:identifier "a"] [:int "5"]]
+            [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
+            [:sum [:identifier "b"] [:int "2"]]]
+           (p ["1 + 2"
+               "a = 5"
+               "def square(x):"
+               "  return x * x"
+               "b + 2"])))
+    (is (= [:S
+            [:list [:symbol "+"] [:int "1"] [:int "2"]]
+            [:list [:symbol "def"] [:symbol "a"] [:int "5"]]
+            [:list [:symbol "defn"] [:symbol "square"] [:vector [:symbol "x"]] [:list [:symbol "*"] [:symbol "x"] [:symbol "x"]]]
+            [:list [:symbol "+"] [:symbol "b"] [:int "2"]]]
+           (l ["(+ 1 2)"
+               "(def a 5)"
+               "(defn square [x] (* x x))"
+               "(+ b 2)"])))
 
-    ["1 + 2"]
-    [:S [:sum [:int "1"] [:int "2"]]]
-    ["(+ 1 2)"]
-    [:S [:list [:symbol "+"] [:int "1"] [:int "2"]]]
+    (is (= [:S [:sum [:int "1"] [:int "2"]]]
+           (p ["1 + 2"])))
+    (is (= [:S [:list [:symbol "+"] [:int "1"] [:int "2"]]]
+           (l ["(+ 1 2)"])))
 
-    ["1 + 2"
-     "a = 5"
-     "def square(x):"
-     "  return x * x"
-     "square(a)"]
-    [:S
-     [:sum [:int "1"] [:int "2"]]
-     [:assign [:identifier "a"] [:int "5"]]
-     [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
-     [:app [:identifier "square"] [:identifier "a"]]]
-    ["(+ 1 2)"
-     "(def a 5)"
-     "(def square (fn [x] (* x x)))"
-     "(square 5)"]
-    [:S
-     [:list [:symbol "+"] [:int "1"] [:int "2"]]
-     [:list [:symbol "def"] [:symbol "a"] [:int "5"]]
-     [:list [:symbol "def"] [:symbol "square"] [:list [:symbol "fn"] [:vector [:symbol "x"]] [:list [:symbol "*"] [:symbol "x"] [:symbol "x"]]]]
-     [:list [:symbol "square"] [:int "5"]]]
+    (is (= [:S
+            [:sum [:int "1"] [:int "2"]]
+            [:assign [:identifier "a"] [:int "5"]]
+            [:def "square" ["x"] [[:return [:product [:identifier "x"] [:identifier "x"]]]]]
+            [:app [:identifier "square"] [:identifier "a"]]]
+           (p ["1 + 2"
+               "a = 5"
+               "def square(x):"
+               "  return x * x"
+               "square(a)"])))
+    (is (= [:S
+            [:list [:symbol "+"] [:int "1"] [:int "2"]]
+            [:list [:symbol "def"] [:symbol "a"] [:int "5"]]
+            [:list [:symbol "def"] [:symbol "square"] [:list [:symbol "fn"] [:vector [:symbol "x"]] [:list [:symbol "*"] [:symbol "x"] [:symbol "x"]]]]
+            [:list [:symbol "square"] [:int "5"]]]
+           (l ["(+ 1 2)"
+               "(def a 5)"
+               "(def square (fn [x] (* x x)))"
+               "(square 5)"])))
 
-    ["1 + 3"
-     "def complex(a, b, c):"
-     "  def helper(a, b):"
-     "    d = a * c"
-     "    return d + 1"
-     "  x = 1"
-     "  return helper(x)"
-     "complex = 3"]
-    [:S
-     [:sum [:int "1"] [:int "3"]]
-     [:def "complex" ["a" "b" "c"]
-      [[:def "helper" ["a" "b"]
-        [[:assign [:identifier "d"] [:product [:identifier "a"] [:identifier "c"]]]
-         [:return [:sum [:identifier "d"] [:int "1"]]]]]
-       [:assign [:identifier "x"] [:int "1"]]
-       [:return [:app [:identifier "helper"] [:identifier "x"]]]]]
-     [:assign [:identifier "complex"] [:int "3"]]]
-    ["(+ 1 3)"
-     "(defn complex [a b c]"
-     "  (let [helper (fn [a b]"
-     "                 (let [d (* a c)]"
-     "                   (+ d 1)))"
-     "        x 1]"
-     "    (helper x)))"
-     "(def complex 3)"]
-    [:S
-     [:list [:symbol "+"] [:int "1"] [:int "3"]]
-     [:list
-      [:symbol "defn"] [:symbol "complex"] [:vector [:symbol "a"] [:symbol "b"] [:symbol "c"]]
-      [:list
-       [:symbol "let"]
-       [:vector
-        [:symbol "helper"] [:list [:symbol "fn"] [:vector [:symbol "a"] [:symbol "b"]]
-                            [:list [:symbol "let"] [:vector [:symbol "d"] [:list [:symbol "*"] [:symbol "a"] [:symbol "c"]]]
-                             [:list [:symbol "+"] [:symbol "d"] [:int "1"]]]]
-        [:symbol "x"] [:int "1"]]
-       [:list [:symbol "helper"] [:symbol "x"]]]]
-     [:list [:symbol "def"] [:symbol "complex"] [:int "3"]]]
+    (is (= [:S
+            [:sum [:int "1"] [:int "3"]]
+            [:def "complex" ["a" "b" "c"]
+             [[:def "helper" ["a" "b"]
+               [[:assign [:identifier "d"] [:product [:identifier "a"] [:identifier "c"]]]
+                [:return [:sum [:identifier "d"] [:int "1"]]]]]
+              [:assign [:identifier "x"] [:int "1"]]
+              [:return [:app [:identifier "helper"] [:identifier "x"]]]]]
+            [:assign [:identifier "complex"] [:int "3"]]]
+           (p ["1 + 3"
+               "def complex(a, b, c):"
+               "  def helper(a, b):"
+               "    d = a * c"
+               "    return d + 1"
+               "  x = 1"
+               "  return helper(x)"
+               "complex = 3"])))
+    (is (= [:S
+            [:list [:symbol "+"] [:int "1"] [:int "3"]]
+            [:list
+             [:symbol "defn"] [:symbol "complex"] [:vector [:symbol "a"] [:symbol "b"] [:symbol "c"]]
+             [:list
+              [:symbol "let"]
+              [:vector
+               [:symbol "helper"] [:list [:symbol "fn"] [:vector [:symbol "a"] [:symbol "b"]]
+                                   [:list [:symbol "let"] [:vector [:symbol "d"] [:list [:symbol "*"] [:symbol "a"] [:symbol "c"]]]
+                                    [:list [:symbol "+"] [:symbol "d"] [:int "1"]]]]
+               [:symbol "x"] [:int "1"]]
+              [:list [:symbol "helper"] [:symbol "x"]]]]
+            [:list [:symbol "def"] [:symbol "complex"] [:int "3"]]]
+           (l ["(+ 1 3)"
+               "(defn complex [a b c]"
+               "  (let [helper (fn [a b]"
+               "                 (let [d (* a c)]"
+               "                   (+ d 1)))"
+               "        x 1]"
+               "    (helper x)))"
+               "(def complex 3)"])))
 
-    ["a = 0"
-     "if 0:"
-     "  a = 1"
-     "else:"
-     "  a = 2"
-     "a"]
-    [:S
-     [:assign [:identifier "a"] [:int "0"]]
-     [:if
-      [:int "0"]
-      [[:assign [:identifier "a"] [:int "1"]]]
-      [[:assign [:identifier "a"] [:int "2"]]]]
-     [:identifier "a"]]
-    ["(let [a (if false 1 2)]"
-     "  a)"]
-    [:S [:list [:symbol "let"] [:vector [:symbol "a"] [:list [:symbol "if"] [:bool "false"] [:int "1"] [:int "2"]]]
-         [:symbol "a"]]]
+    (is (= [:S
+            [:assign [:identifier "a"] [:int "0"]]
+            [:if
+             [:int "0"]
+             [[:assign [:identifier "a"] [:int "1"]]]
+             [[:assign [:identifier "a"] [:int "2"]]]]
+            [:identifier "a"]]
+           (p ["a = 0"
+               "if 0:"
+               "  a = 1"
+               "else:"
+               "  a = 2"
+               "a"])))
+    (is (= [:S [:list [:symbol "let"] [:vector [:symbol "a"] [:list [:symbol "if"] [:bool "false"] [:int "1"] [:int "2"]]]
+                [:symbol "a"]]]
+           (l ["(let [a (if false 1 2)]"
+               "  a)"])))
 
-    ["True == (1 == 2)"]
-    [:S
-     [:equal
-      [:bool "True"]
-      [:equal
-       [:int "1"]
-       [:int "2"]]]]
-    ["(= true (= 1 2))"]
-    [:S [:list [:symbol "="] [:bool "true"] [:list [:symbol "="] [:int "1"] [:int "2"]]]]
+    (is (= [:S
+            [:equal
+             [:bool "True"]
+             [:equal
+              [:int "1"]
+              [:int "2"]]]]
+           (p ["True == (1 == 2)"])))
+    (is (= [:S [:list [:symbol "="] [:bool "true"] [:list [:symbol "="] [:int "1"] [:int "2"]]]]
+           (l ["(= true (= 1 2))"])))
 
-    ["1 + fact(3)"]
-    [:S
-     [:sum
-      [:int "1"]
-      [:app [:identifier "fact"] [:int "3"]]]]
-    ["(+ 1 (fact 3))"]
-    [:S [:list [:symbol "+"] [:int "1"] [:list [:symbol "fact"] [:int "3"]]]]))
+    (is (= [:S
+            [:sum
+             [:int "1"]
+             [:app [:identifier "fact"] [:int "3"]]]]
+           (p ["1 + fact(3)"])))
+    (is (= [:S [:list [:symbol "+"] [:int "1"] [:list [:symbol "fact"] [:int "3"]]]]
+           (l ["(+ 1 (fact 3))"])))))
 
 (deftest pl-eval
   (are [string expected] (let [[actual t m] (s/eval-pl (s/parse (str string "\n")))]
