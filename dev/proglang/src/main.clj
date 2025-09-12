@@ -163,42 +163,49 @@
 (comment
 
   (defn step
-    [mv]
+    [mv output]
     (vatch mv
-      [:pure a] [:pure a]
+      [:pure a] [[:pure a] output]
+      [:print a] [[:pure nil] (conj output a)]
       [:bind mv f] (vatch mv
-                     [:pure a] (f a)
-                     [:bind i-mv i-f] [:bind (step i-mv) f])))
+                     [:pure a] [(f a) output]
+                     [:print a] [(f nil) (conj output a)]
+                     [:bind i-mv i-f] (let [[i-mv output] (step i-mv output)]
+                                        [:bind i-mv f])))))
 
   (defn run-parallel
     [mvs]
     (loop [ret []
            output []
-           ongoing (into mt-q mvs)]
+           ongoing (into mt-q (map-indexed (fn [idx mv] {:id idx, :pc mv}) mvs))]
       (if (empty? ongoing)
         [ret output]
-        (let [t (peek ongoing)
+        (let [{:keys [id pc]} (peek ongoing)
               ongoing (pop ongoing)]
-          (vatch t
-            [:pure a] (recur (conj ret a) output ongoing)
-            [:bind ma f] (recur ret output (conj ongoing (step t))))))))
+          (vatch pc
+            [:pure a] (recur (conj ret {:id id, :ret a}) output ongoing)
+            [:print x] (recur (conj ret {:id id, :ret :print}) output ongoing)
+            [:bind ma f] (let [[pc output] (step pc output)]
+                           (recur ret output (conj ongoing {:id id, :pc pc}))))))))
 
   (def t1 (monad
             a :<< [:pure 5]
             b :<< [:pure 6]
-            #_[:print a]
-            [:pure (+ a b)]))
+            [:print a]
+            c :<< [:pure (+ a b)]
+            [:print c]
+            [:pure c]))
 
   (def t2 (monad
             a :<< [:pure 2]
             b :<< [:pure 3]
-            #_[:print a]
-            #_[:print b]
-            #_[:print (* a b)]
+            [:print a]
+            [:print b]
+            [:print (* a b)]
             [:pure (+ a b)]))
 
   (run-parallel [t1 t2])
-[[11 5] []]
+[[{:id 0, :ret 11} {:id 1, :ret 5}] [5 2 3 11 6]]
 
 
   )
