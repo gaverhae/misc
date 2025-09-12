@@ -3,8 +3,13 @@
 
 (def parse-string
   (insta/parser
-    "<expr> := list | symbol | int
+    "S := (ws* expr ws*)*
+     <expr> := list | vector | int | (bool / symbol)
      list := <'('> ws* (expr ws*)* <')'>
-     symbol := #'[\\w+_*-]+' | '/'
+     vector := <'['> ws* (expr ws*)* <']'>
+     symbol := #'[\\w+_*=-]+' | '/'
      int := #'[+-]?[0-9]+'
+     bool := 'true' | 'false'
      <ws> = <#'\\s'>"))
+
+(def parse parse-string)
