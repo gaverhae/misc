@@ -9,11 +9,6 @@
       (keyword (subs frag 1))
       :title)))
 
-(defn component:icon [id]
-  [:img.icon
-   {:src
-    (str "https://cdn.jsdelivr.net/gh/twitter/twemoji/assets/svg/" id ".svg")}])
-
 (defn component:entity
   [e]
   [:img.cgv-entity
@@ -93,8 +88,7 @@
 (defn component:title-screen []
   [:main.title
    (component:title game-title)
-   (component:menu)
-   #_ (component:icon "1f3ae")])
+   (component:menu)])
 
 (defn component:app [state]
   (let [screen (:screen state)]
