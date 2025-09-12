@@ -240,8 +240,10 @@
            (l ["(+ 1 (fact 3))"])))))
 
 (deftest pl-eval
-  (let [p (fn [s] (first (s/eval-pl (s/parse (str s "\n")))))]
+  (let [p (fn [s] (first (s/eval-pl (s/parse (str s "\n")))))
+        l (fn [s] (first (l/m-eval (l/parse (str s "\n")))))]
     (is (= [:int 6] (p "1+2+3")))
+    (is (= [:v/int 6] (l "(+ 1 2 3)")))
     (is (= [:int 7] (p "(1) + (2 * 3)")))
     (is (= [:int 7] (p "1  +  2 * 3 ")))
     (is (= [:int 9] (p "(1  +  2)* 3 ")))
