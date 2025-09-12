@@ -240,17 +240,15 @@
            (l ["(+ 1 (fact 3))"])))))
 
 (deftest pl-eval
-  (are [string expected] (let [[actual t m] (s/eval-pl (s/parse (str string "\n")))]
-                           #_(prn [expected actual])
-                           (= expected actual))
-    "1+2+3" [:int 6]
-    "(1) + (2 * 3)" [:int 7]
-    "1  +  2 * 3 " [:int 7]
-    "(1  +  2)* 3 " [:int 9]
-    "True" [:bool true]
-    "1 == 1" [:bool true]
-    "1 == 2" [:bool false]
-    "True == False" [:bool false]))
+  (let [p (fn [s] (first (s/eval-pl (s/parse (str s "\n")))))]
+    (is (= [:int 6] (p "1+2+3")))
+    (is (= [:int 7] (p "(1) + (2 * 3)")))
+    (is (= [:int 7] (p "1  +  2 * 3 ")))
+    (is (= [:int 9] (p "(1  +  2)* 3 ")))
+    (is (= [:bool true] (p "True")))
+    (is (= [:bool true] (p "1 == 1" )))
+    (is (= [:bool false] (p "1 == 2" )))
+    (is (= [:bool false] (p "True == False" )))))
 
 (deftest multiline-expr
   (are [strings expected] (let [[actual t m] (s/eval-pl (s/parse (->lines strings)))]
