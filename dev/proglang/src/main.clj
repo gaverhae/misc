@@ -70,20 +70,6 @@
        (parse-blocks 0)
        (cons :S)))
 
-(def mt-q clojure.lang.PersistentQueue/EMPTY)
-
-(defn init-m
-  []
-  {:done-threads {}
-   :next-addr 3
-   :next-thread-id 0
-   :default-env {"print" 0
-                 "start_t" 1
-                 "wait_t" 2}
-   :mem {0 [:fn ["s"] [:S [:return [:print [:identifier "s"]]]] {}]
-         1 [:fn ["f"] [:S [:return [:start_t [:identifier "f"]]]] {}]
-         2 [:fn ["t"] [:S [:return [:wait_t [:identifier "t"]]]] {}]}})
-
 (def ^:dynamic +enable-gc+ false)
 
 (defn run-gc
@@ -114,68 +100,88 @@
       (update m :mem select-keys live-mem))
     m))
 
-(defn init-thread
-  [m]
-  [{:id (:next-thread-id m)
-    :env (:default-env m)
-    :stack []}
-   (update m :next-thread-id inc)])
+(def mt-q clojure.lang.PersistentQueue/EMPTY)
+
+(defn init-m
+  []
+  {:done-threads {}
+   :threads mt-q
+   :next-addr 3
+   :next-thread-id 0
+   :default-env {"print" 0
+                 "start_t" 1
+                 "wait_t" 2}
+   :mem {0 [:fn ["s"] [:S [:return [:print [:identifier "s"]]]] {}]
+         1 [:fn ["f"] [:S [:return [:start_t [:identifier "f"]]]] {}]
+         2 [:fn ["t"] [:S [:return [:wait_t [:identifier "t"]]]] {}]}})
+
+(defn add-thread
+  [m mv]
+  (-> m
+      (update :next-thread-id inc)
+      (update :threads conj [mv {:id (:next-thread-id m)
+                                 :env (:default-env m)
+                                 :stack []}])))
 
 (defn mrun-step
-  ([mv t m]
-   (vatch mv
-     [:pure v] [[:pure v] t m]
-     [:bind mv f] (vatch mv
-                    [:pure v] [(f v) t m]
-                    otherwise (let [[mv t m] (mrun-step mv t m)]
-                                [[:bind mv f] t m]))
-     [:assert bool msg] (if bool
-                          [[:pure nil] t m]
-                          (throw (ex-info msg {})))
-     [:add-to-env n v] (if-let [addr (get (:env t) n)]
-                         [[:pure nil] t (update m :mem assoc addr v)]
-                         (let [addr (:next-addr m)]
-                           [[:pure nil]
-                            (-> t (update :env assoc n addr))
-                            (-> m
-                                (update :next-addr inc)
-                                (update :mem assoc addr v))]))
-     [:get-from-env n] (loop [env (:env t)]
-                         (if (nil? env)
-                           (throw (ex-info "Name not found." {:name n}))
-                           (if-let [addr (get env n)]
-                             [[:pure (get (:mem m) addr)] t m]
-                             (recur (::parent env)))))
-     [:get-env] [[:pure (:env t)] t m]
-     [:push-env base] [[:pure nil]
-                       (-> t
-                           (update :stack conj (:env t))
-                           (assoc :env {::parent base}))
-                       m]
-     [:pop-env] [[:pure nil]
-                 (-> t
-                     (assoc :env (peek (:stack t)))
-                     (update :stack pop))
-                 (run-gc t m)]
-     [:print v] (do (println (second v))
-                    [[:pure [:int 0]] t m]))))
+  [mv t m]
+  (vatch mv
+    [:pure v] [[:pure v] t m]
+    [:bind mv f] (vatch mv
+                   [:pure v] [(f v) t m]
+                   otherwise (let [[mv t m] (mrun-step mv t m)]
+                               [[:bind mv f] t m]))
+    [:assert bool msg] (if bool
+                         [[:pure nil] t m]
+                         (throw (ex-info msg {})))
+    [:add-to-env n v] (if-let [addr (get (:env t) n)]
+                        [[:pure nil] t (update m :mem assoc addr v)]
+                        (let [addr (:next-addr m)]
+                          [[:pure nil]
+                           (-> t (update :env assoc n addr))
+                           (-> m
+                               (update :next-addr inc)
+                               (update :mem assoc addr v))]))
+    [:get-from-env n] (loop [env (:env t)]
+                        (if (nil? env)
+                          (throw (ex-info "Name not found." {:name n}))
+                          (if-let [addr (get env n)]
+                            [[:pure (get (:mem m) addr)] t m]
+                            (recur (::parent env)))))
+    [:get-env] [[:pure (:env t)] t m]
+    [:push-env base] [[:pure nil]
+                      (-> t
+                          (update :stack conj (:env t))
+                          (assoc :env {::parent base}))
+                      m]
+    [:pop-env] [[:pure nil]
+                (-> t
+                    (assoc :env (peek (:stack t)))
+                    (update :stack pop))
+                (run-gc t m)]
+    [:print v] (do (println (second v))
+                   [[:pure [:int 0]] t m])))
+
+(defn mrun
+  [m]
+  (loop [m m]
+    (let [threads (:threads m)]
+      (if (empty? threads)
+        (let [[v0 t0] (get-in m [:done-threads 0])]
+          [v0 t0 m])
+        (let [[mv t] (peek threads)
+              threads (pop threads)
+              [mv t m] (mrun-step mv t m)]
+          (vatch mv
+            [:pure v] (recur (-> m
+                                 (assoc-in [:done-threads (:id t)] [v t])
+                                 (assoc :threads threads)))
+            otherwise (recur (-> m
+                                 (assoc :threads (conj threads [mv t]))))))))))
 
 (defn mrun-envs
-  ([mv] (let [m (init-m)
-              [t m] (init-thread m)]
-          (mrun-envs mv t m)))
-  ([mv t m]
-   (loop [threads (into mt-q [[mv t]])
-          m m]
-     (if (empty? threads)
-       (let [[v0 t0] (get-in m [:done-threads 0])]
-         [v0 t0 m])
-       (let [[mv t] (peek threads)
-             threads (pop threads)
-             [mv t m] (mrun-step mv t m)]
-         (vatch mv
-           [:pure v] (recur threads (assoc-in m [:done-threads (:id t)] [v t]))
-           otherwise (recur (conj threads [mv t]) m)))))))
+  [mv]
+  (mrun (add-thread (init-m) mv)))
 
 (defn all-numbers?
   [vs]
@@ -239,7 +245,7 @@
   [expr]
   (mrun-envs (m-eval expr)))
 
-(defn shell
+#_(defn shell
   []
   (loop [[t m] (init-thread (init-m))
          prev-lines ""
@@ -292,6 +298,6 @@
 (defn -main
   [& args]
   (case (count args)
-    0 (shell)
+    #_#_0 (shell)
     1 (println (run-file (first args)))
     (usage)))
