@@ -74,10 +74,9 @@
 
 (defn init-m
   []
-  {:thread-id 0
-   :done-threads {}
+  {:done-threads {}
    :next-addr 3
-   :next-thread-id 1
+   :next-thread-id 0
    :default-env {"print" 0
                  "start_t" 1
                  "wait_t" 2}
@@ -166,10 +165,17 @@
               [t m] (init-thread m)]
           (mrun-envs mv t m)))
   ([mv t m]
-   (let [[mv t m] (mrun-step mv t m)]
-     (vatch mv
-       [:pure v] [v t m]
-       otherwise (recur mv t m)))))
+   (loop [threads (into mt-q [[mv t]])
+          m m]
+     (if (empty? threads)
+       (let [[v0 t0] (get-in m [:done-threads 0])]
+         [v0 t0 m])
+       (let [[mv t] (peek threads)
+             threads (pop threads)
+             [mv t m] (mrun-step mv t m)]
+         (vatch mv
+           [:pure v] (recur threads (assoc-in m [:done-threads (:id t)] [v t]))
+           otherwise (recur (conj threads [mv t]) m)))))))
 
 (defn all-numbers?
   [vs]

@@ -211,8 +211,8 @@
                                         "  return fib(n + -1) + fib(n + -2)"
                                         "fib(25)"]))))
   (with-out-str (time (s/mrun-envs fib)))
-"\"Elapsed time: 37619.556417 msecs\"\n"
+"\"Elapsed time: 37860.952333 msecs\"\n"
   (with-out-str (time (binding [s/+enable-gc+ true]
                         (s/mrun-envs fib))))
-"\"Elapsed time: 40082.0085 msecs\"\n"
+"\"Elapsed time: 41864.55625 msecs\"\n"
 )
