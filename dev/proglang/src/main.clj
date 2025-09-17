@@ -161,6 +161,15 @@
                 (run-gc t m)]
     [:start-thread mv] (let [id (:next-thread-id m)]
                          [[:pure [:thread-id id]] t (add-thread m mv)])
+    [:wait-for-thread t-id] (do (assert (and (vector? t-id)
+                                             (= :thread-id (first t-id))
+                                             (= 2 (count t-id))
+                                             (int? (second t-id))
+                                             (< 0 (second t-id) (:next-thread-id m))))
+                                (let [id (second t-id)]
+                                  (if (contains? (:done-threads m) id)
+                                    [[:pure (get-in m [:done-threads id 0])] t m]
+                                    [[:wait-for-thread t-id] t m])))
     [:print v] (do (println (second v))
                    [[:pure [:int 0]] t m])))
 
@@ -236,6 +245,9 @@
     [:start_t f] (monad
                    f :<< (m-eval f)
                    [:start-thread (m-eval [:app f])])
+    [:wait_t arg] (monad
+                    t :<< (m-eval arg)
+                    [:wait-for-thread t])
     [:S] [:pure nil]
     [:S head] (m-eval head)
     [:S head & tail] (mdo [[ret? v] (m-eval head)
