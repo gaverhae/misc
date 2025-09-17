@@ -176,7 +176,7 @@
       (is (= [] stack))
       (is (= [:int 233] v)))))
 
-#_(deftest multi-thread
+(deftest multi-thread
   (let [multifib (s/m-eval (s/parse (->lines ["def fib(n):"
                                               "  if n == 0:"
                                               "    return 1"
@@ -187,16 +187,19 @@
                                               "  return fib(3)"
                                               "def fib4():"
                                               "  return fib(4)"
-                                              "start_t(fib3)"
-                                              #_"t1 = start_t(fib3)"
-                                              #_"t2 = start_t(fib4)"
+                                              "t1 = start_t(fib3)"
+                                              "t2 = start_t(fib4)"
+                                              "t1"
                                               #_"r1 = wait_t(t1)"
                                               #_"r2 = wait_t(t2)"
                                               #_"print(r1 + r2)"
                                               #_"r1 + r2"])))]
-    (let [[v m-state] (s/mrun-envs multifib)]
+    (let [[v t m] (s/mrun-envs multifib)]
       (is (= [:thread-id 1] v))
-      (is (= 1 (count (:ready-threads m-state))))
+      (is (= [:thread-id 1] (get-in m [:done-threads 0 0])))
+      (is (= [:int 3] (get-in m [:done-threads 1 0])))
+      (is (= [:int 5] (get-in m [:done-threads 2 0])))
+      #_(is (= 1 (count (:ready-threads m-state))))
       #_(is (nil? (-> m-state :ready-threads peek))))
     #_(is (= nil
            (with-out-str (s/mrun-envs multifib))))))
@@ -211,7 +214,7 @@
                                         "  return fib(n + -1) + fib(n + -2)"
                                         "fib(25)"]))))
   (with-out-str (time (s/mrun-envs fib)))
-"\"Elapsed time: 37860.952333 msecs\"\n"
+"\"Elapsed time: 38127.960125 msecs\"\n"
   (with-out-str (time (binding [s/+enable-gc+ true]
                         (s/mrun-envs fib))))
 "\"Elapsed time: 41864.55625 msecs\"\n"
