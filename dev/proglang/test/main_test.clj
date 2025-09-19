@@ -252,10 +252,12 @@
   (expect [:v/int 6] (l "(+ 1 2 3)"))
 
   (expect [:int 7] (p "(1) + (2 * 3)"))
+  (expect [:int 7] (p "1  +  2 * 3 "))
   (expect [:v/int 7] (l "(+ 1 (* 2 3))"))
 
-  (expect [:int 7] (p "1  +  2 * 3 "))
   (expect [:int 9] (p "(1  +  2)* 3 "))
+  (expect [:v/int 9] (l "(* (+ 1 2) 3)"))
+
   (expect [:bool true] (p "True"))
   (expect [:bool true] (p "1 == 1" ))
   (expect [:bool false] (p "1 == 2" ))
