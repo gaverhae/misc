@@ -30,6 +30,9 @@
   [node]
   (vatch node
     [:int n] [:pure [:v/int (parse-long n)]]
+    [:bool t] [:pure [:v/bool (case t
+                                "true" true
+                                "false" false)]]
     [:list op & args] (vatch op
                         [:symbol "+"] (monad
                                         args :<< (m/m-seq (map m-eval args))
