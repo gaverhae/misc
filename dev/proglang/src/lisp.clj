@@ -41,7 +41,11 @@
                         [:symbol "*"] (monad
                                         args :<< (m/m-seq (map m-eval args))
                                         [:assert args #(every? #{:v/int} (map first %)) "Tried to multiply non-numeric values."]
-                                        [:pure [:v/int (reduce * 1 (map second args))]]))
+                                        [:pure [:v/int (reduce * 1 (map second args))]])
+                        [:symbol "="] (monad
+                                        args :<< (m/m-seq (map m-eval args))
+                                        [:pure [:v/bool (or (empty? args)
+                                                            (apply = args))]]))
     [:S & exprs] (monad
                    values :<< (m/m-seq (map m-eval exprs))
                    [:pure (last values)])))
