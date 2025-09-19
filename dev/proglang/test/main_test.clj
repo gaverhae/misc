@@ -262,8 +262,13 @@
   (expect [:v/bool true] (l "true"))
 
   (expect [:bool true] (p "1 == 1" ))
+  (expect [:v/bool true] (l "(= 1 1)"))
+
   (expect [:bool false] (p "1 == 2" ))
-  (expect [:bool false] (p "True == False" )))
+  (expect [:v/bool false] (l "(= 1 2)"))
+
+  (expect [:bool false] (p "True == False" ))
+  (expect [:v/bool false] (l "(= true false)")))
 
 ;; Evaluation of multi-line programs.
 
