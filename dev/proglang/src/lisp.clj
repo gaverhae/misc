@@ -22,9 +22,7 @@
     [:pure v] [v state]
     [:bind mv f] (let [[v state] (m-run mv state)]
                    (m-run (f v) state))
-    [:assert a f msg] (if (f a)
-                        [nil state]
-                        (throw (ex-info {:value a} msg)))))
+    [:error msg] [mv state]))
 
 (defn m-eval
   [node]
@@ -36,12 +34,14 @@
     [:list op & args] (vatch op
                         [:symbol "+"] (monad
                                         args :<< (m/m-seq (map m-eval args))
-                                        [:assert args #(every? #{:v/int} (map first %)) "Tried to add non-numeric values."]
-                                        [:pure [:v/int (reduce + 0 (map second args))]])
+                                        (if (->> args (map first) (every? #{:v/int}))
+                                          [:pure [:v/int (reduce + 0 (map second args))]]
+                                          [:error "Tried to add non-numeric values."]))
                         [:symbol "*"] (monad
                                         args :<< (m/m-seq (map m-eval args))
-                                        [:assert args #(every? #{:v/int} (map first %)) "Tried to multiply non-numeric values."]
-                                        [:pure [:v/int (reduce * 1 (map second args))]])
+                                        (if (->> args (map first) (every? #{:v/int}))
+                                          [:pure [:v/int (reduce * 1 (map second args))]]
+                                          [:error "Tried to multiply non-numeric values."]))
                         [:symbol "="] (monad
                                         args :<< (m/m-seq (map m-eval args))
                                         [:pure [:v/bool (or (empty? args)
