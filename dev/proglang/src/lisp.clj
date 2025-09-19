@@ -14,7 +14,8 @@
      bool := 'true' | 'false'
      <ws> = <#'\\s'>"))
 
-(def init-state {})
+(def init-state
+  {:top-level {}})
 
 (defn m-run
   [mv state]
@@ -22,7 +23,9 @@
     [:pure v] [v state]
     [:bind mv f] (let [[v state] (m-run mv state)]
                    (m-run (f v) state))
-    [:error msg] [mv state]))
+    [:error msg] [mv state]
+    [:add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
+    [:lookup x] [(get-in state [:top-level x]) state]))
 
 (defn m-eval
   [node]
@@ -31,6 +34,7 @@
     [:bool t] [:pure [:v/bool (case t
                                 "true" true
                                 "false" false)]]
+    [:symbol x] [:lookup x]
     [:list op & args] (vatch op
                         [:symbol "+"] (monad
                                         args :<< (m/m-seq (map m-eval args))
@@ -45,7 +49,12 @@
                         [:symbol "="] (monad
                                         args :<< (m/m-seq (map m-eval args))
                                         [:pure [:v/bool (or (empty? args)
-                                                            (apply = args))]]))
+                                                            (apply = args))]])
+                        [:symbol "def"] (vatch args
+                                          [[:symbol x] expr] (monad
+                                                               v :<< (m-eval expr)
+                                                               [:add-top-level x v])
+                                          otherwise [:error "Invalid syntax: def."]))
     [:S & exprs] (monad
                    values :<< (m/m-seq (map m-eval exprs))
                    [:pure (last values)])))
