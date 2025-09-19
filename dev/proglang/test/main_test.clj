@@ -268,7 +268,10 @@
   (expect [:v/bool false] (l "(= 1 2)"))
 
   (expect [:bool false] (p "True == False" ))
-  (expect [:v/bool false] (l "(= true false)")))
+  (expect [:v/bool false] (l "(= true false)"))
+
+  (expect [:error "Tried to add non-numeric values."]
+          (l "(+ 1 true)")))
 
 ;; Evaluation of multi-line programs.
 
