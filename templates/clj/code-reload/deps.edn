@@ -1,0 +1,9 @@
+{:deps
+ {com.nextjournal/beholder {:mvn/version "1.0.3"}
+  org.clojure/tools.namespace {:mvn/version "1.5.0"}}
+ :aliases
+ {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.12.1"}
+                       cider/cider-nrepl {:mvn/version "0.56.0"}
+                       fipp/fipp {:mvn/version "0.6.27"}}
+          :extra-paths ["dev"]
+          :main-opts ["-m" "nrepl.cmdline" "-i" "--middleware" "[cider.nrepl/cider-middleware]"]}}}
