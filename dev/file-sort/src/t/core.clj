@@ -427,3 +427,51 @@
 
           :else
           (println "Unknown command: " (pr-str args)))))
+
+
+(comment
+
+(defn to-matrix
+  [v]
+  (assert (->> v (map count) set count (contains? #{0 1}))
+          "All rows must be of the same length.")
+  (if (empty? v)
+    (make-array Float/TYPE 0 0)
+    (let [m (make-array Float/TYPE (count v) (count (first v)))]
+      (doseq [y (range (count v))
+              x (range (count (first v)))]
+        (aset m y x (get-in v [y x])))
+      m)))
+
+(defn from-matrix
+  [arr]
+  (->> (seq arr)
+       (map seq)))
+
+(defn matrix-plus
+  [^"[[F" m1 ^"[[F" m2]
+  ;; check dimensions
+  (assert (and (= (alength m1) (alength m2))
+               (= (alength ^"[F" (aget m1 0)) (alength ^"[F" (aget m2 0))))
+          "Invalid dimensions.")
+  (if (and (zero? (alength m1))
+           (zero? (alength m2)))
+    (make-array Float/TYPE 0 0)
+    (let [rows (alength m1)
+          cols (alength ^"[F" (aget m1 0))
+          result ^"[[F" (make-array Float/TYPE rows cols)]
+      (loop [col 0
+             row 0]
+        (aset ^"[F" (aget result row) col (+ ^float (aget m1 row col)
+                                             ^float (aget m2 row col)))
+        (cond (and (= row (dec rows)) (= col (dec cols))) result
+              (= col (dec cols)) (recur 0 (inc row))
+              :else (recur (inc col) row))))))
+
+(from-matrix
+  (matrix-plus
+    (to-matrix [[1 2 3] [4 5 6]])
+    (to-matrix [[-1 -2 -3] [1 1 1]])))
+
+
+  )
