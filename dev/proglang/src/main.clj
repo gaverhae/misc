@@ -1,7 +1,7 @@
 (ns main
   (:require [clojure.string :as string]
             [instaparse.core :as insta]
-            [io.github.gaverhae.clonad :as m :refer [mdo monad]]
+            [io.github.gaverhae.clonad :as m :refer [m-let]]
             [io.github.gaverhae.vatch :refer [vatch]])
   (:gen-class))
 
@@ -202,58 +202,59 @@
                 "True" [:pure [:bool true]]
                 "False" [:pure [:bool false]])
     [:fn args body env] [:pure [:fn args body env]]
-    [:sum & args] (monad
-                    args :<< (m/m-seq (map m-eval args))
-                    [:assert (all-numbers? args) "Tried to add non-numeric values."]
+    [:sum & args] (m-let
+                    [args (m/m-seq (map m-eval args))
+                     _ [:assert (all-numbers? args) "Tried to add non-numeric values."]]
                     [:pure [:int (reduce + 0 (map second args))]])
-    [:product & args] (monad
-                        args :<< (m/m-seq (map m-eval args))
-                        [:assert (all-numbers? args) "Tried to multiply non-numeric values."]
+    [:product & args] (m-let
+                        [args (m/m-seq (map m-eval args))
+                         _ [:assert (all-numbers? args) "Tried to multiply non-numeric values."]]
                         [:pure [:int (reduce * 1 (map second args))]])
-    [:assign [_ n] v] (monad
-                        v :<< (m-eval v)
+    [:assign [_ n] v] (m-let
+                        [v (m-eval v)]
                         [:add-to-env n v])
-    [:def fn-name args body] (monad
-                               [:add-to-env fn-name nil]
-                               env :<< [:get-env]
+    [:def fn-name args body] (m-let
+                               [_ [:add-to-env fn-name nil]
+                                env [:get-env]]
                                [:add-to-env fn-name [:fn args (cons :S body) env]])
-    [:app f & args] (mdo [[tag params body captured-env] (m-eval f)
-                          _ [:assert (= :fn tag) "Tried to apply a non-function value."]
-                          args (m/m-seq (map m-eval args))
-                          _ [:push-env captured-env ]
-                          _ (m/m-seq (map (fn [p a] [:add-to-env p a]) params args))
-                          [ret? v] (m-eval body)
-                          _ [:assert (= :return ret?) "Function ended without a return."]
-                          _ [:pop-env]
-                          _ [:pure v]])
-    [:return expr] (monad
-                     r :<< (m-eval expr)
+    [:app f & args] (m-let
+                      [[tag params body captured-env] (m-eval f)
+                       _ [:assert (= :fn tag) "Tried to apply a non-function value."]
+                       args (m/m-seq (map m-eval args))
+                       _ [:push-env captured-env ]
+                       _ (m/m-seq (map (fn [p a] [:add-to-env p a]) params args))
+                       [ret? v] (m-eval body)
+                       _ [:assert (= :return ret?) "Function ended without a return."]
+                       _ [:pop-env]]
+                       [:pure v])
+    [:return expr] (m-let
+                     [r (m-eval expr)]
                      [:pure [:return r]])
     [:identifier n] [:get-from-env n]
-    [:equal left right] (monad
-                          left :<< (m-eval left)
-                          right :<< (m-eval right)
+    [:equal left right] (m-let
+                          [left (m-eval left)
+                           right (m-eval right)]
                           [:pure [:bool (= left right)]])
-    [:if condition if-true & [if-false]] (monad
-                                           condition :<< (m-eval condition)
+    [:if condition if-true & [if-false]] (m-let
+                                           [condition (m-eval condition)]
                                            (if (contains? #{[:bool false] [:int 0]} condition)
                                              (m-eval (cons :S if-false))
                                              (m-eval (cons :S if-true))))
-    [:print expr] (monad
-                    v :<< (m-eval expr)
+    [:print expr] (m-let
+                    [v (m-eval expr)]
                     [:print v])
-    [:start_t f] (monad
-                   f :<< (m-eval f)
+    [:start_t f] (m-let
+                   [f (m-eval f)]
                    [:start-thread (m-eval [:app f])])
-    [:wait_t arg] (monad
-                    t :<< (m-eval arg)
+    [:wait_t arg] (m-let
+                    [t (m-eval arg)]
                     [:wait-for-thread t])
     [:S] [:pure nil]
     [:S head] (m-eval head)
-    [:S head & tail] (mdo [[ret? v] (m-eval head)
-                           _ (if (= :return ret?)
-                               [:pure [:return v]]
-                               (m-eval (cons :S tail)))])))
+    [:S head & tail] (m-let [[ret? v] (m-eval head)]
+                       (if (= :return ret?)
+                         [:pure [:return v]]
+                         (m-eval (cons :S tail))))))
 
 (defn eval-pl
   [expr]
