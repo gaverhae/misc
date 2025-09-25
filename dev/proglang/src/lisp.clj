@@ -36,43 +36,40 @@
   (vatch mv
     [:pure v] [v state]
     [:bind mv f] (let [[v state] (m-run mv state)]
-                   (m-run (f v) state))
-    [:error msg] [mv state]
-    [:add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
-    [:lookup x] [(get-in state [:top-level x]) state]))
+                     (m-run (f v) state))
+    [:m/error msg] [mv state]
+    [:m/add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
+    [:m/lookup x] [(get-in state [:top-level x]) state]))
 
 (defn m-eval
   [node]
   (vatch node
-    [:int n] [:pure [:v/int (parse-long n)]]
-    [:bool t] [:pure [:v/bool (case t
-                                "true" true
-                                "false" false)]]
-    [:symbol x] [:lookup x]
-    [:list op & args] (vatch op
-                        [:symbol "+"] (monad
-                                        args :<< (m/m-seq (map m-eval args))
-                                        (if (->> args (map first) (every? #{:v/int}))
-                                          [:pure [:v/int (reduce + 0 (map second args))]]
-                                          [:error "Tried to add non-numeric values."]))
-                        [:symbol "*"] (monad
-                                        args :<< (m/m-seq (map m-eval args))
-                                        (if (->> args (map first) (every? #{:v/int}))
-                                          [:pure [:v/int (reduce * 1 (map second args))]]
-                                          [:error "Tried to multiply non-numeric values."]))
-                        [:symbol "="] (monad
-                                        args :<< (m/m-seq (map m-eval args))
-                                        [:pure [:v/bool (or (empty? args)
-                                                            (apply = args))]])
-                        [:symbol "def"] (vatch args
-                                          [[:symbol x] expr] (monad
-                                                               v :<< (m-eval expr)
-                                                               [:add-top-level x v])
-                                          otherwise [:error "Invalid syntax: def."]))
-    [:S & exprs] (monad
-                   values :<< (m/m-seq (map m-eval exprs))
-                   [:pure (last values)])))
+    [:v/symbol x] [:m/lookup x]
+    [:v/list op & args] (vatch op
+                          [:v/symbol "+"] (monad
+                                            args :<< (m/m-seq (map m-eval args))
+                                            (if (->> args (map first) (every? #{:v/int}))
+                                              [:pure [:v/int (reduce + 0 (map second args))]]
+                                              [:m/error "Tried to add non-numeric values."]))
+                          [:v/symbol "*"] (monad
+                                            args :<< (m/m-seq (map m-eval args))
+                                            (if (->> args (map first) (every? #{:v/int}))
+                                              [:pure [:v/int (reduce * 1 (map second args))]]
+                                              [:m/error "Tried to multiply non-numeric values."]))
+                          [:v/symbol "="] (monad
+                                            args :<< (m/m-seq (map m-eval args))
+                                            [:pure [:v/bool (or (empty? args)
+                                                                  (apply = args))]])
+                          [:v/symbol "def"] (vatch args
+                                              [[:v/symbol x] expr] (monad
+                                                                     v :<< (m-eval expr)
+                                                                     [:m/add-top-level x v])
+                                              otherwise [:m/error "Invalid syntax: def."]))
+    otherwise [:pure node]))
 
-(defn eval-pl
-  [expr]
-  (m-run (m-eval expr) init-state))
+(defn eval-forms
+  [forms]
+  (first (m-run (monad
+                  values :<< (m/m-seq (map m-eval forms))
+                  [:pure (last values)])
+                init-state)))
