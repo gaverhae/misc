@@ -1,6 +1,6 @@
 (ns lisp
   (:require [instaparse.core :as insta]
-            [io.github.gaverhae.clonad :as m :refer [mdo monad]]
+            [io.github.gaverhae.clonad :as m :refer [m-let]]
             [io.github.gaverhae.vatch :refer [vatch]]))
 
 (def parse
@@ -34,8 +34,8 @@
 (defn m-run
   [mv state]
   (vatch mv
-    [:pure v] [v state]
-    [:bind mv f] (let [[v state] (m-run mv state)]
+    [:m/pure v] [v state]
+    [:m/bind mv f] (let [[v state] (m-run mv state)]
                      (m-run (f v) state))
     [:m/error msg] [mv state]
     [:m/add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
@@ -46,30 +46,30 @@
   (vatch node
     [:v/symbol x] [:m/lookup x]
     [:v/list op & args] (vatch op
-                          [:v/symbol "+"] (monad
-                                            args :<< (m/m-seq (map m-eval args))
+                          [:v/symbol "+"] (m-let :m
+                                            [args (m/m-seq :m (map m-eval args))]
                                             (if (->> args (map first) (every? #{:v/int}))
-                                              [:pure [:v/int (reduce + 0 (map second args))]]
+                                              [:m/pure [:v/int (reduce + 0 (map second args))]]
                                               [:m/error "Tried to add non-numeric values."]))
-                          [:v/symbol "*"] (monad
-                                            args :<< (m/m-seq (map m-eval args))
+                          [:v/symbol "*"] (m-let :m
+                                            [args (m/m-seq :m (map m-eval args))]
                                             (if (->> args (map first) (every? #{:v/int}))
-                                              [:pure [:v/int (reduce * 1 (map second args))]]
+                                              [:m/pure [:v/int (reduce * 1 (map second args))]]
                                               [:m/error "Tried to multiply non-numeric values."]))
-                          [:v/symbol "="] (monad
-                                            args :<< (m/m-seq (map m-eval args))
-                                            [:pure [:v/bool (or (empty? args)
+                          [:v/symbol "="] (m-let :m
+                                            [args (m/m-seq :m (map m-eval args))]
+                                            [:m/pure [:v/bool (or (empty? args)
                                                                   (apply = args))]])
                           [:v/symbol "def"] (vatch args
-                                              [[:v/symbol x] expr] (monad
-                                                                     v :<< (m-eval expr)
+                                              [[:v/symbol x] expr] (m-let :m
+                                                                     [v (m-eval expr)]
                                                                      [:m/add-top-level x v])
                                               otherwise [:m/error "Invalid syntax: def."]))
-    otherwise [:pure node]))
+    otherwise [:m/pure node]))
 
 (defn eval-forms
   [forms]
-  (first (m-run (monad
-                  values :<< (m/m-seq (map m-eval forms))
-                  [:pure (last values)])
+  (first (m-run (m-let :m
+                  [values (m/m-seq :m (map m-eval forms))]
+                  [:m/pure (last values)])
                 init-state)))
