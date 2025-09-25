@@ -255,7 +255,7 @@
 ;; Evaluation of simple expressions.
 
 (let [p (fn [s] (first (s/eval-pl (s/parse (str s "\n")))))
-      l (fn [s] (first (l/eval-pl (l/parse (str s "\n")))))]
+      l (fn [s] (l/eval-forms (l/read-forms (str s "\n"))))]
   (expect [:int 6] (p "1+2+3"))
   (expect [:v/int 6] (l "(+ 1 2 3)"))
 
@@ -278,13 +278,13 @@
   (expect [:bool false] (p "True == False" ))
   (expect [:v/bool false] (l "(= true false)"))
 
-  (expect [:error "Tried to add non-numeric values."]
+  (expect [:m/error "Tried to add non-numeric values."]
           (l "(+ 1 true)")))
 
 ;; Evaluation of multi-line programs.
 
 (let [p (fn [s] (first (s/eval-pl (s/parse (->lines s)))))
-      l (fn [s] (first (l/eval-pl (l/parse (->lines s)))))]
+      l (fn [s] (l/eval-forms (l/read-forms (->lines s))))]
   (expect [:int 6]
           (p ["4"
               "1+2+3"]))
