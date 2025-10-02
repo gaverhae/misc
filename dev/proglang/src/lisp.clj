@@ -23,7 +23,7 @@
               [:bool b] [:v/bool (case b
                                    "true" true
                                    "false" false)]
-              [:string & s] (do (prn s) [:v/string (apply str s)])
+              [:string & s] [:v/string (apply str s)]
               [:int s] [:v/int (parse-long s)]
               [:list & vs] (vec (cons :v/list (map ! vs)))
               [:symbol n] [:v/symbol n]
