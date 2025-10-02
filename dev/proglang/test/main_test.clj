@@ -16,7 +16,9 @@
   (expect [[:v/int 4]]
           (l ["4"]))
   (expect [[:v/vector [:v/int 4] [:v/int 5] [:v/symbol "sym"] [:v/bool true] [:v/vector [:v/int 1] [:v/list [:v/int 2]]]] [:v/int 4]]
-          (l ["[4 5 sym true [1 (2)]] 4"])))
+          (l ["[4 5 sym true [1 (2)]] 4"]))
+  (expect [[:v/string "this is a \"complex string\""]]
+          (l ["\"this is a \"complex string\"\""])))
 
 ;; Basic expressions
 
