@@ -106,7 +106,7 @@
 (let [p (fn [s] (s/parse (->lines s)))
       l (fn [s] (l/parse (->lines s)))]
   (expect [:S [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]
-          (p ["1 + (2 * 3)"])    )
+          (p ["1 + (2 * 3)"]))
   (expect [:S [:list [:symbol "+"] [:int "1"] [:list [:symbol "*"] [:int "2"] [:int "3"]]]]
           (l ["(+ 1 (* 2 3))"]))
 
