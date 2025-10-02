@@ -36,6 +36,18 @@
                       [args [:m/lookup "args"]
                        _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to add non-numeric values."]]
                       [:m/pure [:v/int (reduce + 0 (map second args))]])
+                    {:parent :top-level}]
+               "*" [:fn [] "args"
+                    (m-let :m
+                      [args [:m/lookup "args"]
+                       _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to multiply non-numeric values."]]
+                      [:m/pure [:v/int (reduce * 1 (map second args))]])
+                    {:parent :top-level}]
+               "=" [:fn [] "args"
+                    (m-let :m
+                      [args [:m/lookup "args"]]
+                      [:m/pure [:v/bool (or (empty? args)
+                                            (apply = args))]])
                     {:parent :top-level}]}
    :stack [{:parent :top-level}]})
 
@@ -68,15 +80,6 @@
   (vatch node
     [:v/symbol x] [:m/lookup x]
     [:v/list op & args] (vatch op
-                          [:v/symbol "*"] (m-let :m
-                                            [args (m/m-seq :m (map m-eval args))]
-                                            (if (->> args (map first) (every? #{:v/int}))
-                                              [:m/pure [:v/int (reduce * 1 (map second args))]]
-                                              [:m/error "Tried to multiply non-numeric values."]))
-                          [:v/symbol "="] (m-let :m
-                                            [args (m/m-seq :m (map m-eval args))]
-                                            [:m/pure [:v/bool (or (empty? args)
-                                                                  (apply = args))]])
                           [:v/symbol "def"] (vatch args
                                               [[:v/symbol x] expr] (m-let :m
                                                                      [v (m-eval expr)]
