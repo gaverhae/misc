@@ -31,19 +31,19 @@
     (h (parse s))))
 
 (def init-state
-  {:top-level {"+" [:fn [] "args"
+  {:top-level {"+" [:v/fn [] "args"
                     (m-let :m
                       [args [:m/lookup "args"]
                        _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to add non-numeric values."]]
                       [:m/pure [:v/int (reduce + 0 (map second args))]])
                     {:parent :top-level}]
-               "*" [:fn [] "args"
+               "*" [:v/fn [] "args"
                     (m-let :m
                       [args [:m/lookup "args"]
                        _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to multiply non-numeric values."]]
                       [:m/pure [:v/int (reduce * 1 (map second args))]])
                     {:parent :top-level}]
-               "=" [:fn [] "args"
+               "=" [:v/fn [] "args"
                     (m-let :m
                       [args [:m/lookup "args"]]
                       [:m/pure [:v/bool (or (empty? args)
@@ -86,6 +86,20 @@
                                                                      [v (m-eval expr)]
                                                                      [:m/add-top-level x v])
                                               otherwise [:m/error "Invalid syntax: def."])
+                          [:v/symbol "fn"] (if-not (and (>= (count args) 2)
+                                                        (= :v/vector (ffirst args))
+                                                        (->> args first rest (map first) (every? #{:v/symbol})))
+                                             [:m/error "Invalid syntax: fn."]
+                                             (let [[params & body] args]
+                                               (m-let :m
+                                                 [env [:m/get-env]]
+                                                 [:m/pure [:v/fn
+                                                         (->> params rest (map second))
+                                                         nil
+                                                         (m-let :m
+                                                           [rets (m/m-seq :m (map m-eval body))]
+                                                           [:m/pure (last rets)])
+                                                         env]])))
                           [:v/symbol "let"] (if-not (and (>= (count args) 2)
                                                          (= :v/vector (ffirst args))
                                                          (odd? (count (first args)))
@@ -112,7 +126,7 @@
                                                   [:m/pure (last rets)])))
                           function-call (m-let :m
                                           [[tag named-params rest-params body fn-env] (m-eval op)
-                                           _ [:m/assert (= :fn tag) "Tried to apply non-function value."]
+                                           _ [:m/assert (= :v/fn tag) "Tried to apply non-function value."]
                                            args (m/m-seq :m (map m-eval args))
                                            _ [:m/push-env fn-env]
                                            _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
