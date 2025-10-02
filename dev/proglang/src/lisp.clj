@@ -76,13 +76,19 @@
                            :else (recur (:parent env))))
                        state]))
 
+(declare m-eval)
+
+(defn do-body
+  [body]
+  (m-let :m
+    [rets (m/m-seq :m (map m-eval body))]
+    [:m/pure (last rets)]))
+
 (defn m-eval
   [node]
   (vatch node
     [:v/symbol x] [:m/lookup x]
-    [:v/list [:v/symbol "do"] & body] (m-let :m
-                                        [rets (m/m-seq :m (map m-eval body))]
-                                        [:m/pure (last rets)])
+    [:v/list [:v/symbol "do"] & body] (do-body body)
     [:v/list [:v/symbol "def"] [:v/symbol n] expr] (m-let :m
                                                      [v (m-eval expr)]
                                                      [:m/add-top-level n v])
@@ -94,9 +100,7 @@
                                                              [:m/pure [:v/fn
                                                                        (->> syms (map second))
                                                                        nil
-                                                                       (m-let :m
-                                                                         [rets (m/m-seq :m (map m-eval body))]
-                                                                         [:m/pure (last rets)])
+                                                                       (do-body body)
                                                                        env]]))
     [:v/list [:v/symbol "fn"] & _] [:m/error "Invalid syntax: fn."]
     [:v/list [:v/symbol "let"] [:v/vector & bindings] & body] (if-not (and (even? (count bindings))
@@ -111,9 +115,9 @@
                                                                      _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
                                                                                         b-names
                                                                                         b-vals))
-                                                                     rets (m/m-seq :m (map m-eval body))
+                                                                     ret (do-body body)
                                                                      _ [:m/pop-env]]
-                                                                    [:m/pure (last rets)])))
+                                                                    [:m/pure ret])))
     [:v/list [:v/symbol "let"] & _] [:m/error "Invalid syntax: let."]
 
     [:v/list fun & args] (m-let :m
