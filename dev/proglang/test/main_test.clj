@@ -334,6 +334,13 @@
   (expect [:v/int 3]
           (l ["(def a 1)"
               "(+ a 2)"]))
+  (expect [:v/int 3]
+          (l ["(let [a 1] (+ a 2))"]))
+  (expect [:v/int 3]
+          (l ["(let [a 1 b 0] (+ 1 b) (+ 2 a))"]))
+  (expect [:v/vector [:v/int 1] [:v/int 3] [:v/int 5] [:v/int 1]]
+          (l ["(let [a 1]
+                [a (+ a 2) (let [a 3] (+ a 2)) a])"]))
 
   (expect [:int 1]
           (p ["if True:"
