@@ -99,46 +99,37 @@
                                                                          [:m/pure (last rets)])
                                                                        env]]))
     [:v/list [:v/symbol "fn"] & _] [:m/error "Invalid syntax: fn."]
+    [:v/list [:v/symbol "let"] [:v/vector & bindings] & body] (if-not (and (even? (count bindings))
+                                                                           (->> bindings (partition 2 2) (map ffirst) (every? #{:v/symbol})))
+                                                                [:m/error "Invalid syntax: let."]
+                                                                (let [b-names (->> bindings (partition 2 2) (map first) (map second))
+                                                                      b-exprs (->> bindings (partition 2 2) (map second))]
+                                                                  (m-let :m
+                                                                    [e [:m/get-env]
+                                                                     _ [:m/push-env e]
+                                                                     b-vals (m/m-seq :m (map m-eval b-exprs))
+                                                                     _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
+                                                                                        b-names
+                                                                                        b-vals))
+                                                                     rets (m/m-seq :m (map m-eval body))
+                                                                     _ [:m/pop-env]]
+                                                                    [:m/pure (last rets)])))
+    [:v/list [:v/symbol "let"] & _] [:m/error "Invalid syntax: let."]
 
-    [:v/list op & args] (vatch op
-                          [:v/symbol "let"] (if-not (and (>= (count args) 2)
-                                                         (= :v/vector (ffirst args))
-                                                         (odd? (count (first args)))
-                                                         (->> args
-                                                              first
-                                                              rest
-                                                              (partition 2 2)
-                                                              (map first)
-                                                              (map first)
-                                                              (every? #{:v/symbol})))
-                                              [:m/error "Invalid syntax: let."]
-                                              (let [[bindings & body] args
-                                                    b-names (->> bindings rest (partition 2 2) (map first) (map second))
-                                                    b-exprs (->> bindings rest (partition 2 2) (map second))]
-                                                (m-let :m
-                                                  [e [:m/get-env]
-                                                   _ [:m/push-env e]
-                                                   b-vals (m/m-seq :m (map m-eval b-exprs))
-                                                   _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
-                                                                      b-names
-                                                                      b-vals))
-                                                   rets (m/m-seq :m (map m-eval body))
-                                                   _ [:m/pop-env]]
-                                                  [:m/pure (last rets)])))
-                          function-call (m-let :m
-                                          [[tag named-params rest-params body fn-env] (m-eval op)
-                                           _ [:m/assert (= :v/fn tag) "Tried to apply non-function value."]
-                                           args (m/m-seq :m (map m-eval args))
-                                           _ [:m/push-env fn-env]
-                                           _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
-                                                              named-params
-                                                              (take (count named-params) args)))
-                                           _ (if rest-params
-                                               [:m/add-to-env rest-params (drop (count named-params) args)]
-                                               [:m/pure nil])
-                                           ret body
-                                           _ [:m/pop-env]]
-                                          [:m/pure ret]))
+    [:v/list fun & args] (m-let :m
+                           [[tag named-params rest-params body fn-env] (m-eval fun)
+                            _ [:m/assert (= :v/fn tag) "Tried to apply non-function value."]
+                            args (m/m-seq :m (map m-eval args))
+                            _ [:m/push-env fn-env]
+                            _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
+                                               named-params
+                                               (take (count named-params) args)))
+                            _ (if rest-params
+                                [:m/add-to-env rest-params (drop (count named-params) args)]
+                                [:m/pure nil])
+                            ret body
+                            _ [:m/pop-env]]
+                           [:m/pure ret])
     [:v/vector & elems] (m-let :m
                           [elems (m/m-seq :m (map m-eval elems))]
                           [:m/pure (vec (cons :v/vector elems))])
