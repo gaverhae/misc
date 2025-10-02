@@ -103,6 +103,12 @@
                                                                        (do-body body)
                                                                        env]]))
     [:v/list [:v/symbol "fn"] & _] [:m/error "Invalid syntax: fn."]
+    [:v/list [:v/symbol "if"] c t e] (m-let :m
+                                       [c (m-eval c)
+                                        r (if (= [:v/bool false] c)
+                                            (m-eval e)
+                                            (m-eval t))]
+                                       [:m/pure r])
     [:v/list [:v/symbol "let"] [:v/vector & bindings] & body] (if-not (and (even? (count bindings))
                                                                            (->> bindings (partition 2 2) (map ffirst) (every? #{:v/symbol})))
                                                                 [:m/error "Invalid syntax: let."]
