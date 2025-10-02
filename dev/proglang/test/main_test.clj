@@ -372,7 +372,37 @@
           (l ["(if false 4 5)"]))
 
   (expect [:v/int 5]
-          (l ["((fn [x] (+ x 1)) 4)"])))
+          (l ["((fn [x] (+ x 1)) 4)"]))
+
+  (expect [:v/vector
+           [:v/int 1]
+           [:v/int 1]
+           [:v/int 2]
+           [:v/int 3]
+           [:v/int 5]
+           [:v/int 8]
+           [:v/int 13]
+           [:v/int 21]
+           [:v/int 34]
+           [:v/int 55]]
+          (l ["(let [g (fn [f]"
+              "          (fn [n]"
+              "            (if (= 0 n)"
+              "              1"
+              "              (if (= 1 n)"
+              "                1"
+              "                (+ ((f f) (+ n -1)) ((f f) (+ n -2)))))))]"
+              "  (let [fib (g g)]"
+              "    [(fib 0)"
+              "     (fib 1)"
+              "     (fib 2)"
+              "     (fib 3)"
+              "     (fib 4)"
+              "     (fib 5)"
+              "     (fib 6)"
+              "     (fib 7)"
+              "     (fib 8)"
+              "     (fib 9)]))"])))
 
 ;; Processing entire files.
 
