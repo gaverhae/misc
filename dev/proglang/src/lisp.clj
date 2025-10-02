@@ -70,7 +70,7 @@
                                                       (update s idx assoc n v))))]
     [:m/add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
     [:m/lookup x] [(loop [env (peek (:stack state))]
-                     (cond (nil? env) [:v/error "Name not found."]
+                     (cond (nil? env) [:v/error (str "Name not found: " x ".")]
                            (contains? env x) (get env x)
                            (= :top-level (:parent env)) (recur (:top-level state))
                            :else (recur (:parent env))))
