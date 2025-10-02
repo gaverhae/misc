@@ -38,8 +38,10 @@
   (vatch mv
     [:m/pure v] [v state]
     [:m/bind mv f] (let [[v state] (m-run mv state)]
-                     (m-run (f v) state))
-    [:m/error msg] [mv state]
+                     (vatch v
+                       [:v/error _] [v state]
+                       otherwise (m-run (f v) state)))
+    [:m/error msg] [[:v/error msg] state]
     [:m/add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
     [:m/lookup x] [(get-in state [:top-level x]) state]))
 
