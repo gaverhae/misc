@@ -67,6 +67,9 @@
                                                                      [v (m-eval expr)]
                                                                      [:m/add-top-level x v])
                                               otherwise [:m/error "Invalid syntax: def."]))
+    [:v/vector & elems] (m-let :m
+                          [elems (m/m-seq :m (map m-eval elems))]
+                          [:m/pure (vec (cons :v/vector elems))])
     otherwise [:m/pure node]))
 
 (defn eval-forms
