@@ -31,7 +31,8 @@
     (h (parse s))))
 
 (def init-state
-  {:top-level {}})
+  {:top-level {}
+   :stack [{:parent :top-level}]})
 
 (defn m-run
   [mv state]
@@ -42,8 +43,20 @@
                        [:v/error _] [v state]
                        otherwise (m-run (f v) state)))
     [:m/error msg] [[:v/error msg] state]
+    [:m/assert true msg] [nil state]
+    [:m/assert false msg] [[:v/error msg] state]
+    [:m/push-env e] [nil (update state :stack conj e)]
+    [:m/pop-env] [nil (update state :stack pop)]
+    [:m/add-to-env n v] [nil (update state :stack (fn [s]
+                                                    (let [idx (dec (count s))]
+                                                      (update s idx assoc n v))))]
     [:m/add-top-level n v] [[:v/int 0] (update state :top-level assoc n v)]
-    [:m/lookup x] [(get-in state [:top-level x]) state]))
+    [:m/lookup x] [(loop [env (peek (:stack state))]
+                     (cond (nil? env) [:v/error "Name not found."]
+                           (contains? env x) (get env x)
+                           (= :top-level (:parent env)) (recur (:top-level state))
+                           :else (recur (:parent env))))
+                       state]))
 
 (defn m-eval
   [node]
@@ -68,7 +81,16 @@
                                               [[:v/symbol x] expr] (m-let :m
                                                                      [v (m-eval expr)]
                                                                      [:m/add-top-level x v])
-                                              otherwise [:m/error "Invalid syntax: def."]))
+                                              otherwise [:m/error "Invalid syntax: def."])
+                          function-call (m-let :m
+                                          [[tag params body fn-env] (m-eval op)
+                                           _ [:m/assert (= :fn tag) "Tried to apply non-function value."]
+                                           args (m/m-seq :m (map m-eval args))
+                                           _ [:m/push-env fn-env]
+                                           _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a]) params args))
+                                           ret (m-eval body)
+                                           _ [:m/pop-env]]
+                                          [:m/pure ret]))
     [:v/vector & elems] (m-let :m
                           [elems (m/m-seq :m (map m-eval elems))]
                           [:m/pure (vec (cons :v/vector elems))])
