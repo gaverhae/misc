@@ -2,7 +2,7 @@
   (:require [main :as s]
             [lisp :as l]
             [clojure.string :as string]
-            [clojure.test :refer [deftest are is]]))
+            [clojure.test :refer [deftest is]]))
 
 (deftest basic-expressions
   (let [p (fn [s] (s/parse-string s :start :expr))
@@ -293,20 +293,19 @@
                "fib(0)"])))))
 
 (deftest files
-  (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
-                       #_(prn [:exp result :act (string/split-lines s)])
-                       (= result (string/split-lines s)))
-    "plain-sum" ["42"]
-    "parens" ["154"]
-    "multi-line" ["12"]
-    "assign" ["42"]
-    "thrice" ["31"]
-    "global-side-effect" ["12"]
-    "global-shadowing" ["2"]
-    "global-unaffected" ["5"]
-    "fact" ["3628800"]
-    "fib" ["89"]
-    "fib-flat" ["89"]))
+  (let [p (fn [p] (let [s (with-out-str (s/run-file (str "test-resources/" p ".py")))]
+                    (string/split-lines s)))]
+    (is (= ["42"] (p "plain-sum")))
+    (is (= ["154"] (p "parens")))
+    (is (= ["12"] (p "multi-line")))
+    (is (= ["42"] (p "assign")))
+    (is (= ["31"] (p "thrice")))
+    (is (= ["12"] (p "global-side-effect")))
+    (is (= ["2"] (p "global-shadowing")))
+    (is (= ["5"] (p "global-unaffected")))
+    (is (= ["3628800"] (p "fact")))
+    (is (= ["89"] (p "fib")))
+    (is (= ["89"] (p "fib-flat")))))
 
 (deftest gc
   (let [fib (s/m-eval (s/parse (->lines ["def fib(n):"
