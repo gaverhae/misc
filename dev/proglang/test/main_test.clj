@@ -5,22 +5,22 @@
             [clojure.test :refer [deftest are is]]))
 
 (deftest basic-expressions
-  (are [string tree l-string l-tree] (and (= tree (first (s/parse-string string :start :expr)))
-                                          (= [l-tree] (l/parse-string l-string :start :expr)))
-    "34+123"
-    [:sum [:int "34"] [:int "123"]]
-    "(+ 34 123)"
-    [:list [:symbol "+"] [:int "34"] [:int "123"]]
+  (let [p (fn [s] (s/parse-string s :start :expr))
+        l (fn [s] (l/parse-string s :start :expr))]
+    (is (= (p "34+123")
+           [[:sum [:int "34"] [:int "123"]]]))
+    (is (= (l "(+ 34 123)")
+           [[:list [:symbol "+"] [:int "34"] [:int "123"]]]))
 
-    "1+2*3"
-    [:sum [:int "1"] [:product [:int "2"] [:int "3"]]]
-    "(+ 1 (* 2 3))"
-    [:list [:symbol "+"] [:int "1"] [:list [:symbol "*"] [:int "2"] [:int "3"]]]
+    (is (= (p "1+2*3")
+           [[:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]))
+    (is (= (l "(+ 1 (* 2 3))")
+           [[:list [:symbol "+"] [:int "1"] [:list [:symbol "*"] [:int "2"] [:int "3"]]]]))
 
-    "2*3+1"
-    [:sum [:product [:int "2"] [:int "3"]] [:int "1"]]
-    "(+ (* 2 3) 1)"
-    [:list [:symbol "+"] [:list [:symbol "*"] [:int "2"] [:int "3"]] [:int "1"]]))
+    (is (= (p "2*3+1")
+           [[:sum [:product [:int "2"] [:int "3"]] [:int "1"]]]))
+    (is (= (l "(+ (* 2 3) 1)")
+           [[:list [:symbol "+"] [:list [:symbol "*"] [:int "2"] [:int "3"]] [:int "1"]]]))))
 
 (deftest whitespace-ignored
   (are [strings tree l-strings l-tree] (and (->> strings
