@@ -251,25 +251,46 @@
     (is (= [:bool false] (p "True == False" )))))
 
 (deftest multiline-expr
-  (are [strings expected] (let [[actual t m] (s/eval-pl (s/parse (->lines strings)))]
-                            #_(prn [:exp expected :act actual])
-                            (= expected actual))
-    ["4" "1+2+3"] [:int 6]
-    ["(1+2)" "(1) + (2 * 3)"] [:int 7]
-    ["" "6 * 4 " "" "1  +  2 * 3"] [:int 7]
-    ["" "" "(1  +  2)* 3 "] [:int 9]
-    ["a = 1" "a + 2"] [:int 3]
-    ["if True:"  "  1" "else:" "  2"] [:int 1]
-    ["if False:" "  1" "else:" "  2"] [:int 2]
-    ["def has_dead_code():"
-     "  return 5"
-     "  2"
-     "has_dead_code()"] [:int 5]
-    ["def fib(n):"
-     "  if n == 0:"
-     "    return 5"
-     "  return 2"
-     "fib(0)"] [:int 5]))
+  (let [p (fn [s] (first (s/eval-pl (s/parse (->lines s)))))]
+    (is (= [:int 6]
+           (p ["4"
+               "1+2+3"])))
+    (is (= [:int 7]
+           (p ["(1+2)"
+               "(1) + (2 * 3)"])))
+    (is (= [:int 7]
+           (p [""
+               "6 * 4 "
+               ""
+               "1  +  2 * 3"])))
+    (is (= [:int 9]
+           (p [""
+               ""
+               "(1  +  2)* 3 "])))
+    (is (= [:int 3]
+           (p ["a = 1"
+               "a + 2"])))
+    (is (= [:int 1]
+           (p ["if True:"
+               "  1"
+               "else:"
+               "  2"])))
+    (is (= [:int 2]
+           (p ["if False:"
+               "  1"
+               "else:"
+               "  2"])))
+    (is (= [:int 5]
+           (p ["def has_dead_code():"
+               "  return 5"
+               "  2"
+               "has_dead_code()"])))
+    (is (= [:int 5]
+           (p ["def fib(n):"
+               "  if n == 0:"
+               "    return 5"
+               "  return 2"
+               "fib(0)"])))))
 
 (deftest files
   (are [path result] (let [s (with-out-str (s/run-file (str "test-resources/" path ".py")))]
