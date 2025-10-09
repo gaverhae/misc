@@ -1,5 +1,6 @@
 (ns lisp
   (:require [instaparse.core :as insta]
+            [io.github.gaverhae.clonad :as m :refer [mdo monad]]
             [io.github.gaverhae.vatch :refer [vatch]]))
 
 (def parse
@@ -13,20 +14,31 @@
      bool := 'true' | 'false'
      <ws> = <#'\\s'>"))
 
+(def init-state {})
+
+(defn m-run
+  [mv state]
+  (vatch mv
+    [:pure v] [v state]
+    [:bind mv f] (let [[v state] (m-run mv state)]
+                   (m-run (f v) state))
+    [:assert a f msg] (if (f a)
+                        [nil state]
+                        (throw (ex-info {:value a} msg)))))
+
 (defn m-eval
-  ([node] (m-eval node {}))
-  ([node state]
-   (vatch node
-     [:int n] [[:v/int (parse-long n)] state]
-     [:list op & args] (vatch op
-                         [:symbol "+"] (let [[args state] (reduce (fn [[values state] expr]
-                                                                    (let [[v state] (m-eval expr state)]
-                                                                      [(conj values v) state]))
-                                                                  [[] state]
-                                                                  args)]
-                                         (assert (every? #{:v/int} (map first args)))
-                                         [[:v/int (reduce + 0 (map second args))] state]))
-     [:S & exprs] (reduce (fn [[prev state] expr]
-                            (m-eval expr state))
-                          [nil state]
-                          exprs))))
+  [node]
+  (vatch node
+    [:int n] [:pure [:v/int (parse-long n)]]
+    [:list op & args] (vatch op
+                        [:symbol "+"] (monad
+                                        args :<< (m/m-seq (map m-eval args))
+                                        [:assert args #(every? #{:v/int} (map first %)) "Tried to add non-numeric values."]
+                                        [:pure [:v/int (reduce + 0 (map second args))]]))
+    [:S & exprs] (monad
+                   values :<< (m/m-seq (map m-eval exprs))
+                   [:pure (last values)])))
+
+(defn eval-pl
+  [expr]
+  (m-run (m-eval expr) init-state))
