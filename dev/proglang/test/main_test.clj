@@ -6,7 +6,7 @@
 
 (deftest basic-expressions
   (let [p (fn [s] (s/parse-string s :start :expr))
-        l (fn [s] (l/parse-string s :start :expr))]
+        l (fn [s] (l/parse s :start :expr))]
     (is (= (p "34+123")
            [[:sum [:int "34"] [:int "123"]]]))
     (is (= (l "(+ 34 123)")
@@ -24,7 +24,7 @@
 
 (deftest whitespace-ignored
   (let [p (fn [s] (s/parse-string s :start :expr))
-        l (fn [s] (l/parse-string s :start :expr))]
+        l (fn [s] (l/parse s :start :expr))]
     (let [exp [[:sum [:int "34"] [:int "123"]]]]
       (is (= (p "34+123") exp))
       (is (= (p "34 + 123") exp))
@@ -62,7 +62,7 @@
 
 (deftest parens
   (let [p (fn [s] (s/parse-string s :start :expr))
-        l (fn [s] (l/parse-string s :start :expr))]
+        l (fn [s] (l/parse s :start :expr))]
     (is (= (p "1 + (2 * 3)" )
            [[:sum [:int "1"] [:product [:int "2"] [:int "3"]]]]))
     (is (= (l "(+ 1 (* 2 3))" )
