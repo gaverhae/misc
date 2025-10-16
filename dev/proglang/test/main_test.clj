@@ -275,22 +275,42 @@
 
 ;; Evaluation of multi-line programs.
 
-(let [p (fn [s] (first (s/eval-pl (s/parse (->lines s)))))]
+(let [p (fn [s] (first (s/eval-pl (s/parse (->lines s)))))
+      l (fn [s] (first (l/eval-pl (l/parse (->lines s)))))]
   (expect [:int 6]
           (p ["4"
               "1+2+3"]))
+  (expect [:v/int 6]
+          (l ["4"
+              "(+ 1 2 3)"]))
+
   (expect [:int 7]
           (p ["(1+2)"
               "(1) + (2 * 3)"]))
+  (expect [:v/int 7]
+          (l ["(+ 1 2)"
+              "(+ 1 (* 2 3))"]))
+
   (expect [:int 7]
           (p [""
               "6 * 4 "
               ""
               "1  +  2 * 3"]))
+  (expect [:v/int 7]
+          (l [""
+              "(* 6 4)"
+              ""
+              "(+ 1 (* 2 3))"]))
+
   (expect [:int 9]
           (p [""
               ""
               "(1  +  2)* 3 "]))
+  (expect [:v/int 9]
+          (l [""
+              ""
+              "(* (+ 1 2) 3)"]))
+
   (expect [:int 3]
           (p ["a = 1"
               "a + 2"]))
