@@ -402,7 +402,17 @@
               "     (fib 6)"
               "     (fib 7)"
               "     (fib 8)"
-              "     (fib 9)]))"])))
+              "     (fib 9)]))"]))
+  (expect [:v/int 233]
+          (l ["((fn fib [n]"
+              "   (if (= 0 n)"
+              "     (let [fib 1]"
+              "       fib)"
+              "     (if (= 1 n)"
+              "       1"
+              "       (+ (fib (+ n -1))"
+              "          (fib (+ n -2))))))"
+              "  12)"])))
 
 ;; Processing entire files.
 
