@@ -250,7 +250,10 @@
       l (fn [s] (first (l/eval-pl (l/parse (str s "\n")))))]
   (expect [:int 6] (p "1+2+3"))
   (expect [:v/int 6] (l "(+ 1 2 3)"))
+
   (expect [:int 7] (p "(1) + (2 * 3)"))
+  (expect [:v/int 7] (l "(+ 1 (* 2 3))"))
+
   (expect [:int 7] (p "1  +  2 * 3 "))
   (expect [:int 9] (p "(1  +  2)* 3 "))
   (expect [:bool true] (p "True"))
