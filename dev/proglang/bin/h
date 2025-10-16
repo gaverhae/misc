@@ -16,7 +16,7 @@ _help() (
 )
 
 _test() (
-  watchexec -w src -w test -c -- clj -X:test
+  watchexec -w src -w test -c -- clj -A:test -M test/*
 )
 
 _repl() (
