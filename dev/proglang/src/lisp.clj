@@ -84,6 +84,56 @@
     [rets (m/m-seq :m (map m-eval body))]
     [:m/pure (last rets)]))
 
+(defn replace-sym
+  "Replaces `[:v/symbol sym]` with `repl`, respecting lexical scope."
+  [sym repl top-expr]
+  (let [rep (fn [e] (replace-sym sym repl e))]
+    (vatch top-expr
+
+      [:v/symbol s]
+      (if (= s sym)
+        repl
+        top-expr)
+
+      [:v/list [:v/symbol "do"] & body]
+      `[:v/vector :v/list [:v/symbol "do"] ~@(map rep body)]
+
+      [:v/list [:v/symbol "def"] [:v/symbol n] sub-expr]
+      (if (= n sym)
+        top-expr
+        [:v/list [:v/symbol "def"] [:v/symbol n] (rep sub-expr)])
+
+      [:v/list [:v/symbol "fn"] [:v/vector & syms] & body]
+      (if (contains? (set syms) [:v/symbol sym])
+        top-expr
+        `[:v/list [:v/symbol "fn"] [:v/vector ~@syms] ~@(map rep body)])
+      [:v/list [:v/symbol "fn"] [:v/symbol f-name] [:v/vector & syms] & body]
+      (if (contains? (conj (set syms) [:v/symbol f-name]) [:v/symbol sym])
+        top-expr
+        `[:v/list [:v/symbol "fn"] [:v/symbol ~f-name] [:v/vector ~@syms] ~@(map rep body)])
+
+      [:v/list [:v/symbol "if"] c t e]
+      [:v/list [:v/symbol "if"] (rep c) (rep t) (rep e)]
+
+      [:v/list [:v/symbol "let"] [:v/vector & bindings] & body]
+      (loop [to-do bindings
+             bindings [:v/vector]
+             rebound? false]
+        (if (or rebound? (empty? to-do))
+          `[:v/list [:v/symbol "let"] ~(vec (concat bindings to-do)) ~@(if rebound? body (map rep body))]
+          (let [[n v & to-do] to-do]
+            (recur to-do
+                   (conj bindings n (rep v))
+                   (= [:v/symbol sym] n)))))
+
+      [:v/list & elems]
+      `[:v/list ~@(map rep elems)]
+
+      [:v/vector & elems]
+      `[:v/vector ~@(map rep elems)]
+
+      otherwise top-expr)))
+
 (defn m-eval
   [node]
   (vatch node
@@ -93,15 +143,37 @@
                                                      [v (m-eval expr)]
                                                      [:m/add-top-level n v])
     [:v/list [:v/symbol "def"] & _] [:m/error "Invalid syntax: def."]
-    [:v/list [:v/symbol "fn"] [:v/vector & syms] & body] (if-not (->> syms (map first) (every? #{:v/symbol}))
-                                                           [:m/error "Invalid syntax: fn."]
-                                                           (m-let :m
-                                                             [env [:m/get-env]]
-                                                             [:m/pure [:v/fn
-                                                                       (->> syms (map second))
-                                                                       nil
-                                                                       (do-body body)
-                                                                       env]]))
+
+    [:v/list [:v/symbol "fn"] [:v/vector & syms] & body]
+    (if-not (->> syms (map first) (every? #{:v/symbol}))
+      [:m/error "Invalid syntax: fn."]
+      (m-let :m
+        [env [:m/get-env]]
+        [:m/pure [:v/fn
+                  (->> syms (map second))
+                  nil
+                  (do-body body)
+                  env]]))
+    [:v/list [:v/symbol "fn"] [:v/symbol f-name] [:v/vector & syms] & body]
+    ;; transform (fn rec [& args] body) into (let [$rec (fn [$elf] (fn [& args] body))] ($rec $rec)), basically
+    ;; using the Y combinator to get self-recursive functions without a mutable environment.
+    ;;
+    ;; Note that in that context we need to replace calls to rec with `($elf $elf)`.
+    ;;
+    ;; This may be more trouble than it's worth; maybe I should just accept that my environments are mutable.
+    (if-not (->> syms (map first) (every? #{:v/symbol}))
+      [:m/error "Invalid syntax: fn."]
+      (m-eval [:v/list
+               [:v/symbol "let"]
+               [:v/vector
+                [:v/symbol "$rec"]
+                [:v/list
+                 [:v/symbol "fn"]
+                 [:v/vector [:v/symbol "$elf"]]
+                 `[:v/list [:v/symbol "fn"] [:v/vector ~@syms]
+                   ~@(map #(replace-sym f-name [:v/list [:v/symbol "$elf"] [:v/symbol "$elf"]] %)
+                          body)]]]
+               [:v/list [:v/symbol "$rec"] [:v/symbol "$rec"]]]))
     [:v/list [:v/symbol "fn"] & _] [:m/error "Invalid syntax: fn."]
     [:v/list [:v/symbol "if"] c t e] (m-let :m
                                        [c (m-eval c)
