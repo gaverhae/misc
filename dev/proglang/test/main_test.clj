@@ -259,6 +259,8 @@
   (expect [:v/int 9] (l "(* (+ 1 2) 3)"))
 
   (expect [:bool true] (p "True"))
+  (expect [:v/bool true] (l "true"))
+
   (expect [:bool true] (p "1 == 1" ))
   (expect [:bool false] (p "1 == 2" ))
   (expect [:bool false] (p "True == False" )))
