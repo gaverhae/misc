@@ -2,11 +2,11 @@
   (:require [main :as s]
             [lisp :as l]
             [clojure.string :as string]
-            [clojure.test :refer [deftest is]]))
+            [expectations :refer [expect]]))
 
-(defn expect
-  [expected actual]
-  (is (= expected actual)))
+(defmacro deftest
+  [_ & body]
+  `(do ~@body))
 
 (deftest basic-expressions
   (let [p (fn [s] (s/parse-string s :start :expr))
