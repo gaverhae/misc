@@ -26,12 +26,14 @@
 (defn part2
   [input]
   (reduce (fn [[num-0 cur-pos] steps]
-            (let [bonus (quot steps 100)
-                  steps (rem steps 100)
-                  sum (+ cur-pos steps)
-                  new-pos (mod sum 100)]
-              [(+ num-0 bonus (if (not= sum new-pos) 1 0))
-               new-pos]))
+            (let [sum (+ cur-pos steps)]
+              (prn [num-0 cur-pos :-> sum :-> (cond (zero? sum) (inc num-0)
+                     (and (neg? sum) (pos? cur-pos)) (+ num-0 (quot sum 100) 1)
+                     :else (+ num-0 (quot sum 100))) (mod sum 100)])
+              [(cond (zero? sum) (inc num-0)
+                     (and (neg? sum) (pos? cur-pos)) (+ num-0 (quot sum 100) 1)
+                     :else (+ num-0 (quot sum 100)))
+               (mod sum 100)]))
           [0 50]
           input))
 
@@ -60,6 +62,7 @@
     (slurp)
     (parse)
     part2)
+[2450 8]
 [2242 8]
 [6504 8]
 
