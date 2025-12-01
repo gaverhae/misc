@@ -25,7 +25,16 @@
 
 (defn part2
   [input]
-  nil)
+  (reduce (fn [[num-0 cur-pos] steps]
+            (let [new-pos (+ cur-pos steps)]
+              [(loop [n num-0
+                      p new-pos]
+                 (cond (<= 0 p 99) n
+                       (< p 0) (recur (inc n) (+ p 100))
+                       (> p 99) (recur (inc n) (- p 100))))
+               (mod new-pos 100)]))
+          [0 50]
+          input))
 
 (comment
   (-> (io/resource "day01_sample.txt")
@@ -35,10 +44,23 @@
       (slurp)
       (parse)
       part1)
+[3 32]
   (-> (io/resource "day01_input.txt")
       (slurp)
       (parse)
       part1)
+[1048 8]
+
+  (-> (io/resource "day01_sample.txt")
+      (slurp)
+      (parse)
+      part2)
+[6 32]
+  (-> (io/resource "day01_input.txt")
+      (slurp)
+      (parse)
+      part2)
+[6504 8]
 
 
   )
