@@ -26,13 +26,12 @@
 (defn part2
   [input]
   (reduce (fn [[num-0 cur-pos] steps]
-            (let [new-pos (+ cur-pos steps)]
-              [(loop [n num-0
-                      p new-pos]
-                 (cond (<= 0 p 99) n
-                       (< p 0) (recur (inc n) (+ p 100))
-                       (> p 99) (recur (inc n) (- p 100))))
-               (mod new-pos 100)]))
+            (let [bonus (quot steps 100)
+                  steps (rem steps 100)
+                  sum (+ cur-pos steps)
+                  new-pos (mod sum 100)]
+              [(+ num-0 bonus (if (not= sum new-pos) 1 0))
+               new-pos]))
           [0 50]
           input))
 
@@ -56,10 +55,12 @@
       (parse)
       part2)
 [6 32]
-  (-> (io/resource "day01_input.txt")
-      (slurp)
-      (parse)
-      part2)
+
+(-> (io/resource "day01_input.txt")
+    (slurp)
+    (parse)
+    part2)
+[2242 8]
 [6504 8]
 
 
