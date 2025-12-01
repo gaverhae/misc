@@ -25,17 +25,17 @@
 
 (defn part2
   [input]
-  (reduce (fn [[num-0 cur-pos] steps]
-            (let [sum (+ cur-pos steps)]
-              (prn [num-0 cur-pos :-> sum :-> (cond (zero? sum) (inc num-0)
-                     (and (neg? sum) (pos? cur-pos)) (+ num-0 (quot sum 100) 1)
-                     :else (+ num-0 (quot sum 100))) (mod sum 100)])
-              [(cond (zero? sum) (inc num-0)
-                     (and (neg? sum) (pos? cur-pos)) (+ num-0 (quot sum 100) 1)
-                     :else (+ num-0 (quot sum 100)))
-               (mod sum 100)]))
-          [0 50]
-          input))
+  (loop [pos 50
+         num-0 0
+         to-process input
+         cur-move 0]
+    (cond (and (empty? to-process) (zero? cur-move))  num-0
+          (zero? cur-move) (recur pos num-0 (rest to-process) (first to-process))
+          (pos? cur-move) (let [p (mod (inc pos) 100)]
+                            (recur p (cond-> num-0 (zero? p) inc) to-process (dec cur-move)))
+          (neg? cur-move) (let [p (mod (dec pos) 100)]
+                            (recur p (cond-> num-0 (zero? p) inc) to-process (inc cur-move)))
+          :else (throw (ex-info "Should not happen." {:cur-move cur-move})))))
 
 (comment
   (-> (io/resource "day01_sample.txt")
