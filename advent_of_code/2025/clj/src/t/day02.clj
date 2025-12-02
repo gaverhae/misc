@@ -38,4 +38,10 @@
       part1)
 1227775554
 
+  (-> (io/resource "day02-input.txt")
+      (slurp)
+      (parse)
+      part1)
+24157613387
+
          )
