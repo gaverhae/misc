@@ -1,8 +1,13 @@
 (ns t.day02
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [clojure.java.io :as io]))
 
-(defn partse
-  [text])
+(defn parse
+  [text]
+  (-> text
+      (string/split #",")
+      (->> (map (fn [r] (string/split r #"-")))
+           (map (fn [[a b]] [(parse-long a) (parse-long b)])))))
 
 (defn part1
   [input])
@@ -11,5 +16,10 @@
   [input])
 
 (comment
+
+  (-> (io/resource "day02-sample.txt")
+      (slurp)
+      (parse))
+
 
          )
