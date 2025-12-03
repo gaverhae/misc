@@ -8,9 +8,20 @@
       (string/split-lines)
       (->> (map (fn [s] (map (comp parse-long str) s))))))
 
+(defn max-from-bank
+  [bank]
+  (let [d1 (apply max (butlast bank))
+        d2 (->> bank
+                (drop-while #(not= d1 %))
+                rest
+                (apply max))]
+    (+ (* 10 d1) d2)))
+
 (defn part1
   [input]
-  (->> input))
+  (->> input
+       (map max-from-bank)
+       (reduce + 0)))
 
 (defn part2
   [input]
@@ -26,11 +37,13 @@
       (slurp)
       (parse)
       part1)
+357
 
   (-> (io/resource "day03-input.txt")
       (slurp)
       (parse)
       part1)
+17524
 
   (-> (io/resource "day03-sample.txt")
       (slurp)
