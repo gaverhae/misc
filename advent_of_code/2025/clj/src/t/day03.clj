@@ -9,23 +9,30 @@
       (->> (map (fn [s] (map (comp parse-long str) s))))))
 
 (defn max-from-bank
-  [bank]
-  (let [d1 (apply max (butlast bank))
-        d2 (->> bank
-                (drop-while #(not= d1 %))
-                rest
-                (apply max))]
-    (+ (* 10 d1) d2)))
+  [bank n]
+  (loop [n n
+         bank bank
+         result 0]
+    (if (= n 0)
+      result
+      (let [d (apply max (drop-last (dec n) bank))]
+        (recur (dec n)
+               (->> bank
+                    (drop-while #(not= d %))
+                    rest)
+               (+ (* 10 result) d))))))
 
 (defn part1
   [input]
   (->> input
-       (map max-from-bank)
+       (map #(max-from-bank % 2))
        (reduce + 0)))
 
 (defn part2
   [input]
-  (->> input))
+  (->> input
+       (map #(max-from-bank % 12))
+       (reduce + 0)))
 
 (comment
 
@@ -49,10 +56,12 @@
       (slurp)
       (parse)
       part2)
+3121910778619
 
   (-> (io/resource "day03-input.txt")
       (slurp)
       (parse)
       part2)
+173848577117276
 
          )
