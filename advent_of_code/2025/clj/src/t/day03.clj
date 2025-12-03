@@ -4,7 +4,9 @@
 
 (defn parse
   [text]
-  (-> text))
+  (-> text
+      (string/split-lines)
+      (->> (map (fn [s] (map (comp parse-long str) s))))))
 
 (defn part1
   [input]
