@@ -4,7 +4,15 @@
 
 (defn parse
   [text]
-  )
+  (->> text
+       (string/split-lines)
+       (map-indexed (fn [y line]
+                      (->> line
+                           (keep-indexed (fn [x c]
+                                          (when (= \@ c)
+                                            [y x]))))))
+       (apply concat)
+       set))
 
 (defn part1
   [input]
