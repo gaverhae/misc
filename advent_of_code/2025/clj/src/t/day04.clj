@@ -29,7 +29,14 @@
 
 (defn part2
   [input]
-  )
+  (loop [before input]
+    (let [to-remove (->> before
+                         (filter (fn [p] (< (count (set/intersection before (neighbours p))) 4)))
+                         set)
+          after (set/difference before to-remove)]
+      (if (= after before)
+        (- (count input) (count after))
+        (recur after)))))
 
 (comment
 
@@ -53,10 +60,12 @@
       (slurp)
       (parse)
       part2)
+43
 
   (-> (io/resource "day04-input.txt")
       (slurp)
       (parse)
       part2)
+9206
 
          )
