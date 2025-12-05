@@ -35,12 +35,29 @@
        (filter (is-fresh? fresh))
        count))
 
+(defn overlap?
+  [[b1 e1 :as r1] [b2 e2 :as r2]]
+  (if (> b1 b2)
+    (overlap? r2 r1)
+    (<= b2 e1)))
+
+(defn merge-ranges
+  [[b1 e1] [b2 e2]]
+  [(min b1 b2) (max e1 e2)])
+
 (defn part2
   [{:keys [fresh]}]
   (->> fresh
-       (mapcat (fn [[begin end]] (range begin (inc end))))
-       set
-       count))
+       sort
+       (reduce (fn [acc el]
+                 (let [last-r (peek acc)]
+                   (cond (nil? last-r) [el]
+                         (overlap? last-r el) (conj (pop acc)
+                                                    (merge-ranges last-r el))
+                         :else (conj acc el))))
+               [])
+       (map (fn [[b e]] (inc (- e b))))
+       (reduce + 0)))
 
 (comment
 
@@ -70,5 +87,6 @@
       (slurp)
       (parse)
       part2)
+344813017450467
 
          )
