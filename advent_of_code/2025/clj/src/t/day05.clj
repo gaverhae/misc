@@ -36,8 +36,11 @@
        count))
 
 (defn part2
-  [input]
-  )
+  [{:keys [fresh]}]
+  (->> fresh
+       (mapcat (fn [[begin end]] (range begin (inc end))))
+       set
+       count))
 
 (comment
 
@@ -61,6 +64,7 @@
       (slurp)
       (parse)
       part2)
+14
 
   (-> (io/resource "day05-input.txt")
       (slurp)
