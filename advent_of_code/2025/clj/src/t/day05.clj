@@ -18,9 +18,22 @@
     {:fresh fresh
      :available available}))
 
+(defn is-fresh?
+  [fresh]
+  (fn [ingredient]
+    (loop [to-check fresh]
+      (if (empty? to-check)
+        false
+        (let [[[begin end] & to-check] to-check]
+          (if (<= begin ingredient end)
+            true
+            (recur to-check)))))))
+
 (defn part1
-  [input]
-  )
+  [{:keys [fresh available]}]
+  (->> available
+       (filter (is-fresh? fresh))
+       count))
 
 (defn part2
   [input]
@@ -36,11 +49,13 @@
       (slurp)
       (parse)
       part1)
+3
 
   (-> (io/resource "day05-input.txt")
       (slurp)
       (parse)
       part1)
+558
 
   (-> (io/resource "day05-sample.txt")
       (slurp)
