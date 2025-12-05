@@ -5,7 +5,18 @@
 
 (defn parse
   [text]
-  )
+  (let [fresh (->> text
+                   (string/split-lines)
+                   (take-while #(not= "" %))
+                   (map (fn [line] (let [[begin end] (string/split line #"-")]
+                                     [(parse-long begin) (parse-long end)]))))
+        available (->> text
+                       (string/split-lines)
+                       (drop-while #(not= "" %))
+                       rest
+                       (map parse-long))]
+    {:fresh fresh
+     :available available}))
 
 (defn part1
   [input]
