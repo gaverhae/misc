@@ -30,8 +30,31 @@
          (reduce + 0))))
 
 (defn part2
-  [nput]
-  )
+  [text]
+  (let [numbers (->> text
+                     string/split-lines
+                     butlast
+                     (apply mapv vector)
+                     (partition-by (fn [n] (every? #{\space} n)))
+                     (remove (fn [n] (and (= 1 (count n))
+                                          (every? #{\space} (first n)))))
+                     (map (fn [line]
+                            (->> line
+                                 (map (fn [n]
+                                        (->> n
+                                             (remove #{\space})
+                                             (apply str)
+                                             parse-long)))
+                                 reverse))))
+        ops (-> text
+                string/split-lines
+                last
+                (string/split #" +"))]
+    (->> (map cons ops numbers)
+         reverse
+         (map (fn [[op & args]]
+                (apply (case op "+" + "*" *) args)))
+         (reduce + 0))))
 
 (comment
 
@@ -55,10 +78,12 @@
       (slurp)
       (parse)
       part2)
+3263827
 
   (-> (io/resource "day06-input.txt")
       (slurp)
       (parse)
       part2)
+8843673199391
 
          )
