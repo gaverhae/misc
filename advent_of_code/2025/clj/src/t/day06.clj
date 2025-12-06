@@ -5,7 +5,22 @@
 
 (defn parse
   [text]
-  )
+  (let [numbers (->> text
+                     string/split-lines
+                     butlast
+                     (map (fn [line]
+                            (->> (string/split line #" +")
+                                 (remove #{""})
+                                 (map parse-long))))
+                     (apply mapv vector))
+        ops (-> text
+                string/split-lines
+                last
+                (string/split #" +")
+                vec)]
+    (->> numbers
+         (map-indexed (fn [idx line]
+                        (cons (get ops idx) line))))))
 
 (defn part1
   [input]
