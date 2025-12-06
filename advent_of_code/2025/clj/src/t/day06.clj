@@ -24,7 +24,10 @@
 
 (defn part1
   [input]
-  )
+  (->> input
+       (map (fn [[op & args]]
+              (apply (case op "+" + "*" *) args)))
+       (reduce + 0)))
 
 (defn part2
   [nput]
@@ -40,11 +43,13 @@
       (slurp)
       (parse)
       part1)
+4277556
 
   (-> (io/resource "day06-input.txt")
       (slurp)
       (parse)
       part1)
+5524274308182
 
   (-> (io/resource "day06-sample.txt")
       (slurp)
