@@ -5,6 +5,10 @@
 
 (defn parse
   [text]
+  text)
+
+(defn part1
+  [text]
   (let [numbers (->> text
                      string/split-lines
                      butlast
@@ -20,14 +24,10 @@
                 vec)]
     (->> numbers
          (map-indexed (fn [idx line]
-                        (cons (get ops idx) line))))))
-
-(defn part1
-  [input]
-  (->> input
-       (map (fn [[op & args]]
-              (apply (case op "+" + "*" *) args)))
-       (reduce + 0)))
+                        (cons (get ops idx) line)))
+         (map (fn [[op & args]]
+                (apply (case op "+" + "*" *) args)))
+         (reduce + 0))))
 
 (defn part2
   [nput]
