@@ -38,18 +38,21 @@
 (defn part2
   [{:keys [start splitters]}]
   (loop [to-process splitters
-         beams #{[start]}]
+         beams {start 1}]
     (if (empty? to-process)
-      (count beams)
+      (->> beams
+           (map val)
+           (reduce + 0))
       (let [[line-splits & to-process] to-process]
         (recur to-process
                (->> beams
-                    (mapcat (fn [b]
-                              (let [p (peek b)]
-                                (if (contains? line-splits p)
-                                  [(conj b (dec p)) (conj b (inc p))]
-                                  [(conj b p)]))))
-                    set))))))
+                    (mapcat (fn [[^long p n]]
+                              (if (contains? line-splits p)
+                                [[(dec p) n] [(inc p) n]]
+                                [[p n]])))
+                    (reduce (fn [acc [p n]]
+                              (update acc p (fnil + 0) n))
+                            {})))))))
 
 (comment
 
