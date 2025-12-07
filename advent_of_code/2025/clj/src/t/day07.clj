@@ -20,8 +20,20 @@
                                set))))})
 
 (defn part1
-  [text]
-  )
+  [{:keys [start splitters]}]
+  (loop [to-process splitters
+         beams #{start}
+         splits 0]
+    (if (empty? to-process)
+      splits
+      (let [[line-splits & to-process] to-process
+            splitters-hit (set/intersection beams line-splits)]
+        (recur to-process
+               (set/union (set/difference beams splitters-hit)
+                          (->> splitters-hit
+                               (mapcat (fn [n] [(dec n) (inc n)]))
+                               set))
+               (+ splits (count splitters-hit)))))))
 
 (defn part2
   [text]
@@ -37,11 +49,13 @@
       (slurp)
       (parse)
       part1)
+21
 
   (-> (io/resource "day07-input.txt")
       (slurp)
       (parse)
       part1)
+1499
 
   (-> (io/resource "day07-sample.txt")
       (slurp)
