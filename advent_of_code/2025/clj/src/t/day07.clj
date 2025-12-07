@@ -36,8 +36,20 @@
                (+ splits (count splitters-hit)))))))
 
 (defn part2
-  [text]
-  )
+  [{:keys [start splitters]}]
+  (loop [to-process splitters
+         beams #{[start]}]
+    (if (empty? to-process)
+      (count beams)
+      (let [[line-splits & to-process] to-process]
+        (recur to-process
+               (->> beams
+                    (mapcat (fn [b]
+                              (let [p (peek b)]
+                                (if (contains? line-splits p)
+                                  [(conj b (dec p)) (conj b (inc p))]
+                                  [(conj b p)]))))
+                    set))))))
 
 (comment
 
@@ -61,6 +73,7 @@
       (slurp)
       (parse)
       part2)
+40
 
   (-> (io/resource "day07-input.txt")
       (slurp)
