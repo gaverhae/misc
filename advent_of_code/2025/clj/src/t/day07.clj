@@ -5,7 +5,19 @@
 
 (defn parse
   [text]
-  )
+  {:start (->> text
+               string/split-lines
+               first
+               (take-while #{\.})
+               count)
+   :splitters (->> text
+                   string/split-lines
+                   rest
+                   (map (fn [line]
+                          (->> line
+                               (keep-indexed (fn [idx c]
+                                               (when (= \^ c) idx)))
+                               set))))})
 
 (defn part1
   [text]
