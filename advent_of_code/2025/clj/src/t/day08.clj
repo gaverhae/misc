@@ -25,27 +25,43 @@
 
 (defn part1
   [input n]
-  (loop [circuits {}
-         to-process (->> (for [idx1 (range (count input))
-                               idx2 (range (inc idx1) (count input))
-                               :let [j1 (get input idx1)
-                                     j2 (get input idx2)]]
-                           [(distance j1 j2) j1 j2])
-                         sort
-                         (take n))]
-    (if (empty? to-process)
+  (loop [connections (->> (for [^long idx1 (range (count input))
+                                ^long idx2 (range (inc idx1) (count input))
+                                :let [j1 (get input idx1)
+                                      j2 (get input idx2)]]
+                            [(distance j1 j2) j1 j2])
+                          sort
+                          (take n)
+                          (map (fn [[_ j1 j2]] [j1 j2])))
+         circuits []]
+    (if (empty? connections)
       (->> circuits
-           vals
-           set
-           (sort-by count)
-           reverse
+           (map count)
+           (sort-by -)
            (take 3)
-           )
-      (let [[[_ j1 j2] & to-process] to-process]
-        (recur (-> circuits
-                   (update j1 (fnil conj #{j1}) j2)
-                   (update j2 (fnil conj #{j2}) j1))
-               to-process)))))
+           (reduce * 1))
+      (let [[[j1 j2] & connections] connections
+            [contains-j1] (->> circuits (filter (fn [s] (contains? s j1))))
+            [contains-j2] (->> circuits (filter (fn [s] (contains? s j2))))]
+        (recur connections
+               (cond (and (nil? contains-j1) (nil? contains-j2)) (conj circuits #{j1 j2})
+                     (nil? contains-j1) (->> circuits
+                                             (map (fn [c] (if (contains? c j2)
+                                                            (conj c j1)
+                                                            c)))
+                                             set)
+                     (nil? contains-j2) (->> circuits
+                                             (map (fn [c] (if (contains? c j1)
+                                                            (conj c j2)
+                                                            c)))
+                                             set)
+                     :else (-> circuits
+                               (disj contains-j1)
+                               (disj contains-j2)
+                               (conj (set/union contains-j1 contains-j2)))))))))
+
+
+
 
 (defn part2
   [input]
@@ -61,11 +77,13 @@
       (slurp)
       (parse)
       (part1 10))
+40
 
   (-> (io/resource "day08-input.txt")
       (slurp)
       (parse)
-      part1)
+      (part1 1000))
+97384
 
   (-> (io/resource "day08-sample.txt")
       (slurp)
