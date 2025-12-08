@@ -5,10 +5,33 @@
 
 (defn parse
   [text]
-  )
+  (->> text
+       string/split-lines
+       (mapv (fn [line]
+               (let [[x y z] (string/split line #",")]
+                 [(parse-long x)
+                  (parse-long y)
+                  (parse-long z)])))))
+
+(defn sq
+  ^long [^long n]
+  (* n n))
+
+(defn distance
+  [[^long x1 ^long y1 ^long z1] [^long x2 ^long y2 ^long z2]]
+  (+ (sq (- x2 x1))
+     (sq (- y2 y1))
+     (sq (- z2 z1))))
 
 (defn part1
-  [input]
+  [input n]
+  (let [size (count input)
+        distances (->> (for [idx1 (range size)
+                             idx2 (range idx1 size)
+                             :let [j1 (get input idx1)
+                                   j2 (get input idx2)]]
+                         [(distance j1 j2) j1 j2]
+
   )
 
 (defn part2
