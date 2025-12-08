@@ -25,14 +25,27 @@
 
 (defn part1
   [input n]
-  (let [size (count input)
-        distances (->> (for [idx1 (range size)
-                             idx2 (range idx1 size)
-                             :let [j1 (get input idx1)
-                                   j2 (get input idx2)]]
-                         [(distance j1 j2) j1 j2]
-
-  )
+  (loop [circuits {}
+         to-process (->> (for [idx1 (range (count input))
+                               idx2 (range (inc idx1) (count input))
+                               :let [j1 (get input idx1)
+                                     j2 (get input idx2)]]
+                           [(distance j1 j2) j1 j2])
+                         sort
+                         (take n))]
+    (if (empty? to-process)
+      (->> circuits
+           vals
+           set
+           (sort-by count)
+           reverse
+           (take 3)
+           )
+      (let [[[_ j1 j2] & to-process] to-process]
+        (recur (-> circuits
+                   (update j1 (fnil conj #{j1}) j2)
+                   (update j2 (fnil conj #{j2}) j1))
+               to-process)))))
 
 (defn part2
   [input]
@@ -47,7 +60,7 @@
   (-> (io/resource "day08-sample.txt")
       (slurp)
       (parse)
-      part1)
+      (part1 10))
 
   (-> (io/resource "day08-input.txt")
       (slurp)
