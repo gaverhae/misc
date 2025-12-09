@@ -5,7 +5,12 @@
 
 (defn parse
   [text]
-  )
+  (->> text
+       string/split-lines
+       (map (fn [line] (let [[x y] (string/split line #",")]
+                         [(parse-long x)
+                          (parse-long y)])))
+       set))
 
 (defn part1
   [input]
