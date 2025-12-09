@@ -20,7 +20,8 @@
                i2 (range i1 c)
                :let [[x1 y1] (get ts i1)
                      [x2 y2] (get ts i2)]]
-           (abs (* (- x2 x1 -1) (- y2 y1 -1))))
+           (* (inc (abs (- x2 x1)))
+              (inc (abs (- y2 y1)))))
          sort
          last)))
 
@@ -44,7 +45,7 @@
       (slurp)
       (parse)
       (part1))
-4763802550
+4764078684
 
   (-> (io/resource "day09-sample.txt")
       (slurp)
