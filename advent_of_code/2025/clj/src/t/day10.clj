@@ -64,29 +64,66 @@
                                                 (inc cost-so-far)]))))))))
        (reduce + 0)))
 
-(defn triangular?
+(defn swap-rows
+  [am idx1 idx2]
+  (-> am
+      (assoc idx1 (get am idx2))
+      (assoc idx2 (get am idx1))))
+
+(defn find-pivot
   [am]
-  (or (empty? am)
-      (and (= 1 (ffirst am))
-           (->> am rest (map first) (every? zero?))
-           (triangular? (->> am rest (map rest))))
-      (and (->> am (map first) (every? zero?))
-           (triangular? (->> am rest (map rest))))))
+  (loop [idx 0]
+    (cond (= idx (count am)) (throw (ex-info "Could not find non-zero first element."
+                                             {:am am}))
+          (-> am (get idx) first zero?) (recur (inc idx))
+          :else (swap-rows am 0 idx))))
+
+(defn add-rows
+  [v1 v2]
+  (mapv (fn [a b] (+ a b)) v1 v2))
+
+(defn multiply-row
+  [v s]
+  (->> v
+       (mapv (fn [e] (* e s)))))
+
+(defn eliminate-pivot
+  [am]
+  (let [p (first am)]
+    (->> (cons p
+               (->> (rest am)
+                    (map (fn [v]
+                           (if (zero? (first v))
+                             v
+                             (add-rows v (multiply-row p (/ (- (first v))
+                                                            (first p)))))))))
+         vec)))
+
+(defn merge-sub
+  [outer inner]
+  (-> (first outer)
+      (cons (->> (rest outer)
+                 (map-indexed (fn [idx outer-row]
+                                (-> (first outer-row)
+                                    (cons (get inner idx))
+                                    vec)))))
+      vec))
 
 (defn partial-gaussian
   [am]
   (prn am)
-  (loop [am am
-         idx 0]
-    (cond (triangular? am) am
-          :else :triangularize)))
-
-
+  (cond (= 1 (count am)) am
+        (zero? (ffirst am)) (partial-gaussian (find-pivot am))
+        :else (let [am (eliminate-pivot am)]
+                (merge-sub am (partial-gaussian (->> am
+                                                     rest
+                                                     (mapv (comp vec rest))))))))
 
 (defn part2
   [input]
   (->> input
-       (take 1)
+       (take 2)
+       rest
        (map (fn [{:keys [buttons joltage]}]
               (let [m (->> buttons
                            (map (fn [button]
@@ -96,7 +133,7 @@
                                                 1
                                                 0))))))
                            (apply mapv vector))
-                    am (map (fn [a b] (conj a b)) m joltage)
+                    am (mapv (fn [a b] (conj a b)) m joltage)
                     s (partial-gaussian am)]
                 s)))))
 
@@ -125,11 +162,6 @@
       (slurp)
       (parse)
       part2)
-(([0 0 0 0 1 1 3]
-  [0 1 0 0 0 1 5]
-  [0 0 1 1 1 0 4]
-  [1 1 0 1 0 0 7])
- ([1 0 1 1 0 7] [0 0 0 1 1 5] [1 1 0 1 1 12] [1 1 0 0 1 7] [1 0 1 0 1 2]) ([1 1 1 0 10] [1 0 1 1 11] [1 0 1 1 11] [1 1 0 0 5] [1 1 1 0 10] [0 0 1 0 5]))
 33
 
   (-> (io/resource "day10-input.txt")
