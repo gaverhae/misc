@@ -73,8 +73,7 @@
 (defn find-pivot
   [am]
   (loop [idx 0]
-    (cond (= idx (count am)) (throw (ex-info "Could not find non-zero first element."
-                                             {:am am}))
+    (cond (= idx (count am)) nil
           (-> am (get idx) first zero?) (recur (inc idx))
           :else (swap-rows am 0 idx))))
 
@@ -111,9 +110,11 @@
 
 (defn partial-gaussian
   [am]
-  (prn am)
   (cond (= 1 (count am)) am
-        (zero? (ffirst am)) (partial-gaussian (find-pivot am))
+        (zero? (ffirst am)) (if-let [am (find-pivot am)]
+                              (partial-gaussian am)
+                              (->> (partial-gaussian (->> am (mapv (comp vec rest))))
+                                   (mapv (fn [r] (->> r (cons 0) vec)))))
         :else (let [am (eliminate-pivot am)]
                 (merge-sub am (partial-gaussian (->> am
                                                      rest
@@ -135,6 +136,7 @@
                            (apply mapv vector))
                     am (mapv (fn [a b] (conj a b)) m joltage)
                     s (partial-gaussian am)]
+
                 s)))))
 
 (comment
@@ -162,6 +164,11 @@
       (slurp)
       (parse)
       part2)
+([[1 0 1 1 0 7]
+  [0 1 -1 0 1 5]
+  [0 0 0 1 1 5]
+  [0 0 0 0 1 0]
+  [0 0 0 0 0 0]])
 33
 
   (-> (io/resource "day10-input.txt")
