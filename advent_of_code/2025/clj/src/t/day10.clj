@@ -68,7 +68,10 @@
   [initial final? generate-moves heuristic]
   (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
     (loop [[guess cost state] [(heuristic initial) 0 initial]
-           visited #{}]
+           visited #{}
+           last-guess 0]
+      (when (not= last-guess guess)
+        (prn [:guess guess]))
       (when (not (visited state))
         (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
           (when (not (visited nxt-state))
@@ -77,7 +80,8 @@
       (if (final? state)
         cost
         (recur (.poll to-visit)
-               (conj visited state))))))
+               (conj visited state)
+               guess)))))
 
 (defn part2
   [input]
@@ -95,22 +99,14 @@
                                                                    (select-keys button)
                                                                    vals
                                                                    sort
-                                                                   first)
-                                                    push-once (->> cur-j
-                                                                   (map-indexed (fn [i j]
-                                                                                  (if (contains? button i)
-                                                                                    (inc j)
-                                                                                    j))))
-                                                    push-max (->> cur-j
-                                                                  (map-indexed (fn [i j]
-                                                                                 (if (contains? button i)
-                                                                                   (+ j max-pushes)
-                                                                                   j))))]
-                                                    (cond (zero? max-pushes) []
-                                                          (= 1 max-pushes) [[push-once (inc c)]]
-                                                          (pos? max-pushes) [[push-once (inc c)]
-                                                                             [push-max (+ c max-pushes)]]
-                                                          :else (throw (ex-info "Unexpected." {}))))))))
+                                                                   first)]
+                                                (for [p (range 0 (inc max-pushes))]
+                                                  [(->> cur-j
+                                                        (map-indexed (fn [idx j]
+                                                                       (if (contains? button idx)
+                                                                         (+ p j)
+                                                                         j))))
+                                                   (+ c p)]))))))
                              (fn [cur-j]
                                (->> (map (fn [a b] (- b a)) cur-j joltage)
                                     (apply max))))))
@@ -137,15 +133,19 @@
       (part1))
 428
 
+(defn p1 []
   (-> (io/resource "day10-sample.txt")
       (slurp)
       (parse)
       part2)
+  )
 33
 
+(defn p2 []
   (-> (io/resource "day10-input.txt")
       (slurp)
       (parse)
       part2)
+  )
 
          )
