@@ -25,15 +25,44 @@
                  :buttons (->> buttons
                                (mapv (fn [[_ & nums]]
                                        (->> nums
-                                            (mapv (fn [[_ n]]
-                                                    (parse-long n)))))))
+                                            (map (fn [[_ n]]
+                                                   (parse-long n)))
+                                            set))))
                  :joltage (->> joltage
                                (mapv (fn [[_ n]]
                                        (parse-long n))))})))))
 
+(defn dijkstra-search
+  [initial final? generate-moves]
+  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
+    (loop [[cost state] [0 initial]
+           visited #{}]
+      (when (not (visited state))
+        (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
+          (when (not (visited nxt-state))
+            (.add to-visit [nxt-cost nxt-state]))))
+      (if (final? state)
+        cost
+        (recur (.poll to-visit)
+               (conj visited state))))))
+
 (defn part1
   [input]
-  )
+  (->> input
+       (map (fn [{:keys [lights buttons]}]
+              (dijkstra-search (->> lights (mapv (constantly :off)))
+                               (fn [v] (= v lights))
+                               (fn [[lights cost-so-far]]
+                                 (let [switch {:off :on, :on :off}]
+                                   (->> buttons
+                                        (map (fn [button]
+                                               [(->> lights
+                                                     (map-indexed (fn [i l]
+                                                                    (if (contains? button i)
+                                                                      (switch l)
+                                                                      l))))
+                                                (inc cost-so-far)]))))))))
+       (reduce + 0)))
 
 (defn part2
   [input]
@@ -52,11 +81,13 @@
       (slurp)
       (parse)
       (part1))
+7
 
   (-> (io/resource "day10-input.txt")
       (slurp)
       (parse)
       (part1))
+428
 
   (-> (io/resource "day10-sample.txt")
       (slurp)
