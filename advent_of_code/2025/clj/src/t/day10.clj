@@ -64,53 +64,41 @@
                                                 (inc cost-so-far)]))))))))
        (reduce + 0)))
 
-(defn a-star-search
-  [initial final? generate-moves heuristic]
-  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
-    (loop [[guess cost state] [(heuristic initial) 0 initial]
-           visited #{}
-           last-guess 0]
-      (when (not= last-guess guess)
-        (prn [:guess guess]))
-      (when (not (visited state))
-        (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
-          (when (not (visited nxt-state))
-            (.add to-visit [(+ nxt-cost (heuristic nxt-state))
-                            nxt-cost nxt-state]))))
-      (if (final? state)
-        cost
-        (recur (.poll to-visit)
-               (conj visited state)
-               guess)))))
+(defn triangular?
+  [am]
+  (or (empty? am)
+      (and (= 1 (ffirst am))
+           (->> am rest (map first) (every? zero?))
+           (triangular? (->> am rest (map rest))))
+      (and (->> am (map first) (every? zero?))
+           (triangular? (->> am rest (map rest))))))
+
+(defn partial-gaussian
+  [am]
+  (prn am)
+  (loop [am am
+         idx 0]
+    (cond (triangular? am) am
+          :else :triangularize)))
+
+
 
 (defn part2
   [input]
   (->> input
-       (map (fn [{:keys [joltage buttons]}]
-              (print ".") (flush)
-              (a-star-search (->> joltage (mapv (constantly 0)))
-                             (fn [v] (= v joltage))
-                             (fn [[cur-j c]]
-                               (->> buttons
-                                    (mapcat (fn [button]
-                                              (let [max-pushes (-> (mapv (fn [cur tgt]
-                                                                           (- tgt cur))
-                                                                         cur-j joltage)
-                                                                   (select-keys button)
-                                                                   vals
-                                                                   sort
-                                                                   first)]
-                                                (for [p (range 0 (inc max-pushes))]
-                                                  [(->> cur-j
-                                                        (map-indexed (fn [idx j]
-                                                                       (if (contains? button idx)
-                                                                         (+ p j)
-                                                                         j))))
-                                                   (+ c p)]))))))
-                             (fn [cur-j]
-                               (->> (map (fn [a b] (- b a)) cur-j joltage)
-                                    (apply max))))))
-       (reduce + 0)))
+       (take 1)
+       (map (fn [{:keys [buttons joltage]}]
+              (let [m (->> buttons
+                           (map (fn [button]
+                                  (->> (range 0 (count joltage))
+                                       (map (fn [n]
+                                              (if (contains? button n)
+                                                1
+                                                0))))))
+                           (apply mapv vector))
+                    am (map (fn [a b] (conj a b)) m joltage)
+                    s (partial-gaussian am)]
+                s)))))
 
 (comment
 
@@ -133,19 +121,20 @@
       (part1))
 428
 
-(defn p1 []
   (-> (io/resource "day10-sample.txt")
       (slurp)
       (parse)
       part2)
-  )
+(([0 0 0 0 1 1 3]
+  [0 1 0 0 0 1 5]
+  [0 0 1 1 1 0 4]
+  [1 1 0 1 0 0 7])
+ ([1 0 1 1 0 7] [0 0 0 1 1 5] [1 1 0 1 1 12] [1 1 0 0 1 7] [1 0 1 0 1 2]) ([1 1 1 0 10] [1 0 1 1 11] [1 0 1 1 11] [1 1 0 0 5] [1 1 1 0 10] [0 0 1 0 5]))
 33
 
-(defn p2 []
   (-> (io/resource "day10-input.txt")
       (slurp)
       (parse)
       part2)
-  )
 
          )
