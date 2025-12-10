@@ -66,7 +66,20 @@
 
 (defn part2
   [input]
-  )
+  (->> input
+       (map (fn [{:keys [joltage buttons]}]
+              (dijkstra-search (->> joltage (mapv (constantly 0)))
+                               (fn [v] (= v joltage))
+                               (fn [[joltage cost-so-far]]
+                                 (->> buttons
+                                      (map (fn [button]
+                                             [(->> joltage
+                                                   (map-indexed (fn [i j]
+                                                                  (if (contains? button i)
+                                                                    (inc j)
+                                                                    j))))
+                                              (inc cost-so-far)])))))))
+       (reduce + 0)))
 
 (comment
 
@@ -93,6 +106,7 @@
       (slurp)
       (parse)
       part2)
+33
 
   (-> (io/resource "day10-input.txt")
       (slurp)
