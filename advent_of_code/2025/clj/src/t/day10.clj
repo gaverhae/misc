@@ -64,21 +64,56 @@
                                                 (inc cost-so-far)]))))))))
        (reduce + 0)))
 
+(defn a-star-search
+  [initial final? generate-moves heuristic]
+  (let [to-visit (java.util.PriorityQueue. 100 (fn [x y] (compare (first x) (first y))))]
+    (loop [[guess cost state] [(heuristic initial) 0 initial]
+           visited #{}]
+      (when (not (visited state))
+        (doseq [[nxt-state nxt-cost] (generate-moves [state cost])]
+          (when (not (visited nxt-state))
+            (.add to-visit [(+ nxt-cost (heuristic nxt-state))
+                            nxt-cost nxt-state]))))
+      (if (final? state)
+        cost
+        (recur (.poll to-visit)
+               (conj visited state))))))
+
 (defn part2
   [input]
   (->> input
        (map (fn [{:keys [joltage buttons]}]
-              (dijkstra-search (->> joltage (mapv (constantly 0)))
-                               (fn [v] (= v joltage))
-                               (fn [[joltage cost-so-far]]
-                                 (->> buttons
-                                      (map (fn [button]
-                                             [(->> joltage
-                                                   (map-indexed (fn [i j]
-                                                                  (if (contains? button i)
-                                                                    (inc j)
-                                                                    j))))
-                                              (inc cost-so-far)])))))))
+              (print ".") (flush)
+              (a-star-search (->> joltage (mapv (constantly 0)))
+                             (fn [v] (= v joltage))
+                             (fn [[cur-j c]]
+                               (->> buttons
+                                    (mapcat (fn [button]
+                                              (let [max-pushes (-> (mapv (fn [cur tgt]
+                                                                           (- tgt cur))
+                                                                         cur-j joltage)
+                                                                   (select-keys button)
+                                                                   vals
+                                                                   sort
+                                                                   first)
+                                                    push-once (->> cur-j
+                                                                   (map-indexed (fn [i j]
+                                                                                  (if (contains? button i)
+                                                                                    (inc j)
+                                                                                    j))))
+                                                    push-max (->> cur-j
+                                                                  (map-indexed (fn [i j]
+                                                                                 (if (contains? button i)
+                                                                                   (+ j max-pushes)
+                                                                                   j))))]
+                                                    (cond (zero? max-pushes) []
+                                                          (= 1 max-pushes) [[push-once (inc c)]]
+                                                          (pos? max-pushes) [[push-once (inc c)]
+                                                                             [push-max (+ c max-pushes)]]
+                                                          :else (throw (ex-info "Unexpected." {}))))))))
+                             (fn [cur-j]
+                               (->> (map (fn [a b] (- b a)) cur-j joltage)
+                                    (apply max))))))
        (reduce + 0)))
 
 (comment
