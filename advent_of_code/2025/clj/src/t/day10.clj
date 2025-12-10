@@ -111,6 +111,7 @@
 (defn partial-gaussian
   [am]
   (cond (= 1 (count am)) am
+        (= 0 (count (first am))) am
         (zero? (ffirst am)) (if-let [am (find-pivot am)]
                               (partial-gaussian am)
                               (->> (partial-gaussian (->> am (mapv (comp vec rest))))
@@ -120,11 +121,58 @@
                                                      rest
                                                      (mapv (comp vec rest))))))))
 
+(defn extract-constraint
+  [task]
+  (if (empty? (:constraints task))
+    {:ranges (:ranges task)
+     :next-step :count}
+    (let [[c & s] (:constraints task)]
+      (if (every? zero? c)
+        (assoc task :constraints s)
+        {:constraints s
+         :ranges (:ranges task)
+         :cst c
+         :indices (->> c
+                       butlast
+                       (keep-indexed (fn [idx v]
+                                       (when (not (zero? v)) idx))))
+         :next-step :expand-indices}))))
+
+(defn expand-indices
+  [task]
+  (if (empty? (:indices task))
+    [{:constraints (:constraints task)
+      :cst (:cst task)
+      :ranges (:ranges task)
+      :next-step :apply-constraint}]
+    (let [[idx & indices] (:indices task)]
+      (if (int? (get-in task [:ranges idx]))
+        [(assoc task :indices indices)]
+        (let [[start end] (get-in task [:ranges idx])]
+          (->> (range start (inc end))
+               (map (fn [v]
+                      (assoc-in task [:ranges idx] v)))))))))
+
+(defn apply-constraint
+  [task]
+  (let [cst (:cst task)
+        coeffs (butlast cst)
+        result (last cst)
+        ranges (:ranges task)
+        sum (->> coeffs
+                 (map-indexed (fn [idx v]
+                                (if (zero? v)
+                                  0
+                                  (* v (get ranges idx)))))
+                 (reduce + 0))]
+    (when (= sum result)
+      [{:constraints (:constraints task)
+        :ranges (:ranges task)
+        :next-step :constraint}])))
+
 (defn part2
   [input]
   (->> input
-       (take 2)
-       rest
        (map (fn [{:keys [buttons joltage]}]
               (let [m (->> buttons
                            (map (fn [button]
@@ -144,7 +192,29 @@
                                                           (contains? button idx)))
                                                 (map second)
                                                 (apply min))])))]
-                [s ranges])))))
+                (loop [todo [{:ranges ranges
+                              :constraints (reverse s)
+                              :next-step :constraint}]
+                       min-so-far Long/MAX_VALUE]
+                  (if (empty? todo)
+                    min-so-far
+                    (let [[task & todo] todo]
+                      (case (:next-step task)
+                        :constraint (recur (cons (extract-constraint task)
+                                                 todo)
+                                           min-so-far)
+                        :expand-indices (recur (concat (expand-indices task)
+                                                       todo)
+                                               min-so-far)
+                        :apply-constraint (recur (concat (apply-constraint task)
+                                                         todo)
+                                                 min-so-far)
+                        :count (recur todo
+                                      (min min-so-far
+                                           (->> task
+                                                :ranges
+                                                (reduce + 0)))))))))))
+       (reduce + 0)))
 
 (comment
 
@@ -171,33 +241,12 @@
       (slurp)
       (parse)
       part2)
-([[[1 0 1 1 0 7]
-   [0 1 -1 0 1 5]
-   [0 0 0 1 1 5]
-   [0 0 0 0 1 0]
-   [0 0 0 0 0 0]]
-  [[0 2] [0 7] [0 2] [0 5] [0 2]]])
+33
 
   (-> (io/resource "day10-input.txt")
       (slurp)
       (parse)
       part2)
-([[[1 0 0 1 1 1 0 1 1 0 1 77]
-   [0 1 0 0 1 0 1 1 0 0 1 51]
-   [0 0 1 0 -2 -1 -1 -2 0 0 -1 -74]
-   [0 0 0 -1 -1 -1 1 0 -1 0 0 -50]
-   [0 0 0 0 -1 0 1 1 -1 0 0 -19]
-   [0 0 0 0 0 1 -1 -1 1 1 0 42]
-   [0 0 0 0 0 0 3 3 -2 0 1 11]
-   [0 0 0 0 0 0 0N -1N -1/3 1N 2/3 25/3]
-   [0 0 0 0 0 0 0N 0N -1N 0N -1N -20N]]
-  [[0 17] [0 51] [0 6] [0 6] [0 51] [0 31] [0 27] [0 27] [0 54] [0 69] [0 17]]])
-
-(->> [[0 17] [0 51] [0 6] [0 6] [0 51] [0 31] [0 27] [0 27] [0 54] [0 69] [0 17]]
-     (map second)
-     (reduce * 1))
-2 278 624 530 354 696
-
-
+16613
 
          )
