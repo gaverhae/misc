@@ -20,7 +20,15 @@
 
 (defn part1
   [input]
-  )
+  (loop [to-process ["you"]
+         count-so-far 0]
+    (if (empty? to-process)
+      count-so-far
+      (let [[t & to-process] to-process]
+        (if (= t "out")
+          (recur to-process (inc count-so-far))
+          (recur (concat (get input t) to-process)
+                 count-so-far))))))
 
 (defn part2
   [input]
@@ -46,11 +54,13 @@
       (slurp)
       (parse)
       (part1))
+5
 
   (-> (io/resource "day11-input.txt")
       (slurp)
       (parse)
       (part1))
+662
 
   (-> (io/resource "day11-sample.txt")
       (slurp)
