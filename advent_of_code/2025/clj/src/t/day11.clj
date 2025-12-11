@@ -20,15 +20,18 @@
 
 (defn all-paths-from-to
   [input from to]
-  (loop [to-process [from]
+  (loop [to-process {from 1}
          count-so-far 0]
     (if (empty? to-process)
       count-so-far
-      (let [[t & to-process] to-process]
-        (if (= t to)
-          (recur to-process (inc count-so-far))
-          (recur (concat (get input t) to-process)
-                 count-so-far))))))
+      (let [next-step (->> to-process
+                           (mapcat (fn [[p c]] (->> (get input p)
+                                                    (map (fn [p] [p c])))))
+                           (reduce (fn [m [p c]]
+                                     (update m p (fnil + 0) c))
+                                   {}))]
+        (recur (dissoc next-step to)
+               (+ count-so-far (get next-step to 0)))))))
 
 (defn part1
   [input]
@@ -82,5 +85,6 @@
       (slurp)
       (parse)
       part2)
+429399933071120
 
          )
