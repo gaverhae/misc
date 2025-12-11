@@ -32,7 +32,25 @@
 
 (defn part2
   [input]
-  )
+  (loop [to-process [{:pos "svr"
+                      :dac? false
+                      :fft? false}]
+         count-so-far 0]
+    (if (empty? to-process)
+      count-so-far
+      (let [[t & to-process] to-process]
+        (if (= t {:pos "out", :dac? true, :fft? true})
+          (recur to-process (inc count-so-far))
+          (recur (->> (get input (:pos t))
+                      (map (fn [new-pos]
+                             {:pos new-pos
+                              :fft? (or (:fft? t)
+                                        (= "fft" new-pos))
+                              :dac? (or (:dac? t)
+                                        (= "dac" new-pos))}))
+                      (concat to-process)
+                      vec)
+                 count-so-far))))))
 
 (comment
 
@@ -62,10 +80,11 @@
       (part1))
 662
 
-  (-> (io/resource "day11-sample.txt")
+  (-> (io/resource "day11-sample2.txt")
       (slurp)
       (parse)
       part2)
+2
 
   (-> (io/resource "day11-input.txt")
       (slurp)
