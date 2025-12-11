@@ -18,38 +18,31 @@
                 [from to])))
        (into {}))))
 
-(defn part1
-  [input]
-  (loop [to-process ["you"]
+(defn all-paths-from-to
+  [input from to]
+  (loop [to-process [from]
          count-so-far 0]
     (if (empty? to-process)
       count-so-far
       (let [[t & to-process] to-process]
-        (if (= t "out")
+        (if (= t to)
           (recur to-process (inc count-so-far))
           (recur (concat (get input t) to-process)
                  count-so-far))))))
 
+(defn part1
+  [input]
+  (all-paths-from-to input "you" "out"))
+
 (defn part2
   [input]
-  (loop [to-process [{:pos "svr"
-                      :dac? false
-                      :fft? false}]
-         count-so-far 0]
-    (if (empty? to-process)
-      count-so-far
-      (let [[t & to-process] to-process]
-        (if (= t {:pos "out", :dac? true, :fft? true})
-          (recur to-process (inc count-so-far))
-          (recur (concat (->> (get input (:pos t))
-                              (map (fn [new-pos]
-                                     {:pos new-pos
-                                      :fft? (or (:fft? t)
-                                                (= "fft" new-pos))
-                                      :dac? (or (:dac? t)
-                                                (= "dac" new-pos))})))
-                         to-process)
-                 count-so-far))))))
+  (let [ps (partial all-paths-from-to input)]
+    (+ (* (ps "svr" "dac")
+          (ps "dac" "fft")
+          (ps "fft" "out"))
+       (* (ps "svr" "fft")
+          (ps "fft" "dac")
+          (ps "dac" "out")))))
 
 (comment
 
