@@ -41,15 +41,14 @@
       (let [[t & to-process] to-process]
         (if (= t {:pos "out", :dac? true, :fft? true})
           (recur to-process (inc count-so-far))
-          (recur (->> (get input (:pos t))
-                      (map (fn [new-pos]
-                             {:pos new-pos
-                              :fft? (or (:fft? t)
-                                        (= "fft" new-pos))
-                              :dac? (or (:dac? t)
-                                        (= "dac" new-pos))}))
-                      (concat to-process)
-                      vec)
+          (recur (concat (->> (get input (:pos t))
+                              (map (fn [new-pos]
+                                     {:pos new-pos
+                                      :fft? (or (:fft? t)
+                                                (= "fft" new-pos))
+                                      :dac? (or (:dac? t)
+                                                (= "dac" new-pos))})))
+                         to-process)
                  count-so-far))))))
 
 (comment
