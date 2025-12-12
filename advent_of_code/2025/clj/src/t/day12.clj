@@ -95,7 +95,9 @@
       (loop [to-try [[:pick {:free? (set (for [y (range h)
                                                x (range w)]
                                            [y x]))
-                             :to-place shapes}]]]
+                             :to-place (->> shapes
+                                            (mapcat (fn [[idx n]]
+                                                      (repeat n idx))))}]]]
         (if (empty? to-try)
           false
           (let [[[k m] & to-try] to-try]
@@ -103,15 +105,13 @@
               :pick (let [{:keys [to-place free?]} m]
                       (if (empty? to-place)
                         true
-                        (recur (concat (->> (keys to-place)
+                        (recur (concat (->> [(first to-place)]
                                             (mapcat (fn [k]
                                                       (->> (get all-shapes k)
                                                            (map (fn [g]
                                                                   [:place {:gift g
                                                                            :free? free?
-                                                                           :to-place (if (= 1 (get to-place k))
-                                                                                       (dissoc to-place k)
-                                                                                       (update to-place k dec))}]))))))
+                                                                           :to-place (rest to-place)}]))))))
                                        to-try))))
               :place (let [{:keys [gift to-place free?]} m]
                        (recur (concat (->> free?
