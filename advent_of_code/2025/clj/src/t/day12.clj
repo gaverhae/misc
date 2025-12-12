@@ -32,9 +32,15 @@
                          :shapes (->> shapes
                                       (map (fn [[_ n]] (parse-long n))))})))}))
 
+(defn works?
+  [shapes]
+  (fn [tree]))
+
 (defn part1
   [input]
-  )
+  (->> (:trees input)
+       (filter (works? (:shapes input)))
+       count))
 
 (defn part2
   [input]
