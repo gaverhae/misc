@@ -92,38 +92,35 @@
                                [idx (all-orientations bs)]))
                         (into {}))]
     (fn [{:keys [w h shapes]}]
-      (let [outside (set (concat (->> (range w)
-                                      (mapcat (fn [x] [[-1 x] [h x]])))
-                                 (->> (range h)
-                                      (mapcat (fn [y] [[y -1] [y w]])))))]
-        (loop [to-try [[:pick {:occupied? #{}
-                               :to-place shapes}]]]
-          (if (empty? to-try)
-            false
-            (let [[[k m] & to-try] to-try]
-              (case k
-                :pick (let [{:keys [to-place occupied?]} m]
-                        (if (empty? to-place)
-                          true
-                          (recur (concat (->> (keys to-place)
-                                              (map (fn [k]
-                                                     [:place {:gift (get all-shapes k)
-                                                              :occupied? occupied?
-                                                              :to-place (if (= 1 (get to-place k))
-                                                                          (dissoc to-place k)
-                                                                          (update to-place k dec))}])))
-                                         to-try))))
-                :place (let [{:keys [gift to-place occupied?]} m]
-                         (recur (concat (->> (for [g gift
-                                                   y (range 0 h)
-                                                   x (range 0 w)]
-                                               (move g y x))
-                                             (filter (fn [g] (empty? (set/intersection g outside))))
-                                             (filter (fn [g] (empty? (set/intersection g occupied?))))
-                                             (map (fn [g]
-                                                    [:pick {:occupied? (set/union occupied? g)
-                                                            :to-place to-place}])))
-                                        to-try)))))))))))
+      (loop [to-try [[:pick {:free? (set (for [y (range h)
+                                               x (range w)]
+                                           [y x]))
+                             :to-place shapes}]]]
+        (if (empty? to-try)
+          false
+          (let [[[k m] & to-try] to-try]
+            (case k
+              :pick (let [{:keys [to-place free?]} m]
+                      (if (empty? to-place)
+                        true
+                        (recur (concat (->> (keys to-place)
+                                            (mapcat (fn [k]
+                                                      (->> (get all-shapes k)
+                                                           (map (fn [g]
+                                                                  [:place {:gift g
+                                                                           :free? free?
+                                                                           :to-place (if (= 1 (get to-place k))
+                                                                                       (dissoc to-place k)
+                                                                                       (update to-place k dec))}]))))))
+                                       to-try))))
+              :place (let [{:keys [gift to-place free?]} m]
+                       (recur (concat (->> free?
+                                           (map (fn [[y x]] (move gift y x)))
+                                           (filter (fn [g] (= g (set/intersection g free?))))
+                                           (map (fn [g]
+                                                  [:pick {:free? (set/difference free? g)
+                                                          :to-place to-place}])))
+                                      to-try))))))))))
 
 (defn part1
   [input]
