@@ -101,7 +101,6 @@
         (if (empty? to-try)
           false
           (let [[{:keys [free? to-place]} & to-try] to-try]
-            (prn [:free? (count free?) :to-place to-place])
             (if (empty? to-place)
               true
               (let [[t & to-place] to-place]
@@ -109,7 +108,7 @@
                                     (mapcat (fn [g]
                                               (->> free?
                                                    (map (fn [[y x]] (move g y x)))
-                                                   (filter (fn [g] (= g (set/intersection g free?))))
+                                                   (filter (fn [g] (set/subset? g free?)))
                                                    (map (fn [g]
                                                           {:free? (set/difference free? g)
                                                            :to-place to-place}))))))
@@ -118,7 +117,8 @@
 (defn part1
   [input]
   (->> (:trees input)
-       (drop 2)
+       (take 2)
+       #_(drop 2)
        (map (works? (:shapes input)))
        #_count))
 
@@ -140,11 +140,12 @@
  :trees ({:w 4, :h 4, :shapes {4 2}}
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
-
+(defn p []
   (-> (io/resource "day12-sample.txt")
       (slurp)
       (parse)
       (part1))
+  )
 
   (-> (io/resource "day12-input.txt")
       (slurp)
