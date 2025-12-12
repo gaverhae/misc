@@ -92,35 +92,28 @@
                                [idx (all-orientations bs)]))
                         (into {}))]
     (fn [{:keys [w h shapes]}]
-      (loop [to-try [[:pick {:free? (set (for [y (range h)
-                                               x (range w)]
-                                           [y x]))
-                             :to-place (->> shapes
-                                            (mapcat (fn [[idx n]]
-                                                      (repeat n idx))))}]]]
+      (loop [to-try [{:free? (set (for [y (range h)
+                                        x (range w)]
+                                    [y x]))
+                      :to-place (->> shapes
+                                     (mapcat (fn [[idx n]]
+                                               (repeat n idx))))}]]
         (if (empty? to-try)
           false
-          (let [[[k m] & to-try] to-try]
-            (case k
-              :pick (let [{:keys [to-place free?]} m]
-                      (if (empty? to-place)
-                        true
-                        (recur (concat (->> [(first to-place)]
-                                            (mapcat (fn [k]
-                                                      (->> (get all-shapes k)
-                                                           (map (fn [g]
-                                                                  [:place {:gift g
-                                                                           :free? free?
-                                                                           :to-place (rest to-place)}]))))))
-                                       to-try))))
-              :place (let [{:keys [gift to-place free?]} m]
-                       (recur (concat (->> free?
-                                           (map (fn [[y x]] (move gift y x)))
-                                           (filter (fn [g] (= g (set/intersection g free?))))
-                                           (map (fn [g]
-                                                  [:pick {:free? (set/difference free? g)
-                                                          :to-place to-place}])))
-                                      to-try))))))))))
+          (let [[{:keys [free? to-place]} & to-try] to-try]
+            (prn [:free? (count free?) :to-place to-place])
+            (if (empty? to-place)
+              true
+              (let [[t & to-place] to-place]
+                (recur (concat (->> (get all-shapes t)
+                                    (mapcat (fn [g]
+                                              (->> free?
+                                                   (map (fn [[y x]] (move g y x)))
+                                                   (filter (fn [g] (= g (set/intersection g free?))))
+                                                   (map (fn [g]
+                                                          {:free? (set/difference free? g)
+                                                           :to-place to-place}))))))
+                               to-try))))))))))
 
 (defn part1
   [input]
