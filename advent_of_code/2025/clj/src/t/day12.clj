@@ -95,22 +95,28 @@
       (loop [to-try [{:free? (set (for [y (range h)
                                         x (range w)]
                                     [y x]))
+                      :placed {}
                       :to-place (->> shapes
                                      (mapcat (fn [[idx n]]
                                                (repeat n idx))))}]]
         (if (empty? to-try)
           false
-          (let [[{:keys [free? to-place]} & to-try] to-try]
+          (let [[{:keys [free? to-place placed]} & to-try] to-try]
             (if (empty? to-place)
               true
               (let [[t & to-place] to-place]
                 (recur (concat (->> (get all-shapes t)
                                     (mapcat (fn [g]
-                                              (->> free?
-                                                   (map (fn [[y x]] (move g y x)))
-                                                   (filter (fn [g] (set/subset? g free?)))
-                                                   (map (fn [g]
+                                              (->> (if-let [p (placed g)]
+                                                     (->> free?
+                                                          sort
+                                                          (drop-while (fn [f] (pos? (compare p f)))))
+                                                     (sort free?))
+                                                   (map (fn [[y x]] [[y x] (move g y x)]))
+                                                   (filter (fn [[_ g]] (set/subset? g free?)))
+                                                   (map (fn [[p g]]
                                                           {:free? (set/difference free? g)
+                                                           :placed (assoc placed g p)
                                                            :to-place to-place}))))))
                                to-try))))))))))
 
