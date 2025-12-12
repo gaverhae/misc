@@ -95,7 +95,7 @@
       (let [outside (set (concat (->> (range w)
                                       (mapcat (fn [x] [[-1 x] [h x]])))
                                  (->> (range h)
-                                      (mapcat (fn [y] [y -1] [y w])))))]
+                                      (mapcat (fn [y] [[y -1] [y w]])))))]
         (loop [to-try [[:pick {:occupied? #{}
                                :to-place shapes
                                :placed []}]]]
@@ -117,6 +117,8 @@
                                 (doseq [x (range -1 (inc w))]
                                   (print (get p [y x] " ")))
                                 (println)))
+                            (prn (get placed 2))
+                            (prn outside)
                             true)
                           (recur (concat (->> (keys to-place)
                                               (map (fn [k]
