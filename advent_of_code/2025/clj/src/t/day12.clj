@@ -63,33 +63,84 @@
              [2 2] [2 0]})
        set))
 
+(defn all-orientations
+  [bs]
+  (->> [bs
+        (rotate bs)
+        (rotate (rotate bs))
+        (rotate (rotate (rotate bs)))
+        (flip bs)
+        (rotate (flip bs))
+        (rotate (rotate (flip bs)))
+        (rotate (rotate (rotate (flip bs))))
+        (flip (rotate bs))
+        (rotate (flip (rotate bs)))
+        (rotate (rotate (flip (rotate bs))))
+        (rotate (rotate (rotate (flip (rotate bs)))))]
+       set))
+
+(defn move
+  [s dy dx]
+  (->> s
+       (map (fn [[y x]] [(+ y dy) (+ x dx)]))
+       set))
+
 (defn works?
   [shapes]
   (let [all-shapes (->> shapes
                         (map (fn [[idx bs]]
-                               [idx (->> [bs
-                                          (rotate bs)
-                                          (rotate (rotate bs))
-                                          (rotate (rotate (rotate bs)))
-                                          (flip bs)
-                                          (rotate (flip bs))
-                                          (rotate (rotate (flip bs)))
-                                          (rotate (rotate (rotate (flip bs))))
-                                          (flip (rotate bs))
-                                          (rotate (flip (rotate bs)))
-                                          (rotate (rotate (flip (rotate bs))))
-                                          (rotate (rotate (rotate (flip (rotate bs)))))]
-                                         set)]))
+                               [idx (all-orientations bs)]))
                         (into {}))]
     (fn [{:keys [w h shapes]}]
-      all-shapes)))
+      (let [outside (set (concat (->> (range w)
+                                      (mapcat (fn [x] [[-1 x] [h x]])))
+                                 (->> (range h)
+                                      (mapcat (fn [y] [y -1] [y w])))))]
+        (loop [to-try [[:pick {:occupied? #{}
+                               :to-place shapes}]]]
+          (if (empty? to-try)
+            false
+            (let [[[k m] & to-try] to-try]
+              (prn (:to-place m))
+              (doseq [y (range h)]
+                (doseq [x (range w)]
+                  (print (if ((:occupied? m) [y x]) "•" " ")))
+                (println))
+              (println)
+              (case k
+                :pick (let [{:keys [to-place occupied?]} m]
+                        (if (empty? to-place)
+                          true
+                          (recur (concat (->> (keys to-place)
+                                              (map (fn [k]
+                                                     [:place {:gift (get all-shapes k)
+                                                              :occupied? occupied?
+                                                              :to-place (if (= 1 (get to-place k))
+                                                                          (dissoc to-place k)
+                                                                          (update to-place k dec))}])))
+                                         to-try))))
+                :place (let [{:keys [gift to-place occupied?]} m]
+                         (recur (concat (->> (for [g gift
+                                                   y (range 0 h)
+                                                   x (range 0 w)]
+                                               (move g y x))
+                                             (filter (fn [g]
+                                                       (prn [:out? (set/intersection g outside)])
+                                                       (empty? (set/intersection g outside))))
+                                             (filter (fn [g]
+                                                       (prn [:bump? (set/intersection g occupied?)])
+                                                       (empty? (set/intersection g occupied?))))
+                                             (map (fn [g]
+                                                    [:pick {:occupied? (set/union occupied? g)
+                                                            :to-place to-place}])))
+                                        to-try)))))))))))
 
 (defn part1
   [input]
   (->> (:trees input)
-       (take 1)
-       (filter (works? (:shapes input)))
-       count))
+       (drop 2)
+       (map (works? (:shapes input)))
+       #_count))
 
 (defn part2
   [input]
@@ -110,10 +161,12 @@
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
 
+(defn p []
   (-> (io/resource "day12-sample.txt")
       (slurp)
       (parse)
       (part1))
+  )
 
   (-> (io/resource "day12-input.txt")
       (slurp)
