@@ -80,10 +80,11 @@
        set))
 
 (defn move
-  [s dy dx]
-  (->> s
-       (map (fn [[y x]] [(+ y dy) (+ x dx)]))
-       set))
+  [[dy dx]]
+  (fn [s]
+    (->> s
+         (map (fn [[y x]] [(+ y dy) (+ x dx)]))
+         set)))
 
 (defn works?
   [shapes]
@@ -92,33 +93,42 @@
                                [idx (all-orientations bs)]))
                         (into {}))]
     (fn [{:keys [w h shapes]}]
-      (loop [to-try [{:free? (set (for [y (range h)
-                                        x (range w)]
-                                    [y x]))
-                      :to-place (assoc shapes
-                                       :cell (- (* w h)
-                                                (->> shapes
-                                                     (map (fn [[idx n]]
-                                                            (* n (count (first (get all-shapes idx))))))
-                                                     (reduce + 0))))}]]
-        (if (empty? to-try)
-          false
-          (let [[{:keys [free? to-place]} & to-try] to-try]
-            (if (empty? to-place)
-              true
-              (let [[dy dx] (->> free? sort first)
-                    next-steps (->> to-place
-                                    keys
-                                    (mapcat (fn [k]
-                                              (->> (get all-shapes k)
-                                                   (map (fn [g] (move g dy dx)))
-                                                   (filter (fn [g] (set/subset? g free?)))
-                                                   (map (fn [g]
-                                                          {:free? (set/difference free? g)
-                                                           :to-place (if (= 1 (get to-place k))
-                                                                       (dissoc to-place k)
-                                                                       (update to-place k dec))}))))))]
-                (recur (concat next-steps to-try))))))))))
+      (let [inside (set (for [y (range h)
+                              x (range w)]
+                          [y x]))
+            to-place (assoc shapes
+                            :cell (- (* w h)
+                                     (->> shapes
+                                          (map (fn [[idx n]]
+                                                 (* n (count (first (get all-shapes idx))))))
+                                          (reduce + 0))))]
+        (loop [ps (sort inside)
+               states [{:free? inside
+                        :to-place to-place}]]
+          (cond (empty? states) false
+                (zero? (count (:to-place (first states)))) true
+                (empty? ps) false
+                :else
+                (let [[p & ps] ps]
+                  (prn [:step p (count states)])
+                  (recur ps
+                         (->> states
+                              (mapcat (fn [{:keys [free? to-place] :as s}]
+                                        (if (not (free? p))
+                                          [s]
+                                          (->> to-place
+                                               keys
+                                               (mapcat (fn [k]
+                                                         (->> (get all-shapes k)
+                                                              (map (move p))
+                                                              (filter (fn [g] (set/subset? g free?)))
+                                                              (map (fn [g]
+                                                                     {:free? (set/difference free? g)
+                                                                      :to-place (if (= 1 (get to-place k))
+                                                                                  (dissoc to-place k)
+                                                                                  (update to-place k dec))})))))))))
+                              set
+                              (sort-by (comp count :to-place)))))))))))
 
 (defn part1
   [input]
@@ -145,10 +155,12 @@
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
 
+(defn p []
   (-> (io/resource "day12-sample.txt")
       (slurp)
       (parse)
       (part1))
+  )
 
   (-> (io/resource "day12-input.txt")
       (slurp)
