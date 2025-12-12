@@ -97,39 +97,23 @@
                                  (->> (range h)
                                       (mapcat (fn [y] [[y -1] [y w]])))))]
         (loop [to-try [[:pick {:occupied? #{}
-                               :to-place shapes
-                               :placed []}]]]
+                               :to-place shapes}]]]
           (if (empty? to-try)
             false
             (let [[[k m] & to-try] to-try]
               (case k
-                :pick (let [{:keys [to-place occupied? placed]} m]
+                :pick (let [{:keys [to-place occupied?]} m]
                         (if (empty? to-place)
-                          (do
-                            (let [p (->> placed
-                                         (map-indexed vector)
-                                         (mapcat (fn [[idx ps]]
-                                                   (->> ps
-                                                        (map (fn [p] [p (str idx)])))))
-                                         (into {}))]
-                              (println)
-                              (doseq [y (range -1 (inc h))]
-                                (doseq [x (range -1 (inc w))]
-                                  (print (get p [y x] " ")))
-                                (println)))
-                            (prn (get placed 2))
-                            (prn outside)
-                            true)
+                          true
                           (recur (concat (->> (keys to-place)
                                               (map (fn [k]
                                                      [:place {:gift (get all-shapes k)
-                                                              :placed placed
                                                               :occupied? occupied?
                                                               :to-place (if (= 1 (get to-place k))
                                                                           (dissoc to-place k)
                                                                           (update to-place k dec))}])))
                                          to-try))))
-                :place (let [{:keys [gift to-place occupied? placed]} m]
+                :place (let [{:keys [gift to-place occupied?]} m]
                          (recur (concat (->> (for [g gift
                                                    y (range 0 h)
                                                    x (range 0 w)]
@@ -138,7 +122,6 @@
                                              (filter (fn [g] (empty? (set/intersection g occupied?))))
                                              (map (fn [g]
                                                     [:pick {:occupied? (set/union occupied? g)
-                                                            :placed (conj placed g)
                                                             :to-place to-place}])))
                                         to-try)))))))))))
 
