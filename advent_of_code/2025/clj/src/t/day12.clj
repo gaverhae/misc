@@ -31,7 +31,10 @@
                         {:w (parse-long w)
                          :h (parse-long h)
                          :shapes (->> shapes
-                                      (map (fn [[_ n]] (parse-long n))))})))}))
+                                      (map (fn [[_ n]] (parse-long n)))
+                                      (keep-indexed (fn [idx n]
+                                                      (when (pos? n) [idx n])))
+                                      (into {}))})))}))
 
 (defn rotate
   [shape]
@@ -150,9 +153,9 @@
             3 #{[0 0] [1 0] [1 1] [2 0] [2 1] [1 2] [0 1]}
             4 #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]}
             5 #{[2 2] [0 0] [1 1] [0 2] [2 0] [2 1] [0 1]}}
-   :trees ({:w 4, :h 4, :shapes (0 0 0 0 2 0)}
-           {:w 12, :h 5, :shapes (1 0 1 0 2 2)}
-           {:w 12, :h 5, :shapes (1 0 1 0 3 2)})}
+   :trees ({:w 4, :h 4, :shapes {4 2}}
+           {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
+           {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
 
 (defn p []
   (-> (io/resource "day12-sample.txt")
