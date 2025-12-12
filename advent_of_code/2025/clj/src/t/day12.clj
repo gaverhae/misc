@@ -31,9 +31,7 @@
                         {:w (parse-long w)
                          :h (parse-long h)
                          :shapes (->> shapes
-                                      (map (fn [[_ n]] (parse-long n)))
-                                      (keep-indexed (fn [id n] (when (pos? n) [id n])))
-                                      (into {}))})))}))
+                                      (map (fn [[_ n]] (parse-long n))))})))}))
 
 (defn rotate
   [shape]
@@ -133,6 +131,7 @@
 (defn part1
   [input]
   (->> (:trees input)
+       (take 2)
        (map (works? (:shapes input)))
        #_count))
 
@@ -145,15 +144,15 @@
   (-> (io/resource "day12-sample.txt")
       (slurp)
       (parse))
-{:shapes {0 #{[0 0] [1 0] [1 1] [0 2] [2 0] [2 1] [0 1]},
-          1 #{[2 2] [0 0] [1 0] [1 1] [0 2] [2 1] [0 1]},
-          2 #{[1 0] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]},
-          3 #{[0 0] [1 0] [1 1] [2 0] [2 1] [1 2] [0 1]},
-          4 #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]},
-          5 #{[2 2] [0 0] [1 1] [0 2] [2 0] [2 1] [0 1]}},
- :trees ({:w 4, :h 4, :shapes {4 2}}
-         {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
-         {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
+  {:shapes {0 #{[0 0] [1 0] [1 1] [0 2] [2 0] [2 1] [0 1]}
+            1 #{[2 2] [0 0] [1 0] [1 1] [0 2] [2 1] [0 1]}
+            2 #{[1 0] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]}
+            3 #{[0 0] [1 0] [1 1] [2 0] [2 1] [1 2] [0 1]}
+            4 #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]}
+            5 #{[2 2] [0 0] [1 1] [0 2] [2 0] [2 1] [0 1]}}
+   :trees ({:w 4, :h 4, :shapes (0 0 0 0 2 0)}
+           {:w 12, :h 5, :shapes (1 0 1 0 2 2)}
+           {:w 12, :h 5, :shapes (1 0 1 0 3 2)})}
 
 (defn p []
   (-> (io/resource "day12-sample.txt")
@@ -162,10 +161,12 @@
       (part1))
   )
 
+(defn p2 []
   (-> (io/resource "day12-input.txt")
       (slurp)
       (parse)
       (part1))
+  )
 
   (-> (io/resource "day12-sample2.txt")
       (slurp)
