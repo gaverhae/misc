@@ -97,41 +97,46 @@
                                  (->> (range h)
                                       (mapcat (fn [y] [y -1] [y w])))))]
         (loop [to-try [[:pick {:occupied? #{}
-                               :to-place shapes}]]]
+                               :to-place shapes
+                               :placed []}]]]
           (if (empty? to-try)
             false
             (let [[[k m] & to-try] to-try]
-              (prn (:to-place m))
-              (doseq [y (range h)]
-                (doseq [x (range w)]
-                  (print (if ((:occupied? m) [y x]) "•" " ")))
-                (println))
-              (println)
               (case k
-                :pick (let [{:keys [to-place occupied?]} m]
+                :pick (let [{:keys [to-place occupied? placed]} m]
                         (if (empty? to-place)
-                          true
+                          (do
+                            (let [p (->> placed
+                                         (map-indexed vector)
+                                         (mapcat (fn [[idx ps]]
+                                                   (->> ps
+                                                        (map (fn [p] [p (str idx)])))))
+                                         (into {}))]
+                              (println)
+                              (doseq [y (range -1 (inc h))]
+                                (doseq [x (range -1 (inc w))]
+                                  (print (get p [y x] " ")))
+                                (println)))
+                            true)
                           (recur (concat (->> (keys to-place)
                                               (map (fn [k]
                                                      [:place {:gift (get all-shapes k)
+                                                              :placed placed
                                                               :occupied? occupied?
                                                               :to-place (if (= 1 (get to-place k))
                                                                           (dissoc to-place k)
                                                                           (update to-place k dec))}])))
                                          to-try))))
-                :place (let [{:keys [gift to-place occupied?]} m]
+                :place (let [{:keys [gift to-place occupied? placed]} m]
                          (recur (concat (->> (for [g gift
                                                    y (range 0 h)
                                                    x (range 0 w)]
                                                (move g y x))
-                                             (filter (fn [g]
-                                                       (prn [:out? (set/intersection g outside)])
-                                                       (empty? (set/intersection g outside))))
-                                             (filter (fn [g]
-                                                       (prn [:bump? (set/intersection g occupied?)])
-                                                       (empty? (set/intersection g occupied?))))
+                                             (filter (fn [g] (empty? (set/intersection g outside))))
+                                             (filter (fn [g] (empty? (set/intersection g occupied?))))
                                              (map (fn [g]
                                                     [:pick {:occupied? (set/union occupied? g)
+                                                            :placed (conj placed g)
                                                             :to-place to-place}])))
                                         to-try)))))))))))
 
@@ -161,12 +166,10 @@
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
          {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
 
-(defn p []
   (-> (io/resource "day12-sample.txt")
       (slurp)
       (parse)
       (part1))
-  )
 
   (-> (io/resource "day12-input.txt")
       (slurp)
