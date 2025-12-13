@@ -87,6 +87,22 @@
          (map (fn [[y x]] [(+ y dy) (+ x dx)]))
          set)))
 
+(defn all-places
+  [options n]
+  (let [c (count options)
+        v (vec options)]
+    (loop [selected (->> (range c) (map vector))]
+      (if (= (count (first selected)) n)
+        (->> selected
+             (map (fn [s]
+                    (->> s
+                         (map (fn [idx]
+                                (get v idx)))))))
+        (recur (->> selected
+                    (mapcat (fn [s]
+                              (->> (range (inc (peek s)) c)
+                                   (map (fn [n] (conj s n))))))))))))
+
 (defn works?
   [shapes]
   (let [all-shapes (->> (assoc shapes :cell #{[0 0]})
@@ -96,40 +112,39 @@
     (fn [{:keys [w h shapes]}]
       (let [inside (set (for [y (range h)
                               x (range w)]
-                          [y x]))
-            to-place (assoc shapes
-                            :cell (- (* w h)
-                                     (->> shapes
-                                          (map (fn [[idx n]]
-                                                 (* n (count (first (get all-shapes idx))))))
-                                          (reduce + 0))))]
-        (loop [ps (sort inside)
-               states [{:free? inside
-                        :to-place to-place}]]
-          (cond (empty? states) false
-                (zero? (count (:to-place (first states)))) true
-                (empty? ps) false
-                :else
-                (let [[p & ps] ps]
-                  (prn [:step p (count states)])
-                  (recur ps
-                         (->> states
-                              (mapcat (fn [{:keys [free? to-place] :as s}]
-                                        (if (not (free? p))
-                                          [s]
-                                          (->> to-place
-                                               keys
-                                               (mapcat (fn [k]
-                                                         (->> (get all-shapes k)
-                                                              (map (move p))
-                                                              (filter (fn [g] (set/subset? g free?)))
-                                                              (map (fn [g]
-                                                                     {:free? (set/difference free? g)
-                                                                      :to-place (if (= 1 (get to-place k))
-                                                                                  (dissoc to-place k)
-                                                                                  (update to-place k dec))})))))))))
-                              set
-                              (sort-by (comp count :to-place)))))))))))
+                          [y x]))]
+        (loop [states [[:pick {:free? inside
+                               :to-place shapes}]]]
+          (if (empty? states)
+            false
+            (let [[[k m] & states] states]
+              (case k
+                :pick (let [{:keys [free? to-place]} m]
+                        (if (empty? to-place)
+                          true
+                          (let [[[idx n] & to-place] to-place]
+                            (recur (concat (->> (all-places free? n)
+                                                (map (fn [ps]
+                                                       [:place {:free? free?
+                                                                :to-place to-place
+                                                                :idx idx
+                                                                :gifts ps}])))
+                                           states)))))
+                :place (let [{:keys [free? to-place gifts idx]} m]
+                         (if (empty? gifts)
+                           (recur (cons [:pick {:free? free?
+                                                :to-place to-place}]
+                                        states))
+                           (let [[g & gifts] gifts]
+                             (recur (concat (->> (get all-shapes idx)
+                                                 (map (move g))
+                                                 (filter (fn [s] (set/subset? s free?)))
+                                                 (map (fn [s]
+                                                        [:place {:free? (set/difference free? s)
+                                                                 :to-place to-place
+                                                                 :idx idx
+                                                                 :gifts gifts}])))
+                                            states)))))))))))))
 
 (defn part1
   [input]
