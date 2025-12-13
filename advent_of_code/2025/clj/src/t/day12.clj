@@ -120,38 +120,36 @@
                                (reduce + 0)))]
         (if (neg? free-cells)
           false
-          (loop [states [[:pick {:free? inside
-                                 :to-place (assoc shapes :cell free-cells)}]]]
+          (loop [states [{:free? inside
+                          :to-place (assoc shapes :cell free-cells)}]]
             (if (empty? states)
               false
-              (let [[[k m] & states] states]
-                (case k
-                  :pick (let [{:keys [free? to-place]} m]
-                          (if (empty? to-place)
-                            true
-                            (let [[[idx n] & to-place] to-place]
-                              (recur (concat (->> (all-places free? n)
-                                                  (map (fn [ps]
-                                                         [:place {:free? free?
-                                                                  :to-place to-place
-                                                                  :idx idx
-                                                                  :gifts ps}])))
-                                             states)))))
-                  :place (let [{:keys [free? to-place gifts idx]} m]
-                           (if (empty? gifts)
-                             (recur (cons [:pick {:free? free?
-                                                  :to-place to-place}]
-                                          states))
-                             (let [[g & gifts] gifts]
-                               (recur (concat (->> (get all-shapes idx)
-                                                   (map (move g))
-                                                   (filter (fn [s] (set/subset? s free?)))
-                                                   (map (fn [s]
-                                                          [:place {:free? (set/difference free? s)
-                                                                   :to-place to-place
-                                                                   :idx idx
-                                                                   :gifts gifts}])))
-                                              states))))))))))))))
+              (let [[{:keys [free? to-place]} & states] states]
+                (if (empty? to-place)
+                  true
+                  (let [[[idx n] & to-place] to-place]
+                    (recur (concat (->> (all-places free? n)
+                                        (mapcat (fn [selected-positions]
+                                                  (loop [todo [{:free? free?
+                                                                :positions selected-positions}]
+                                                         done []]
+                                                    (if (empty? todo)
+                                                      (->> done
+                                                           (map (fn [f] {:free? f, :to-place to-place})))
+                                                      (let [[{:keys [free? positions]} & todo] todo]
+                                                        (if (empty? positions)
+                                                          (recur todo (conj done free?))
+                                                          (let [[p & positions] positions]
+                                                            (recur (concat
+                                                                     (->> (get all-shapes idx)
+                                                                          (map (move p))
+                                                                          (filter (fn [s] (set/subset? s free?)))
+                                                                          (map (fn [s]
+                                                                                 {:free? (set/difference free? s)
+                                                                                  :positions positions})))
+                                                                     todo)
+                                                                   done)))))))))
+                                   states))))))))))))
 
 (defn part1
   [input]
