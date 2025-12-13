@@ -112,39 +112,46 @@
     (fn [{:keys [w h shapes]}]
       (let [inside (set (for [y (range h)
                               x (range w)]
-                          [y x]))]
-        (loop [states [[:pick {:free? inside
-                               :to-place shapes}]]]
-          (if (empty? states)
-            false
-            (let [[[k m] & states] states]
-              (case k
-                :pick (let [{:keys [free? to-place]} m]
-                        (if (empty? to-place)
-                          true
-                          (let [[[idx n] & to-place] to-place]
-                            (recur (concat (->> (all-places free? n)
-                                                (map (fn [ps]
-                                                       [:place {:free? free?
-                                                                :to-place to-place
-                                                                :idx idx
-                                                                :gifts ps}])))
-                                           states)))))
-                :place (let [{:keys [free? to-place gifts idx]} m]
-                         (if (empty? gifts)
-                           (recur (cons [:pick {:free? free?
-                                                :to-place to-place}]
-                                        states))
-                           (let [[g & gifts] gifts]
-                             (recur (concat (->> (get all-shapes idx)
-                                                 (map (move g))
-                                                 (filter (fn [s] (set/subset? s free?)))
-                                                 (map (fn [s]
-                                                        [:place {:free? (set/difference free? s)
-                                                                 :to-place to-place
-                                                                 :idx idx
-                                                                 :gifts gifts}])))
-                                            states)))))))))))))
+                          [y x]))
+            free-cells (- (* h w)
+                          (->> shapes
+                               (map (fn [[idx n]]
+                                      (* n (count (first (get all-shapes idx))))))
+                               (reduce + 0)))]
+        (if (neg? free-cells)
+          false
+          (loop [states [[:pick {:free? inside
+                                 :to-place (assoc shapes :cell free-cells)}]]]
+            (if (empty? states)
+              false
+              (let [[[k m] & states] states]
+                (case k
+                  :pick (let [{:keys [free? to-place]} m]
+                          (if (empty? to-place)
+                            true
+                            (let [[[idx n] & to-place] to-place]
+                              (recur (concat (->> (all-places free? n)
+                                                  (map (fn [ps]
+                                                         [:place {:free? free?
+                                                                  :to-place to-place
+                                                                  :idx idx
+                                                                  :gifts ps}])))
+                                             states)))))
+                  :place (let [{:keys [free? to-place gifts idx]} m]
+                           (if (empty? gifts)
+                             (recur (cons [:pick {:free? free?
+                                                  :to-place to-place}]
+                                          states))
+                             (let [[g & gifts] gifts]
+                               (recur (concat (->> (get all-shapes idx)
+                                                   (map (move g))
+                                                   (filter (fn [s] (set/subset? s free?)))
+                                                   (map (fn [s]
+                                                          [:place {:free? (set/difference free? s)
+                                                                   :to-place to-place
+                                                                   :idx idx
+                                                                   :gifts gifts}])))
+                                              states))))))))))))))
 
 (defn part1
   [input]
