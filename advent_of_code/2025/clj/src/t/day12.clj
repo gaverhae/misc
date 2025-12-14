@@ -122,7 +122,6 @@
           false
           (loop [states [{:free? inside
                           :to-place (-> shapes
-                                        (assoc -1 free-cells)
                                         sort)}]]
             (if (empty? states)
               false
