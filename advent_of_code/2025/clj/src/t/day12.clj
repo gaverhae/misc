@@ -105,7 +105,7 @@
 
 (defn works?
   [shapes]
-  (let [all-shapes (->> (assoc shapes :cell #{[0 0]})
+  (let [all-shapes (->> (assoc shapes -1 #{[0 0]})
                         (map (fn [[idx bs]]
                                [idx (all-orientations bs)]))
                         (into {}))]
@@ -121,7 +121,9 @@
         (if (neg? free-cells)
           false
           (loop [states [{:free? inside
-                          :to-place (assoc shapes :cell free-cells)}]]
+                          :to-place (-> shapes
+                                        (assoc -1 free-cells)
+                                        sort)}]]
             (if (empty? states)
               false
               (let [[{:keys [free? to-place]} & states] states]
@@ -153,10 +155,19 @@
 
 (defn part1
   [input]
-  (->> (:trees input)
-       (take 2)
-       (map (works? (:shapes input)))
-       #_count))
+  (let [w? (works? (:shapes input))
+        start (System/currentTimeMillis)]
+    (->> (:trees input)
+         (keep-indexed (fn [idx t]
+                         (let [r (w? t)]
+                           (prn [:done (let [elapsed (- (System/currentTimeMillis) start)
+                                             seconds (-> elapsed (quot 1000) (rem 60))
+                                             minutes  (-> elapsed (quot 1000) (quot 60) (rem 60))
+                                             hours (-> elapsed (quot 1000) (quot 60) (quot 60))]
+                                         (format "%02d:%02d:%02d" hours minutes seconds))
+                                 idx r])
+                           (when r 1))))
+         count)))
 
 (defn part2
   [input]
