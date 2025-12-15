@@ -2,6 +2,7 @@
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [clojure.java.io :as io]
+            [clojure.core.async :as async]
             [instaparse.core :as insta]))
 
 (defn parse
@@ -155,18 +156,36 @@
 (defn part1
   [input]
   (let [w? (works? (:shapes input))
+        report (async/chan)
+        work-queue (async/chan)
+        _ (async/thread
+            (doseq [t (->> (:trees input)
+                           (map-indexed vector))]
+              (async/>!! work-queue t)))
         start (System/currentTimeMillis)]
-    (->> (:trees input)
-         (keep-indexed (fn [idx t]
-                         (let [r (w? t)]
-                           (prn [:done (let [elapsed (- (System/currentTimeMillis) start)
-                                             seconds (-> elapsed (quot 1000) (rem 60))
-                                             minutes  (-> elapsed (quot 1000) (quot 60) (rem 60))
-                                             hours (-> elapsed (quot 1000) (quot 60) (quot 60))]
-                                         (format "%02d:%02d:%02d" hours minutes seconds))
-                                 idx r])
-                           (when r 1))))
-         count)))
+    (dotimes [n 5]
+      (async/thread
+        (loop [t (async/<!! work-queue)]
+          (when-let [[idx t] t]
+            (let [r (w? t)
+                  elapsed (- (System/currentTimeMillis) start)
+                  seconds (-> elapsed (quot 1000) (rem 60))
+                  minutes  (-> elapsed (quot 1000) (quot 60) (rem 60))
+                  hours (-> elapsed (quot 1000) (quot 60) (quot 60))]
+              (async/>!! report [(format "%02d:%02d:%02d" hours minutes seconds)
+                                 idx
+                                 r]))))))
+    (loop [pending (count (:trees input))
+           succ 0
+           fail 0]
+      (if (zero? pending)
+        succ
+        (let [[elapsed idx r] (async/<!! report)
+              pending (dec pending)
+              succ (cond-> succ r inc)
+              fail (cond-> fail (not r) inc)]
+          (prn [elapsed :pending pending :succ succ :fail fail])
+          (recur pending succ fail))))))
 
 (defn part2
   [input]
