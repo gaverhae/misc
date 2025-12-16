@@ -5,38 +5,6 @@
             [clojure.core.async :as async]
             [instaparse.core :as insta]))
 
-(defn parse
-  [text]
-  (let [p (insta/parser "S = shapes trees
-                         shapes = shape +
-                         shape = num <':\\n'> shape-line+ <'\\n'>
-                         shape-line = ('.' | '#') + <'\\n'>
-                         trees = tree +
-                         tree = num <'x'> num <':'> (<' '> num)+ <'\\n'>
-                         num = #'\\d+'")
-        [_ [_ & shapes] [_ & trees]] (p text)]
-    {:shapes (->> shapes
-                  (map (fn [[_ [_ n] & lines]]
-                         [(parse-long n)
-                          (->> lines
-                               (map-indexed (fn [y [_ & cs]]
-                                              (->> cs
-                                                   (keep-indexed (fn [x s]
-                                                                   (when (= s "#")
-                                                                     [y x]))))))
-                               (apply concat)
-                               set)]))
-                  (into {}))
-     :trees (->> trees
-                 (map (fn [[_ [_ w] [_ h] & shapes]]
-                        {:w (parse-long w)
-                         :h (parse-long h)
-                         :shapes (->> shapes
-                                      (map (fn [[_ n]] (parse-long n)))
-                                      (keep-indexed (fn [idx n]
-                                                      (when (pos? n) [idx n])))
-                                      (into {}))})))}))
-
 (defn rotate
   [shape]
   (->> shape
@@ -81,6 +49,42 @@
         (rotate (rotate (rotate (flip (rotate bs)))))]
        set))
 
+(defn parse
+  [text]
+  (let [p (insta/parser "S = shapes trees
+                         shapes = shape +
+                         shape = num <':\\n'> shape-line+ <'\\n'>
+                         shape-line = ('.' | '#') + <'\\n'>
+                         trees = tree +
+                         tree = num <'x'> num <':'> (<' '> num)+ <'\\n'>
+                         num = #'\\d+'")
+        [_ [_ & shapes] [_ & trees]] (p text)
+        shapes (->> shapes
+                    (map (fn [[_ [_ n] & lines]]
+                           [(parse-long n)
+                            (->> lines
+                                 (map-indexed (fn [y [_ & cs]]
+                                                (->> cs
+                                                     (keep-indexed (fn [x s]
+                                                                     (when (= s "#")
+                                                                       [y x]))))))
+                                 (apply concat)
+                                 set)]))
+                    (map (fn [[i s]]
+                           [i {:orts (all-orientations s)
+                               :num-cells (count s)}]))
+                    (into {}))]
+    (->> trees
+         (map (fn [[_ [_ w] [_ h] & gifts]]
+                {:w (parse-long w)
+                 :h (parse-long h)
+                 :gifts (->> gifts
+                             (keep-indexed (fn [idx [_ s]]
+                                             (let [^long n (parse-long s)]
+                                               (when (pos? n)
+                                                 (assoc (get shapes idx) :to-place n)))))
+                             (sort-by (comp count :orts)))})))))
+
 (defn move
   [[dy dx]]
   (fn [s]
@@ -106,9 +110,9 @@
 
 (defn works?
   [shapes]
-  (let [all-shapes (->> (assoc shapes -1 #{[0 0]})
-                        (map (fn [[idx bs]]
-                               [idx (all-orientations bs)]))
+  (let [all-shapes (->> (map (fn [[idx bs]]
+                               [idx {:rots (all-orientations bs)
+                                     :size (count bs)}]))
                         (into {}))]
     (fn [{:keys [w h shapes]}]
       (let [inside (set (for [y (range h)
@@ -196,15 +200,66 @@
   (-> (io/resource "day12-sample.txt")
       (slurp)
       (parse))
-  {:shapes {0 #{[0 0] [1 0] [1 1] [0 2] [2 0] [2 1] [0 1]}
-            1 #{[2 2] [0 0] [1 0] [1 1] [0 2] [2 1] [0 1]}
-            2 #{[1 0] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]}
-            3 #{[0 0] [1 0] [1 1] [2 0] [2 1] [1 2] [0 1]}
-            4 #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]}
-            5 #{[2 2] [0 0] [1 1] [0 2] [2 0] [2 1] [0 1]}}
-   :trees ({:w 4, :h 4, :shapes {4 2}}
-           {:w 12, :h 5, :shapes {0 1, 2 1, 4 2, 5 2}}
-           {:w 12, :h 5, :shapes {0 1, 2 1, 4 3, 5 2}})}
+({:w 4
+  :h 4
+  :gifts ({:orts #{#{[2 2] [0 0] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]}}
+           :num-cells 7
+           :to-place 2})}
+ {:w 12
+  :h 5
+  :gifts ({:orts #{#{[1 0] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [2 1] [1 2] [0 1]}}
+           :num-cells 7
+           :to-place 1}
+          {:orts #{#{[2 2] [0 0] [1 1] [0 2] [2 0] [2 1] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [0 2] [2 0] [1 2]}}
+           :num-cells 7
+           :to-place 2}
+          {:orts #{#{[2 2] [0 0] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]}}
+           :num-cells 7
+           :to-place 2}
+          {:orts #{#{[2 2] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[0 0] [1 0] [1 1] [0 2] [2 0] [1 2] [0 1]}
+                   #{[2 2] [1 0] [1 1] [0 2] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 1] [0 2] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 0] [1 1] [2 0] [2 1] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [0 2] [1 2] [0 1]}
+                   #{[0 0] [1 0] [1 1] [0 2] [2 0] [2 1] [0 1]}}
+           :num-cells 7
+           :to-place 1})}
+ {:w 12
+  :h 5
+  :gifts ({:orts #{#{[1 0] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [2 1] [1 2] [0 1]}}
+           :num-cells 7
+           :to-place 1}
+          {:orts #{#{[2 2] [0 0] [1 1] [0 2] [2 0] [2 1] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [0 2] [2 0] [1 2]}}
+           :num-cells 7
+           :to-place 2}
+          {:orts #{#{[2 2] [0 0] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [0 2] [2 0] [2 1] [0 1]}}
+           :num-cells 7
+           :to-place 3}
+          {:orts #{#{[2 2] [1 1] [0 2] [2 0] [2 1] [1 2] [0 1]}
+                   #{[0 0] [1 0] [1 1] [0 2] [2 0] [1 2] [0 1]}
+                   #{[2 2] [1 0] [1 1] [0 2] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 1] [0 2] [2 1] [1 2] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [2 0] [2 1] [1 2]}
+                   #{[2 2] [0 0] [1 0] [1 1] [2 0] [2 1] [0 1]}
+                   #{[2 2] [0 0] [1 0] [1 1] [0 2] [1 2] [0 1]}
+                   #{[0 0] [1 0] [1 1] [0 2] [2 0] [2 1] [0 1]}}
+           :num-cells 7
+           :to-place 1})})
 
 (defn p []
   (-> (io/resource "day12-sample.txt")
