@@ -86,84 +86,69 @@
                              (sort-by (comp count :orts)))})))))
 
 (defn move
-  [[dy dx]]
+  [[^long dy ^long dx]]
   (fn [s]
     (->> s
-         (map (fn [[y x]] [(+ y dy) (+ x dx)]))
+         (map (fn [[^long y ^long x]] [(+ y dy) (+ x dx)]))
          set)))
 
-(defn all-places
-  [options n]
-  (let [c (count options)
-        v (vec options)]
-    (loop [selected (->> (range c) (map vector))]
-      (if (= (count (first selected)) n)
-        (->> selected
-             (map (fn [s]
-                    (->> s
-                         (map (fn [idx]
-                                (get v idx)))))))
-        (recur (->> selected
-                    (mapcat (fn [s]
-                              (->> (range (inc (peek s)) c)
-                                   (map (fn [n] (conj s n))))))))))))
-
 (defn works?
-  [shapes]
-  (let [all-shapes (->> (map (fn [[idx bs]]
-                               [idx {:rots (all-orientations bs)
-                                     :size (count bs)}]))
-                        (into {}))]
-    (fn [{:keys [w h shapes]}]
-      (let [inside (set (for [y (range h)
-                              x (range w)]
-                          [y x]))
-            free-cells (- (* h w)
-                          (->> shapes
-                               (map (fn [[idx n]]
-                                      (* n (count (first (get all-shapes idx))))))
-                               (reduce + 0)))]
-        (if (neg? free-cells)
+  [{:keys [^long w ^long h gifts]}]
+  (let [inside (set (for [y (range h)
+                          x (range w)]
+                      [y x]))
+        positions-to-fill (->> inside
+                               (sort-by (fn [[^long y ^long x]] (+ y x))))
+        ^long num-free-cells (reduce - (* h w) (map :num-cells gifts))]
+    (if (< num-free-cells 0)
+      false
+      (loop [states [{:to-fill positions-to-fill
+                      :budget num-free-cells
+                      :free? inside
+                      :gifts (->> gifts
+                                  (map (fn [{:keys [orts to-place]}]
+                                         [orts to-place]))
+                                  (into {}))}]]
+        (if (empty? states)
           false
-          (loop [states [{:free? inside
-                          :to-place (-> shapes
-                                        sort)}]]
-            (if (empty? states)
-              false
-              (let [[{:keys [free? to-place]} & states] states]
-                (if (empty? to-place)
-                  true
-                  (let [[[idx n] & to-place] to-place]
-                    (recur (concat (->> (all-places free? n)
-                                        (mapcat (fn [selected-positions]
-                                                  (loop [todo [{:free? free?
-                                                                :positions selected-positions}]
-                                                         done []]
-                                                    (if (empty? todo)
-                                                      (->> done
-                                                           (map (fn [f] {:free? f, :to-place to-place})))
-                                                      (let [[{:keys [free? positions]} & todo] todo]
-                                                        (if (empty? positions)
-                                                          (recur todo (conj done free?))
-                                                          (let [[p & positions] positions]
-                                                            (recur (concat
-                                                                     (->> (get all-shapes idx)
-                                                                          (map (move p))
-                                                                          (filter (fn [s] (set/subset? s free?)))
-                                                                          (map (fn [s]
-                                                                                 {:free? (set/difference free? s)
-                                                                                  :positions positions})))
-                                                                     todo)
-                                                                   done)))))))))
-                                   states))))))))))))
+          (let [[{:keys [to-fill ^long budget free? gifts]} & states] states]
+            (cond (empty? gifts) true
+                  (empty? to-fill) false
+                  (empty? free?) false
+                  :else
+                  (let [[p & to-fill] to-fill]
+                    (recur (->> states
+                                (concat (->> gifts
+                                             (mapcat (fn [[orts ^long to-place]]
+                                                       (when (> to-place 0)
+                                                         (->> orts
+                                                              (map (move p))
+                                                              (filter (fn [s] (set/subset? s free?)))
+                                                              (keep (fn [s]
+                                                                      (let [free? (set/difference free? s)
+                                                                            budget (cond-> budget (free? p) dec)]
+                                                                        (when (>= budget 0)
+                                                                          {:to-fill to-fill
+                                                                           :budget budget
+                                                                           :free? free?
+                                                                           :gifts (if (= 1 (get gifts orts))
+                                                                                    (dissoc gifts orts)
+                                                                                    (update gifts orts dec))})))))))))
+                                        (when (> budget 0)
+                                          [{:to-fill to-fill
+                                            :budget (dec budget)
+                                            :free? free?
+                                            :gifts gifts}]))
+                                doall))))))))))
 
 (defn part1
   [input]
-  (let [w? (works? (:shapes input))
-        report (async/chan)
+  (->> input
+       (mapv works?))
+  #_(let [report (async/chan)
         work-queue (async/chan)
         _ (async/thread
-            (doseq [t (->> (:trees input)
+            (doseq [t (->> input
                            (map-indexed vector))]
               (async/>!! work-queue t)))
         start (System/currentTimeMillis)]
@@ -171,7 +156,7 @@
       (async/thread
         (loop [t (async/<!! work-queue)]
           (when-let [[idx t] t]
-            (let [r (w? t)
+            (let [r (works? t)
                   elapsed (- (System/currentTimeMillis) start)
                   seconds (-> elapsed (quot 1000) (rem 60))
                   minutes  (-> elapsed (quot 1000) (quot 60) (rem 60))
@@ -179,7 +164,7 @@
               (async/>!! report [(format "%02d:%02d:%02d" hours minutes seconds)
                                  idx
                                  r]))))))
-    (loop [pending (count (:trees input))
+    (loop [pending (count input)
            succ 0
            fail 0]
       (if (zero? pending)
