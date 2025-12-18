@@ -115,12 +115,12 @@
           false
           (let [[{:keys [to-fill free? gifts]} & states] states]
             (cond (empty? gifts) true
-                  (empty? to-fill) false
-                  (empty? free?) false
-                  (< (count free?) (->> gifts
-                                        (map (fn [[orts tp]] (* tp (count (first orts)))))
-                                        (reduce + 0)))
-                  (recur states)
+                  (or (empty? to-fill)
+                      (empty? free?)
+                      (< (count free?)
+                         (->> gifts
+                              (map (fn [[orts tp]] (* tp (count (first orts)))))
+                              (reduce + 0)))) (recur states)
                   :else
                   (let [[p & to-fill] to-fill]
                     (recur (->> states
