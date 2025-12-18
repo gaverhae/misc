@@ -100,8 +100,8 @@
         positions-to-fill (->> inside
                                (sort-by (fn [[^long y ^long x]] (+ y x))))
         ^long num-free-cells (->> gifts
-                                  (map (fn [g] (* (:num-cells g)
-                                                  (:to-place g))))
+                                  (map (fn [g] (* (long (:num-cells g))
+                                                  (long (:to-place g)))))
                                (reduce - (* h w)))]
     (if (< num-free-cells 0)
       false
@@ -146,9 +146,9 @@
 
 (defn part1
   [input]
-  (->> input
+  #_(->> input
        (mapv works?))
-  #_(let [report (async/chan)
+  (let [report (async/chan)
         work-queue (async/chan)
         _ (async/thread
             (doseq [t (->> input
