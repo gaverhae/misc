@@ -99,7 +99,10 @@
                       [y x]))
         positions-to-fill (->> inside
                                (sort-by (fn [[^long y ^long x]] (+ y x))))
-        ^long num-free-cells (reduce - (* h w) (map :num-cells gifts))]
+        ^long num-free-cells (->> gifts
+                                  (map (fn [g] (* (:num-cells g)
+                                                  (:to-place g))))
+                               (reduce - (* h w)))]
     (if (< num-free-cells 0)
       false
       (loop [states [{:to-fill positions-to-fill
