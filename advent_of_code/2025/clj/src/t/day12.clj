@@ -106,7 +106,6 @@
     (if (< num-free-cells 0)
       false
       (loop [states [{:to-fill positions-to-fill
-                      :budget num-free-cells
                       :free? inside
                       :gifts (->> gifts
                                   (map (fn [{:keys [orts to-place]}]
@@ -114,10 +113,14 @@
                                   (into {}))}]]
         (if (empty? states)
           false
-          (let [[{:keys [to-fill ^long budget free? gifts]} & states] states]
+          (let [[{:keys [to-fill free? gifts]} & states] states]
             (cond (empty? gifts) true
                   (empty? to-fill) false
                   (empty? free?) false
+                  (< (count free?) (->> gifts
+                                        (map (fn [[orts tp]] (* tp (count (first orts)))))
+                                        (reduce + 0)))
+                  (recur states)
                   :else
                   (let [[p & to-fill] to-fill]
                     (recur (->> states
@@ -128,20 +131,14 @@
                                                               (map (move p))
                                                               (filter (fn [s] (set/subset? s free?)))
                                                               (keep (fn [s]
-                                                                      (let [free? (set/difference free? s)
-                                                                            budget (cond-> budget (free? p) dec)]
-                                                                        (when (>= budget 0)
-                                                                          {:to-fill to-fill
-                                                                           :budget budget
-                                                                           :free? free?
-                                                                           :gifts (if (= 1 (get gifts orts))
-                                                                                    (dissoc gifts orts)
-                                                                                    (update gifts orts dec))})))))))))
-                                        (when (> budget 0)
-                                          [{:to-fill to-fill
-                                            :budget (dec budget)
-                                            :free? (disj free? p)
-                                            :gifts gifts}]))
+                                                                      {:to-fill to-fill
+                                                                       :free? (set/difference free? s)
+                                                                       :gifts (if (= 1 (get gifts orts))
+                                                                                (dissoc gifts orts)
+                                                                                (update gifts orts dec))})))))))
+                                        [{:to-fill to-fill
+                                          :free? (disj free? p)
+                                          :gifts gifts}])
                                 doall))))))))))
 
 (defn part1
