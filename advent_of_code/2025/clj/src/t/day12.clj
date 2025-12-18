@@ -154,8 +154,8 @@
         start (System/currentTimeMillis)]
     (dotimes [n 5]
       (async/thread
-        (loop [t (async/<!! work-queue)]
-          (when-let [[idx t] t]
+        (loop []
+          (when-let [[idx t] (async/<!! work-queue)]
             (let [r (works? t)
                   elapsed (- (System/currentTimeMillis) start)
                   seconds (-> elapsed (quot 1000) (rem 60))
@@ -163,7 +163,8 @@
                   hours (-> elapsed (quot 1000) (quot 60) (quot 60))]
               (async/>!! report [(format "%02d:%02d:%02d" hours minutes seconds)
                                  idx
-                                 r]))))))
+                                 r]))
+            (recur)))))
     (loop [pending (count input)
            succ 0
            fail 0]
