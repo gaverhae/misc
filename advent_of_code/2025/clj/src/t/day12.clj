@@ -137,7 +137,7 @@
                                         (when (> budget 0)
                                           [{:to-fill to-fill
                                             :budget (dec budget)
-                                            :free? free?
+                                            :free? (disj free? p)
                                             :gifts gifts}]))
                                 doall))))))))))
 
