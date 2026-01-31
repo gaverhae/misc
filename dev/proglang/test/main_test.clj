@@ -4,6 +4,12 @@
             [clojure.string :as string]
             [expectations :refer [expect]]))
 
+;; Lisp Reader
+
+(let [l (fn [s] (l/read-form s))]
+  (expect [:v/int 4]
+          (l "4")))
+
 ;; Basic expressions
 
 (let [p (fn [s] (s/parse-string s :start :expr))
