@@ -20,7 +20,7 @@ _test() (
 )
 
 _repl() (
-  clj -M:cider-clj
+  clj -M:repl
 )
 
 _shell() (

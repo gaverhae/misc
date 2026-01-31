@@ -6,4 +6,10 @@
  {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.9" :git/sha "e405aac"}}
           :ns-default build}
   :test {:extra-paths ["test"]
-         :extra-deps {expectations/expectations {:mvn/version "2.1.10"}}}}}
+         :extra-deps {expectations/expectations {:mvn/version "2.1.10"}}}
+  :repl {:extra-paths ["test"]
+         :extra-deps {expectations/expectations {:mvn/version "2.1.10"}
+                      org.clojure/clojure {:mvn/version "1.12.1"}
+                      cider/cider-nrepl {:mvn/version "0.56.0"}
+                      fipp/fipp {:mvn/version "0.6.27"}}
+         :main-opts ["-m" "nrepl.cmdline" "-i" "--middleware" "[cider.nrepl/cider-middleware]"]}}}
