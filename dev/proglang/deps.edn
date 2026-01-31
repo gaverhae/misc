@@ -1,7 +1,7 @@
 {:deps
  {instaparse/instaparse {:mvn/version "1.5.0"}
   io.github.gaverhae/clonad {:git/sha "fbcbb01dc37395c55d6827fa6dca19b3a81aa780"}
-  io.github.gaverhae/vatch {:git/sha "b066a2161b4e69357643962294624f9e92c1172a"}}
+  io.github.gaverhae/vatch {:git/sha "e06f9391d2daad14a00fc338cfabf9ba95fabc3e"}}
  :aliases
  {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.9" :git/sha "e405aac"}}
           :ns-default build}
