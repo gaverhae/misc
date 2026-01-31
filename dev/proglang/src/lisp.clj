@@ -14,16 +14,13 @@
      bool := 'true' | 'false'
      <ws> = <#'\\s'>"))
 
-(defn quoted
-  [v]
-  (vatch v
-    [:int s] [:v/int (parse-long s)]))
-
-(defn read-form
+(defn read-forms
   [s]
-  (vatch (parse s)
-    [:S v] (quoted v)
-    otherwise [:error/not-a-form s]))
+  (let [h (fn ! [p]
+            (vatch p
+              [:S & fs] (map ! fs)
+              [:int s] [:v/int (parse-long s)]))]
+    (h (parse s))))
 
 (def init-state
   {:top-level {}})

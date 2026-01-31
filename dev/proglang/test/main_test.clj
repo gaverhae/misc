@@ -6,8 +6,8 @@
 
 ;; Lisp Reader
 
-(let [l (fn [s] (l/read-form s))]
-  (expect [:v/int 4]
+(let [l (fn [s] (l/read-forms s))]
+  (expect [[:v/int 4]]
           (l "4")))
 
 ;; Basic expressions
