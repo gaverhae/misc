@@ -314,6 +314,10 @@
   (expect [:int 3]
           (p ["a = 1"
               "a + 2"]))
+  (expect [:v/int 3]
+          (l ["(def a 1)"
+              "(+ a 2)"]))
+
   (expect [:int 1]
           (p ["if True:"
               "  1"
