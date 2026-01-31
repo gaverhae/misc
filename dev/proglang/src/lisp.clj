@@ -14,6 +14,17 @@
      bool := 'true' | 'false'
      <ws> = <#'\\s'>"))
 
+(defn quoted
+  [v]
+  (vatch v
+    [:int s] [:v/int (parse-long s)]))
+
+(defn read-form
+  [s]
+  (vatch (parse s)
+    [:S v] (quoted v)
+    otherwise [:error/not-a-form s]))
+
 (def init-state
   {:top-level {}})
 
