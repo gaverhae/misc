@@ -6,12 +6,13 @@
 (def parse
   (insta/parser
     "S := (ws* expr ws*)*
-     <expr> := list | vector | int | (bool / symbol)
+     <expr> := list | vector | int | (bool / symbol) | string
      list := <'('> ws* (expr ws*)* <')'>
      vector := <'['> ws* (expr ws*)* <']'>
      symbol := #'[\\w+_*=-]+' | '/'
      int := #'[+-]?[0-9]+'
      bool := 'true' | 'false'
+     string := <'\"'> (#'[^\"]*' | '\\\"')* <'\"'>
      <ws> = <#'\\s'>"))
 
 (defn read-forms
@@ -22,6 +23,7 @@
               [:bool b] [:v/bool (case b
                                    "true" true
                                    "false" false)]
+              [:string & s] (do (prn s) [:v/string (apply str s)])
               [:int s] [:v/int (parse-long s)]
               [:list & vs] (vec (cons :v/list (map ! vs)))
               [:symbol n] [:v/symbol n]
