@@ -80,6 +80,9 @@
   [node]
   (vatch node
     [:v/symbol x] [:m/lookup x]
+    [:v/list [:v/symbol "do"] & body] (m-let :m
+                                        [rets (m/m-seq :m (map m-eval body))]
+                                        [:m/pure (last rets)])
     [:v/list op & args] (vatch op
                           [:v/symbol "def"] (vatch args
                                               [[:v/symbol x] expr] (m-let :m
