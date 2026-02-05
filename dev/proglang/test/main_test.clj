@@ -366,6 +366,11 @@
               "  return 2"
               "fib(0)"]))
 
+  (expect [:v/int 4]
+          (l ["(if true 4 5)"]))
+  (expect [:v/int 5]
+          (l ["(if false 4 5)"]))
+
   (expect [:v/int 5]
           (l ["((fn [x] (+ x 1)) 4)"])))
 
