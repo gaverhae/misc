@@ -288,7 +288,9 @@
   (expect [:v/error "Tried to add non-numeric values."]
           (l "[(+ 1 true) 0]"))
   (expect [:v/error "Tried to add non-numeric values."]
-          (l "(+ 1 2) (+ true false) (+ 1 3)")))
+          (l "(+ 1 2) (+ true false) (+ 1 3)"))
+  (expect [:v/error "Tried to add non-numeric values."]
+          (l "(do (+ 1 2) (+ true false) (+ 1 3))")))
 
 ;; Evaluation of multi-line programs.
 
