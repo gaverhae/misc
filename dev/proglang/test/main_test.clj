@@ -2,6 +2,7 @@
   (:require [main :as s]
             [lisp :as l]
             [clojure.string :as string]
+            [clojure.walk :as walk]
             [expectations :refer [expect]]))
 
 (defn ->lines
@@ -433,6 +434,19 @@
               "               (cons (quote do) body)"
               "               nil))]"
               "  (when true 1 2 3 4))"])))
+
+;; lisp stdlib
+
+(let [l (fn [s] (l/eval-forms (l/read-forms (->lines s))))
+      v (fn [v] (walk/postwalk
+                  (fn [v]
+                    (cond (boolean? v) [:v/bool v]
+                          (vector? v) (vec (cons :v/vector v))
+                          :else (throw (ex-info "Not implemented." {:value v}))))
+                  v))]
+
+  (expect (v [true false true false])
+          (l ["[true (not true) (not (not true)) (not 1)]"])))
 
 ;; Processing entire files.
 
