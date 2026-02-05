@@ -48,10 +48,8 @@
 
 (defn part2
   [{m :map, [p d] :guard :as input}]
-  (->> (for [obs-y (range (count m))
-             obs-x (range (count (m obs-y)))
-             :when (not= [obs-y obs-x] p)]
-         [obs-y obs-x])
+  (->> (find-path input)
+       second
        (filter (fn [obs]
                  (match (find-path (update input :map assoc-in obs false))
                    [:loop] true
