@@ -19,7 +19,13 @@
   (let [h (fn ! [p]
             (vatch p
               [:S & fs] (map ! fs)
-              [:int s] [:v/int (parse-long s)]))]
+              [:bool b] [:v/bool (case b
+                                   "true" true
+                                   "false" false)]
+              [:int s] [:v/int (parse-long s)]
+              [:list & vs] (vec (cons :v/list (map ! vs)))
+              [:symbol n] [:v/symbol n]
+              [:vector & vs] (vec (cons :v/vector (map ! vs)))))]
     (h (parse s))))
 
 (def init-state
