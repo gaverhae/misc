@@ -283,8 +283,12 @@
   (expect [:v/vector [:v/int 2]]
           (l "[(+ 1 1)]"))
 
-  (expect [:m/error "Tried to add non-numeric values."]
-          (l "(+ 1 true)")))
+  (expect [:v/error "Tried to add non-numeric values."]
+          (l "(+ 1 true)"))
+  (expect [:v/error "Tried to add non-numeric values."]
+          (l "[(+ 1 true) 0]"))
+  (expect [:v/error "Tried to add non-numeric values."]
+          (l "(+ 1 2) (+ true false) (+ 1 3)")))
 
 ;; Evaluation of multi-line programs.
 
