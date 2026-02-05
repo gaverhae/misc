@@ -412,7 +412,13 @@
               "       1"
               "       (+ (fib (+ n -1))"
               "          (fib (+ n -2))))))"
-              "  12)"])))
+              "  12)"]))
+
+  (expect [:v/int 6]
+          (l ["(def my-plus"
+              "  (fn [& args]"
+              "    (apply + args)))"
+              "(my-plus 1 2 3)"])))
 
 ;; Processing entire files.
 

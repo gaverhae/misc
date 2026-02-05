@@ -9,7 +9,7 @@
      <expr> := list | vector | int | (bool / symbol) | string
      list := <'('> ws* (expr ws*)* <')'>
      vector := <'['> ws* (expr ws*)* <']'>
-     symbol := #'[\\w+_*=-]+' | '/'
+     symbol := #'[\\w+_*=-]+' | '/' | '&'
      int := #'[+-]?[0-9]+'
      bool := 'true' | 'false'
      string := <'\"'> (#'[^\"]*' | '\\\"')* <'\"'>
@@ -30,25 +30,36 @@
               [:vector & vs] (vec (cons :v/vector (map ! vs)))))]
     (h (parse s))))
 
+(declare m-eval)
+
 (def init-state
   {:top-level {"+" [:v/fn [] "args"
                     (m-let :m
-                      [args [:m/lookup "args"]
+                      [[_ & args] [:m/lookup "args"]
                        _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to add non-numeric values."]]
                       [:m/pure [:v/int (reduce + 0 (map second args))]])
                     {:parent :top-level}]
                "*" [:v/fn [] "args"
                     (m-let :m
-                      [args [:m/lookup "args"]
+                      [[_ & args] [:m/lookup "args"]
                        _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to multiply non-numeric values."]]
                       [:m/pure [:v/int (reduce * 1 (map second args))]])
                     {:parent :top-level}]
                "=" [:v/fn [] "args"
                     (m-let :m
-                      [args [:m/lookup "args"]]
+                      [[_ & args] [:m/lookup "args"]]
                       [:m/pure [:v/bool (or (empty? args)
                                             (apply = args))]])
-                    {:parent :top-level}]}
+                    {:parent :top-level}]
+               "apply" [:v/fn ["f" "args"] nil
+                        (m-let :m
+                          [f [:m/lookup "f"]
+                           _ [:m/assert (= :v/fn (first f)) "Tried to apply non-function value."]
+                           args [:m/lookup "args"]]
+                          (vatch args
+                            [:v/list & args] (m-eval (apply vector :v/list f args))
+                            [:v/vector & args] (m-eval (apply vector :v/vector f args))
+                            otherwise [:m/error "Tried to apply function to non-sequential value."]))]}
    :stack [{:parent :top-level}]})
 
 (defn m-run
@@ -76,8 +87,6 @@
                            :else (recur (:parent env))))
                        state]))
 
-(declare m-eval)
-
 (defn do-body
   [body]
   (m-let :m
@@ -94,45 +103,50 @@
                                                      [:m/add-top-level n v])
     [:v/list [:v/symbol "def"] & _] [:m/error "Invalid syntax: def."]
 
-    [:v/list [:v/symbol "fn"] [:v/vector & syms] & body]
-    (if-not (->> syms (map first) (every? #{:v/symbol}))
-      [:m/error "Invalid syntax: fn."]
-      (m-let :m
-        [env [:m/get-env]]
-        [:m/pure [:v/fn
-                  (->> syms (map second))
-                  nil
-                  (do-body body)
-                  env]]))
-    [:v/list [:v/symbol "fn"] [:v/symbol f-name] [:v/vector & syms] & body]
-    ;; transform (fn rec [& args] body) into (let [$rec (fn [$elf] (fn [& args] body))] ($rec $rec)), basically
-    ;; using the Y combinator to get self-recursive functions without a mutable environment.
-    ;;
-    ;; Note that in that context we need to replace calls to rec with `($elf $elf)`.
-    ;;
-    ;; This may be more trouble than it's worth; maybe I should just accept that my environments are mutable.
-    (if-not (->> syms (map first) (every? #{:v/symbol}))
-      [:m/error "Invalid syntax: fn."]
-      (m-eval [:v/list
-               [:v/symbol "let"]
-               [:v/vector
-                [:v/symbol "$rec"]
-                [:v/list
-                 [:v/symbol "fn"]
-                 [:v/vector [:v/symbol "$elf"]]
-                 `[:v/list [:v/symbol "fn"] [:v/vector ~@syms]
-                   [:v/list [:v/symbol "let"]
-                    [:v/vector [:v/symbol ~f-name] [:v/list [:v/symbol "$elf"] [:v/symbol "$elf"]]]
-                    ~@body]]]]
-               [:v/list [:v/symbol "$rec"] [:v/symbol "$rec"]]]))
+    [:v/list [:v/symbol "fn"] & forms]
+    (let [[?self-name forms] (vatch (first forms)
+                               [:v/symbol f] [f (rest forms)]
+                               otherwise [nil forms])
+          [?args body] (vatch (first forms)
+                         [:v/vector & syms] [syms (rest forms)]
+                         otherwise [nil forms])
+          [?named-args [_ [_ ?rest-arg]]] (when (and ?args
+                                                     (->> ?args (map first) (every? #{:v/symbol}))
+                                                     (case (->> ?args (map second) (filter #{"&"}) count)
+                                                       0 true
+                                                       1 (= [:v/symbol "&"] (last (butlast ?args)))
+                                                       false))
+                                            (split-with (comp not #{[:v/symbol "&"]}) ?args))]
+      (if (and (not ?named-args) (not ?rest-arg))
+        [:m/error "Invalid syntax: fn."]
+        (m-let :m
+          [env [:m/get-env]]
+          (if (not ?self-name)
+            [:m/pure [:v/fn
+                      (map second ?named-args)
+                      ?rest-arg
+                      (do-body body)
+                      env]]
+            (m-eval [:v/list
+                     [:v/symbol "let"]
+                     [:v/vector
+                      [:v/symbol "$rec"]
+                      [:v/list
+                       [:v/symbol "fn"]
+                       [:v/vector [:v/symbol "$elf"]]
+                       `[:v/list [:v/symbol "fn"] [:v/vector ~@?args]
+                         [:v/list [:v/symbol "let"]
+                          [:v/vector [:v/symbol ~?self-name] [:v/list [:v/symbol "$elf"] [:v/symbol "$elf"]]]
+                          ~@body]]]]
+                     [:v/list [:v/symbol "$rec"] [:v/symbol "$rec"]]])))))
 
-    [:v/list [:v/symbol "fn"] & _] [:m/error "Invalid syntax: fn."]
     [:v/list [:v/symbol "if"] c t e] (m-let :m
                                        [c (m-eval c)
                                         r (if (= [:v/bool false] c)
                                             (m-eval e)
                                             (m-eval t))]
                                        [:m/pure r])
+
     [:v/list [:v/symbol "let"] [:v/vector & bindings] & body] (if-not (and (even? (count bindings))
                                                                            (->> bindings (partition 2 2) (map ffirst) (every? #{:v/symbol})))
                                                                 [:m/error "Invalid syntax: let."]
@@ -159,7 +173,7 @@
                                                named-params
                                                (take (count named-params) args)))
                             _ (if rest-params
-                                [:m/add-to-env rest-params (drop (count named-params) args)]
+                                [:m/add-to-env rest-params (apply vector :v/list (drop (count named-params) args))]
                                 [:m/pure nil])
                             ret body
                             _ [:m/pop-env]]
