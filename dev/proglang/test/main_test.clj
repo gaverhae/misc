@@ -280,6 +280,9 @@
   (expect [:bool false] (p "True == False" ))
   (expect [:v/bool false] (l "(= true false)"))
 
+  (expect [:v/vector [:v/int 2]]
+          (l "[(+ 1 1)]"))
+
   (expect [:m/error "Tried to add non-numeric values."]
           (l "(+ 1 true)")))
 
