@@ -442,11 +442,16 @@
                   (fn [v]
                     (cond (boolean? v) [:v/bool v]
                           (vector? v) (vec (cons :v/vector v))
+                          (int? v) [:v/int v]
                           :else (throw (ex-info "Not implemented." {:value v}))))
                   v))]
 
   (expect (v [true false true false])
-          (l ["[true (not true) (not (not true)) (not 1)]"])))
+          (l ["[true (not true) (not (not true)) (not 1)]"]))
+
+  (expect (v 10)
+          (l ["(defn my-plus [a b] (+ a b))"
+              "(my-plus 3 7)"])))
 
 ;; Processing entire files.
 
