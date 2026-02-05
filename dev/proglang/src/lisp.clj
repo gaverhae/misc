@@ -6,12 +6,13 @@
 (def parse
   (insta/parser
     "S := (ws* expr ws*)*
-     <expr> := list | vector | int | (bool / symbol) | string
+     <expr> := list | vector | int | (bool / nil / symbol) | string
      list := <'('> ws* (expr ws*)* <')'>
      vector := <'['> ws* (expr ws*)* <']'>
      symbol := #'[\\w+_*=-]+' | '/' | '&'
      int := #'[+-]?[0-9]+'
      bool := 'true' | 'false'
+     nil := <'nil'>
      string := <'\"'> (#'[^\"]*' | '\\\"')* <'\"'>
      <ws> = <#'\\s'>"))
 
@@ -27,6 +28,7 @@
               [:int s] [:v/int (parse-long s)]
               [:list & vs] (vec (cons :v/list (map ! vs)))
               [:symbol n] [:v/symbol n]
+              [:nil] [:v/nil]
               [:vector & vs] (vec (cons :v/vector (map ! vs)))))]
     (h (parse s))))
 
@@ -61,6 +63,12 @@
                             [:v/vector & args] (m-eval (apply vector :v/vector f args))
                             otherwise [:m/error "Tried to apply function to non-sequential value."]))
                         {:parent :top-level}]
+               "cons" [:v/fn ["head" "tail"] nil
+                       (m-let :m [head [:m/lookup "head"]
+                                  tail [:m/lookup "tail"]
+                                  _ [:m/assert (contains? #{:v/list :v/vector} (first tail))
+                                     "Must cons onto a sequence."]]
+                         [:m/pure (apply list :v/list head (rest tail))])]
                "list" [:v/fn [] "args"
                        (m-let :m [[_ & args] [:m/lookup "args"]]
                          [:m/pure (apply vector :v/list args)])
@@ -146,13 +154,21 @@
                      [:v/list [:v/symbol "$rec"] [:v/symbol "$rec"]]])))))
 
     [:v/list [:v/symbol "macro"] [:v/vector & args] body]
-    (m-let :m
-      [env [:m/get-env]]
-      [:m/pure [:v/macro
-                (map second args)
-                nil
-                (m-eval body)
-                env]])
+    (let [[?named-args [_ [_ ?rest-arg]]] (when (and (->> args (map first) (every? #{:v/symbol}))
+                                                     (case (->> args (map second) (filter #{"&"}) count)
+                                                       0 true
+                                                       1 (= [:v/symbol "&"] (last (butlast args)))
+                                                       false))
+                                            (split-with (comp not #{[:v/symbol "&"]}) args))]
+      (if (and (not ?named-args) (not ?rest-arg))
+        [:m/error "Invalid syntax: fn."]
+        (m-let :m
+          [env [:m/get-env]]
+          [:m/pure [:v/macro
+                    (map second ?named-args)
+                    ?rest-arg
+                    (m-eval body)
+                    env]])))
 
     [:v/list [:v/symbol "if"] c t e] (m-let :m
                                        [c (m-eval c)
@@ -198,6 +214,9 @@
                             _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
                                                named-params
                                                (take (count named-params) args)))
+                            _ (if rest-params
+                                [:m/add-to-env rest-params (apply vector :v/list (drop (count named-params) args))]
+                                [:m/pure nil])
                             ret body
                             _ [:m/pop-env]]
                    (m-eval ret))))

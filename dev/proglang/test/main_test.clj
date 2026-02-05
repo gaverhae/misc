@@ -425,8 +425,14 @@
               "               (list (quote if) c t e))]"
               "  (if-not true"
               "    (+ 1 true)"
-              "    (+ 2 1)))"])))
+              "    (+ 2 1)))"]))
 
+  (expect [:v/int 4]
+          (l ["(let [when (macro [c & body]"
+              "             (list (quote if) c"
+              "               (cons (quote do) body)"
+              "               nil))]"
+              "  (when true 1 2 3 4))"])))
 
 ;; Processing entire files.
 
