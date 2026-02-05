@@ -31,7 +31,12 @@
     (h (parse s))))
 
 (def init-state
-  {:top-level {}
+  {:top-level {"+" [:fn [] "args"
+                    (m-let :m
+                      [args [:m/lookup "args"]
+                       _ [:m/assert (->> args (map first) (every? #{:v/int})) "Tried to add non-numeric values."]]
+                      [:m/pure [:v/int (reduce + 0 (map second args))]])
+                    {:parent :top-level}]}
    :stack [{:parent :top-level}]})
 
 (defn m-run
@@ -63,11 +68,6 @@
   (vatch node
     [:v/symbol x] [:m/lookup x]
     [:v/list op & args] (vatch op
-                          [:v/symbol "+"] (m-let :m
-                                            [args (m/m-seq :m (map m-eval args))]
-                                            (if (->> args (map first) (every? #{:v/int}))
-                                              [:m/pure [:v/int (reduce + 0 (map second args))]]
-                                              [:m/error "Tried to add non-numeric values."]))
                           [:v/symbol "*"] (m-let :m
                                             [args (m/m-seq :m (map m-eval args))]
                                             (if (->> args (map first) (every? #{:v/int}))
@@ -83,12 +83,17 @@
                                                                      [:m/add-top-level x v])
                                               otherwise [:m/error "Invalid syntax: def."])
                           function-call (m-let :m
-                                          [[tag params body fn-env] (m-eval op)
+                                          [[tag named-params rest-params body fn-env] (m-eval op)
                                            _ [:m/assert (= :fn tag) "Tried to apply non-function value."]
                                            args (m/m-seq :m (map m-eval args))
                                            _ [:m/push-env fn-env]
-                                           _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a]) params args))
-                                           ret (m-eval body)
+                                           _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
+                                                              named-params
+                                                              (take (count named-params) args)))
+                                           _ (if rest-params
+                                               [:m/add-to-env rest-params (drop (count named-params) args)]
+                                               [:m/pure nil])
+                                           ret body
                                            _ [:m/pop-env]]
                                           [:m/pure ret]))
     [:v/vector & elems] (m-let :m
