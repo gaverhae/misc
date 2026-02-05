@@ -418,7 +418,15 @@
           (l ["(def my-plus"
               "  (fn [& args]"
               "    (apply + args)))"
-              "(my-plus 1 2 3)"])))
+              "(my-plus 1 2 3)"]))
+
+  (expect [:v/int 3]
+          (l ["(let [if-not (macro [c e t]"
+              "               (list (quote if) c t e))]"
+              "  (if-not true"
+              "    (+ 1 true)"
+              "    (+ 2 1)))"])))
+
 
 ;; Processing entire files.
 

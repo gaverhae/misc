@@ -59,7 +59,12 @@
                           (vatch args
                             [:v/list & args] (m-eval (apply vector :v/list f args))
                             [:v/vector & args] (m-eval (apply vector :v/vector f args))
-                            otherwise [:m/error "Tried to apply function to non-sequential value."]))]}
+                            otherwise [:m/error "Tried to apply function to non-sequential value."]))
+                        {:parent :top-level}]
+               "list" [:v/fn [] "args"
+                       (m-let :m [[_ & args] [:m/lookup "args"]]
+                         [:m/pure (apply vector :v/list args)])
+                       {:parent :top-level}]}
    :stack [{:parent :top-level}]})
 
 (defn m-run
@@ -140,6 +145,15 @@
                           ~@body]]]]
                      [:v/list [:v/symbol "$rec"] [:v/symbol "$rec"]]])))))
 
+    [:v/list [:v/symbol "macro"] [:v/vector & args] body]
+    (m-let :m
+      [env [:m/get-env]]
+      [:m/pure [:v/macro
+                (map second args)
+                nil
+                (m-eval body)
+                env]])
+
     [:v/list [:v/symbol "if"] c t e] (m-let :m
                                        [c (m-eval c)
                                         r (if (= [:v/bool false] c)
@@ -164,20 +178,29 @@
                                                                     [:m/pure ret])))
     [:v/list [:v/symbol "let"] & _] [:m/error "Invalid syntax: let."]
 
-    [:v/list fun & args] (m-let :m
-                           [[tag named-params rest-params body fn-env] (m-eval fun)
-                            _ [:m/assert (= :v/fn tag) "Tried to apply non-function value."]
-                            args (m/m-seq :m (map m-eval args))
-                            _ [:m/push-env fn-env]
+    [:v/list [:v/symbol "quote"] form] [:m/pure form]
+
+    [:v/list op & args]
+    (m-let :m [[tag named-params rest-params body fn-env] (m-eval op)]
+      (case tag
+        :v/fn (m-let :m [args (m/m-seq :m (map m-eval args))
+                         _ [:m/push-env fn-env]
+                         _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
+                                            named-params
+                                            (take (count named-params) args)))
+                         _ (if rest-params
+                             [:m/add-to-env rest-params (apply vector :v/list (drop (count named-params) args))]
+                             [:m/pure nil])
+                         ret body
+                         _ [:m/pop-env]]
+                [:m/pure ret])
+        :v/macro (m-let :m [_ [:m/push-env fn-env]
                             _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
                                                named-params
                                                (take (count named-params) args)))
-                            _ (if rest-params
-                                [:m/add-to-env rest-params (apply vector :v/list (drop (count named-params) args))]
-                                [:m/pure nil])
                             ret body
                             _ [:m/pop-env]]
-                           [:m/pure ret])
+                   (m-eval ret))))
     [:v/vector & elems] (m-let :m
                           [elems (m/m-seq :m (map m-eval elems))]
                           [:m/pure (vec (cons :v/vector elems))])
