@@ -362,7 +362,10 @@
               "  if n == 0:"
               "    return 5"
               "  return 2"
-              "fib(0)"])))
+              "fib(0)"]))
+
+  (expect [:v/int 5]
+          (l ["((fn [x] (+ x 1)) 4)"])))
 
 ;; Processing entire files.
 
