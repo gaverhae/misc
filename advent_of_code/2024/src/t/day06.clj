@@ -31,16 +31,20 @@
   [{m :map, [p d] :guard}]
   (loop [[y0 x0] p
          [dy dx] d
-         cells #{p}]
-    (let [[y x] [(+ y0 dy) (+ x0 dx)]]
-      (case (get-in m [y x] :out)
-        true (recur [y x] [dy dx] (conj cells [y x]))
-        false (recur [y0 x0] (turn [dy dx]) cells)
-        :out cells))))
+         visited? #{[p d]}]
+    (let [[y x] [(+ y0 dy) (+ x0 dx)]
+          nxt (get-in m [y x] :out)]
+      (cond
+        (visited? [[y x] [dy dx]]) [:loop]
+        (= false nxt) (recur [y0 x0] (turn [dy dx]) visited?)
+        (= true nxt) (recur [y x] [dy dx] (conj visited? [[y x] [dy dx]]))
+        (= :out nxt) [:exit (->> visited? (map first) set)]))))
 
 (defn part1
   [input]
-  (count (find-path input)))
+  (match (find-path input)
+    [:loop] :not-expected
+    [:exit cells] (count cells)))
 
 (defn part2
   [{m :map, [p d] :guard}]
