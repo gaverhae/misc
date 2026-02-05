@@ -83,12 +83,11 @@
     [:v/list [:v/symbol "do"] & body] (m-let :m
                                         [rets (m/m-seq :m (map m-eval body))]
                                         [:m/pure (last rets)])
+    [:v/list [:v/symbol "def"] [:v/symbol n] expr] (m-let :m
+                                                     [v (m-eval expr)]
+                                                     [:m/add-top-level n v])
+    [:v/list [:v/symbol "def"] & _] [:m/error "Invalid syntax: def."]
     [:v/list op & args] (vatch op
-                          [:v/symbol "def"] (vatch args
-                                              [[:v/symbol x] expr] (m-let :m
-                                                                     [v (m-eval expr)]
-                                                                     [:m/add-top-level x v])
-                                              otherwise [:m/error "Invalid syntax: def."])
                           [:v/symbol "fn"] (if-not (and (>= (count args) 2)
                                                         (= :v/vector (ffirst args))
                                                         (->> args first rest (map first) (every? #{:v/symbol})))
