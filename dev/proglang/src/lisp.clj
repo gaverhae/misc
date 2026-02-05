@@ -87,21 +87,20 @@
                                                      [v (m-eval expr)]
                                                      [:m/add-top-level n v])
     [:v/list [:v/symbol "def"] & _] [:m/error "Invalid syntax: def."]
+    [:v/list [:v/symbol "fn"] [:v/vector & syms] & body] (if-not (->> syms (map first) (every? #{:v/symbol}))
+                                                           [:m/error "Invalid syntax: fn."]
+                                                           (m-let :m
+                                                             [env [:m/get-env]]
+                                                             [:m/pure [:v/fn
+                                                                       (->> syms (map second))
+                                                                       nil
+                                                                       (m-let :m
+                                                                         [rets (m/m-seq :m (map m-eval body))]
+                                                                         [:m/pure (last rets)])
+                                                                       env]]))
+    [:v/list [:v/symbol "fn"] & _] [:m/error "Invalid syntax: fn."]
+
     [:v/list op & args] (vatch op
-                          [:v/symbol "fn"] (if-not (and (>= (count args) 2)
-                                                        (= :v/vector (ffirst args))
-                                                        (->> args first rest (map first) (every? #{:v/symbol})))
-                                             [:m/error "Invalid syntax: fn."]
-                                             (let [[params & body] args]
-                                               (m-let :m
-                                                 [env [:m/get-env]]
-                                                 [:m/pure [:v/fn
-                                                         (->> params rest (map second))
-                                                         nil
-                                                         (m-let :m
-                                                           [rets (m/m-seq :m (map m-eval body))]
-                                                           [:m/pure (last rets)])
-                                                         env]])))
                           [:v/symbol "let"] (if-not (and (>= (count args) 2)
                                                          (= :v/vector (ffirst args))
                                                          (odd? (count (first args)))
