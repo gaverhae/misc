@@ -4,11 +4,19 @@
             [clojure.string :as string]
             [expectations :refer [expect]]))
 
+(defn ->lines
+  [strings]
+  (->> strings
+       (map (fn [s] (str s "\n")))
+       (apply str)))
+
 ;; Lisp Reader
 
-(let [l (fn [s] (l/read-forms s))]
+(let [l (fn [s] (l/read-forms (->lines s)))]
   (expect [[:v/int 4]]
-          (l "4")))
+          (l ["4"]))
+  (expect [[:v/vector [:v/int 4] [:v/int 5] [:v/symbol "sym"] [:v/bool true] [:v/vector [:v/int 1] [:v/list [:v/int 2]]]] [:v/int 4]]
+          (l ["[4 5 sym true [1 (2)]] 4"])))
 
 ;; Basic expressions
 
@@ -90,12 +98,6 @@
           (p "(1) + (2 * 3)" ))
   (expect [[:list [:symbol "+"] [:int "1"] [:list [:symbol "*"] [:int "2"] [:int "3"]]]]
           (l "(+ 1 (* 2 3))" )))
-
-(defn ->lines
-  [strings]
-  (->> strings
-       (map (fn [s] (str s "\n")))
-       (apply str)))
 
 ;; Check expected AST on more complex examples.
 
