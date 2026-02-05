@@ -64,6 +64,7 @@
     [:m/assert false msg] [[:v/error msg] state]
     [:m/push-env e] [nil (update state :stack conj e)]
     [:m/pop-env] [nil (update state :stack pop)]
+    [:m/get-env] [(peek (:stack state)) state]
     [:m/add-to-env n v] [nil (update state :stack (fn [s]
                                                     (let [idx (dec (count s))]
                                                       (update s idx assoc n v))))]
@@ -85,6 +86,30 @@
                                                                      [v (m-eval expr)]
                                                                      [:m/add-top-level x v])
                                               otherwise [:m/error "Invalid syntax: def."])
+                          [:v/symbol "let"] (if-not (and (>= (count args) 2)
+                                                         (= :v/vector (ffirst args))
+                                                         (odd? (count (first args)))
+                                                         (->> args
+                                                              first
+                                                              rest
+                                                              (partition 2 2)
+                                                              (map first)
+                                                              (map first)
+                                                              (every? #{:v/symbol})))
+                                              [:m/error "Invalid syntax: let."]
+                                              (let [[bindings & body] args
+                                                    b-names (->> bindings rest (partition 2 2) (map first) (map second))
+                                                    b-exprs (->> bindings rest (partition 2 2) (map second))]
+                                                (m-let :m
+                                                  [e [:m/get-env]
+                                                   _ [:m/push-env e]
+                                                   b-vals (m/m-seq :m (map m-eval b-exprs))
+                                                   _ (m/m-seq :m (map (fn [p a] [:m/add-to-env p a])
+                                                                      b-names
+                                                                      b-vals))
+                                                   rets (m/m-seq :m (map m-eval body))
+                                                   _ [:m/pop-env]]
+                                                  [:m/pure (last rets)])))
                           function-call (m-let :m
                                           [[tag named-params rest-params body fn-env] (m-eval op)
                                            _ [:m/assert (= :fn tag) "Tried to apply non-function value."]
