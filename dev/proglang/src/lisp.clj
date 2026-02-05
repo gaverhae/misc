@@ -1,5 +1,6 @@
 (ns lisp
-  (:require [instaparse.core :as insta]
+  (:require [clojure.java.io :as io]
+            [instaparse.core :as insta]
             [io.github.gaverhae.clonad :as m :refer [m-let]]
             [io.github.gaverhae.vatch :refer [vatch]]))
 
@@ -227,7 +228,10 @@
 
 (defn eval-forms
   [forms]
-  (first (m-run (m-let :m
-                  [values (m/m-seq :m (map m-eval forms))]
-                  [:m/pure (last values)])
-                init-state)))
+  (let [stdlib (slurp (io/resource "lisp/stdlib.clj"))
+        [_ state] (m-run (m/m-seq :m (map m-eval (read-forms stdlib)))
+                         init-state)]
+    (first (m-run (m-let :m
+                    [values (m/m-seq :m (map m-eval forms))]
+                    [:m/pure (last values)])
+                  state))))
