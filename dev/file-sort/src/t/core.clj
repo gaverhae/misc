@@ -305,28 +305,29 @@
                  (when-let [[sig paths] (async/<!! ch)]
                    (println) (println)
                    (println sig)
-                   (case (loop [kept (first paths)
-                                th (rest paths)]
-                           (if (empty? th)
+                   (case (loop [original (first paths)
+                                duplicates (rest paths)]
+                           (if (empty? duplicates)
                              :done
-                             (let [[m & th] th]
+                             (let [[dup & duplicates] duplicates]
                                (println)
-                               (println (format "Original:  \"%s\"." (:path kept)))
-                               (println (format "Next item: \"%s\"." (:path m)))
-                               (println "[S]witch, [s]kip, [d]elete, [q]uit, [h]ard link?")
+                               (println (format "Original:  \"%s\"." (:path original)))
+                               (println (format "Duplicate: \"%s\"." (:path dup)))
+                               (println "[s]kip, [d]elete duplicate, [D]elete original, [q]uit, [h]ard link?")
                                (print "> ") (flush)
                                (case (get-char)
-                                 "S" (recur m (conj th kept))
-                                 "s" (recur kept th)
-                                 "d" (do (delete (:path m))
-                                         (recur kept th))
+                                 "s" (recur original duplicates)
+                                 "d" (do (delete (:path dup))
+                                         (recur original duplicates))
+                                 "D" (do (delete (:path original))
+                                         (recur dup duplicates))
                                  "q" :quit
                                  nil :quit
-                                 "h" (do (delete (:path m))
-                                         (make-hard-link (:path kept) (:path m))
-                                         (recur kept th))
-                                 (do (println "Please enter S, s, d, q, or h.")
-                                     (recur kept (cons m th)))))))
+                                 "h" (do (delete (:path dup))
+                                         (make-hard-link (:path original) (:path dup))
+                                         (recur original duplicates))
+                                 (do (println "Please press s, d, D, q, or h.")
+                                     (recur original (cons dup duplicates)))))))
                      :done (recur)
                      :quit (do (async/put! stop :done)
                                (println "Bye!")))))))]
