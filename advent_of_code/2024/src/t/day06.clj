@@ -47,26 +47,19 @@
     [:exit cells] (count cells)))
 
 (defn part2
-  [{m :map, [p d] :guard}]
+  [{m :map, [p d] :guard :as input}]
   (->> (for [obs-y (range (count m))
-               obs-x (range (count (m obs-y)))
-               :when (not= [obs-y obs-x] p)]
+             obs-x (range (count (m obs-y)))
+             :when (not= [obs-y obs-x] p)]
          [obs-y obs-x])
        (filter (fn [obs]
-                 (loop [[y0 x0] p
-                        [dy dx] d
-                        visited? #{[p d]}]
-                   (let [[y x] [(+ y0 dy) (+ x0 dx)]
-                         nxt (get-in m [y x] :out)]
-                     (cond
-                       (visited? [[y x] [dy dx]]) true
-                       (or (= [y x] obs) (= false nxt)) (recur [y0 x0] (turn [dy dx]) visited?)
-                       (= true nxt) (recur [y x] [dy dx] (conj visited? [[y x] [dy dx]]))
-                       (= :out nxt) false)))))
+                 (match (find-path (update input :map assoc-in obs false))
+                   [:loop] true
+                   [:exit _] false)))
        count))
 
 (lib/check
   [part1 sample] 41
   [part1 puzzle] 5067
   [part2 sample] 6
-  #_#_[part2 puzzle] 1793)
+  [part2 puzzle] 1793)
