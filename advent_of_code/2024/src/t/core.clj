@@ -101,10 +101,9 @@
           part1 (resolve (symbol day-ns "part1"))
           part2 (resolve (symbol day-ns "part2"))
           part1 (fn []
-                  (part1 (-> input string/split-lines parse)))
+                  (-> input string/split-lines vec parse part1))
           part2 (fn []
-                  (part2 (-> input string/split-lines parse)))]
-
+                  (-> input string/split-lines vec parse part2))]
       (println (format "Day %2d: %7.3f  %7.3f"
                        d
                        (:mean (lib/bench-data part1))
