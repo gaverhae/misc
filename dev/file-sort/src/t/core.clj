@@ -267,7 +267,6 @@
        (take n)
        reverse
        (map (fn [[sig ms]]
-              (println)
               (println sig)
               (->> ms (map (comp str :path)) sort (map println) doall)
               (println)))
