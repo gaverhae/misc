@@ -133,7 +133,7 @@
        (apply str)))
 
 (defn hashes
-  [f max-iter]
+  [f ^long max-iter]
   (let [buffer-size (* 64 1024)
         buffer (byte-array buffer-size)
         md5 (MessageDigest/getInstance "md5")
