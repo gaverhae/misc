@@ -55,6 +55,11 @@
   [from at]
   (Files/createLink at from))
 
+(defn is-spotlight-dir?
+  [^Path path]
+  (re-matches #"/Volumes/[^/]+/.Spotlight-V100"
+              (.. path toAbsolutePath toString)))
+
 (defn all-paths-under
   "List all the paths under the given path. Returns a map with these keys:
   :dirs, :files, :symlinks, :error."
@@ -63,6 +68,8 @@
         (Files/isSymbolicLink path) {:symlinks [path]}
         ;; silently ignore files we can't read
         (not (Files/isReadable path)) {:error [path]}
+        ;; ignore Spotlight temp dir
+        (is-spotlight-dir? path) {}
         ;; recur on directories
         (is-dir? path)
         (->> (children path)
