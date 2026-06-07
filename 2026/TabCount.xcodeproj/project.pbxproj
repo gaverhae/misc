@@ -1,0 +1,766 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4E1648C9233FAE6A003A34B9 /* TabCount.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 4E1648C8233FAE6A003A34B9 /* TabCount.entitlements */; };
+		4E1648CB233FAE6A003A34B9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648CA233FAE6A003A34B9 /* AppDelegate.swift */; };
+		4E1648CE233FAE6A003A34B9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4E1648CC233FAE6A003A34B9 /* Main.storyboard */; };
+		4E1648D0233FAE6A003A34B9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648CF233FAE6A003A34B9 /* ViewController.swift */; };
+		4E1648D2233FAE6C003A34B9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E1648D1233FAE6C003A34B9 /* Assets.xcassets */; };
+		4E1648DD233FAE6C003A34B9 /* TabCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648DC233FAE6C003A34B9 /* TabCountTests.swift */; };
+		4E1648E8233FAE6C003A34B9 /* TabCountUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648E7233FAE6C003A34B9 /* TabCountUITests.swift */; };
+		4E1648EF233FAE6C003A34B9 /* TabCount Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 4E1648EE233FAE6C003A34B9 /* TabCount Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4E1648F4233FAE6C003A34B9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1648F3233FAE6C003A34B9 /* Cocoa.framework */; };
+		4E1648F7233FAE6C003A34B9 /* SafariExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648F6233FAE6C003A34B9 /* SafariExtensionHandler.swift */; };
+		4E1648F9233FAE6C003A34B9 /* SafariExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648F8233FAE6C003A34B9 /* SafariExtensionViewController.swift */; };
+		4E1648FC233FAE6C003A34B9 /* SafariExtensionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4E1648FA233FAE6C003A34B9 /* SafariExtensionViewController.xib */; };
+		4E1648FF233FAE6C003A34B9 /* script.js in Resources */ = {isa = PBXBuildFile; fileRef = 4E1648FE233FAE6C003A34B9 /* script.js */; };
+		4E164901233FAE6C003A34B9 /* ToolbarItemIcon.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4E164900233FAE6C003A34B9 /* ToolbarItemIcon.pdf */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4E1648D9233FAE6C003A34B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E1648BD233FAE6A003A34B9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4E1648C4233FAE6A003A34B9;
+			remoteInfo = TabCount;
+		};
+		4E1648E4233FAE6C003A34B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E1648BD233FAE6A003A34B9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4E1648C4233FAE6A003A34B9;
+			remoteInfo = TabCount;
+		};
+		4E1648F0233FAE6C003A34B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E1648BD233FAE6A003A34B9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4E1648ED233FAE6C003A34B9;
+			remoteInfo = "TabCount Extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4E164908233FAE6C003A34B9 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4E1648EF233FAE6C003A34B9 /* TabCount Extension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4E1648C5233FAE6A003A34B9 /* TabCount.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabCount.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E1648C8233FAE6A003A34B9 /* TabCount.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TabCount.entitlements; sourceTree = "<group>"; };
+		4E1648CA233FAE6A003A34B9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4E1648CD233FAE6A003A34B9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		4E1648CF233FAE6A003A34B9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		4E1648D1233FAE6C003A34B9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4E1648D3233FAE6C003A34B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4E1648D8233FAE6C003A34B9 /* TabCountTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TabCountTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E1648DC233FAE6C003A34B9 /* TabCountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabCountTests.swift; sourceTree = "<group>"; };
+		4E1648DE233FAE6C003A34B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4E1648E3233FAE6C003A34B9 /* TabCountUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TabCountUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E1648E7233FAE6C003A34B9 /* TabCountUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabCountUITests.swift; sourceTree = "<group>"; };
+		4E1648E9233FAE6C003A34B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4E1648EE233FAE6C003A34B9 /* TabCount Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "TabCount Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E1648F3233FAE6C003A34B9 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		4E1648F6233FAE6C003A34B9 /* SafariExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariExtensionHandler.swift; sourceTree = "<group>"; };
+		4E1648F8233FAE6C003A34B9 /* SafariExtensionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariExtensionViewController.swift; sourceTree = "<group>"; };
+		4E1648FB233FAE6C003A34B9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/SafariExtensionViewController.xib; sourceTree = "<group>"; };
+		4E1648FD233FAE6C003A34B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4E1648FE233FAE6C003A34B9 /* script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = script.js; sourceTree = "<group>"; };
+		4E164900233FAE6C003A34B9 /* ToolbarItemIcon.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = ToolbarItemIcon.pdf; sourceTree = "<group>"; };
+		4E164902233FAE6C003A34B9 /* TabCount_Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TabCount_Extension.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4E1648C2233FAE6A003A34B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648D5233FAE6C003A34B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648E0233FAE6C003A34B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648EB233FAE6C003A34B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E1648F4233FAE6C003A34B9 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4E1648BC233FAE6A003A34B9 = {
+			isa = PBXGroup;
+			children = (
+				4E1648C7233FAE6A003A34B9 /* TabCount */,
+				4E1648DB233FAE6C003A34B9 /* TabCountTests */,
+				4E1648E6233FAE6C003A34B9 /* TabCountUITests */,
+				4E1648F5233FAE6C003A34B9 /* TabCount Extension */,
+				4E1648F2233FAE6C003A34B9 /* Frameworks */,
+				4E1648C6233FAE6A003A34B9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4E1648C6233FAE6A003A34B9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4E1648C5233FAE6A003A34B9 /* TabCount.app */,
+				4E1648D8233FAE6C003A34B9 /* TabCountTests.xctest */,
+				4E1648E3233FAE6C003A34B9 /* TabCountUITests.xctest */,
+				4E1648EE233FAE6C003A34B9 /* TabCount Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4E1648C7233FAE6A003A34B9 /* TabCount */ = {
+			isa = PBXGroup;
+			children = (
+				4E1648C8233FAE6A003A34B9 /* TabCount.entitlements */,
+				4E1648CA233FAE6A003A34B9 /* AppDelegate.swift */,
+				4E1648CC233FAE6A003A34B9 /* Main.storyboard */,
+				4E1648CF233FAE6A003A34B9 /* ViewController.swift */,
+				4E1648D1233FAE6C003A34B9 /* Assets.xcassets */,
+				4E1648D3233FAE6C003A34B9 /* Info.plist */,
+			);
+			path = TabCount;
+			sourceTree = "<group>";
+		};
+		4E1648DB233FAE6C003A34B9 /* TabCountTests */ = {
+			isa = PBXGroup;
+			children = (
+				4E1648DC233FAE6C003A34B9 /* TabCountTests.swift */,
+				4E1648DE233FAE6C003A34B9 /* Info.plist */,
+			);
+			path = TabCountTests;
+			sourceTree = "<group>";
+		};
+		4E1648E6233FAE6C003A34B9 /* TabCountUITests */ = {
+			isa = PBXGroup;
+			children = (
+				4E1648E7233FAE6C003A34B9 /* TabCountUITests.swift */,
+				4E1648E9233FAE6C003A34B9 /* Info.plist */,
+			);
+			path = TabCountUITests;
+			sourceTree = "<group>";
+		};
+		4E1648F2233FAE6C003A34B9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4E1648F3233FAE6C003A34B9 /* Cocoa.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4E1648F5233FAE6C003A34B9 /* TabCount Extension */ = {
+			isa = PBXGroup;
+			children = (
+				4E1648F6233FAE6C003A34B9 /* SafariExtensionHandler.swift */,
+				4E1648F8233FAE6C003A34B9 /* SafariExtensionViewController.swift */,
+				4E1648FA233FAE6C003A34B9 /* SafariExtensionViewController.xib */,
+				4E1648FD233FAE6C003A34B9 /* Info.plist */,
+				4E1648FE233FAE6C003A34B9 /* script.js */,
+				4E164900233FAE6C003A34B9 /* ToolbarItemIcon.pdf */,
+				4E164902233FAE6C003A34B9 /* TabCount_Extension.entitlements */,
+			);
+			path = "TabCount Extension";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4E1648C4233FAE6A003A34B9 /* TabCount */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E164909233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCount" */;
+			buildPhases = (
+				4E1648C1233FAE6A003A34B9 /* Sources */,
+				4E1648C2233FAE6A003A34B9 /* Frameworks */,
+				4E1648C3233FAE6A003A34B9 /* Resources */,
+				4E164908233FAE6C003A34B9 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E1648F1233FAE6C003A34B9 /* PBXTargetDependency */,
+			);
+			name = TabCount;
+			productName = TabCount;
+			productReference = 4E1648C5233FAE6A003A34B9 /* TabCount.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4E1648D7233FAE6C003A34B9 /* TabCountTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E16490C233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCountTests" */;
+			buildPhases = (
+				4E1648D4233FAE6C003A34B9 /* Sources */,
+				4E1648D5233FAE6C003A34B9 /* Frameworks */,
+				4E1648D6233FAE6C003A34B9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E1648DA233FAE6C003A34B9 /* PBXTargetDependency */,
+			);
+			name = TabCountTests;
+			productName = TabCountTests;
+			productReference = 4E1648D8233FAE6C003A34B9 /* TabCountTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4E1648E2233FAE6C003A34B9 /* TabCountUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E16490F233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCountUITests" */;
+			buildPhases = (
+				4E1648DF233FAE6C003A34B9 /* Sources */,
+				4E1648E0233FAE6C003A34B9 /* Frameworks */,
+				4E1648E1233FAE6C003A34B9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E1648E5233FAE6C003A34B9 /* PBXTargetDependency */,
+			);
+			name = TabCountUITests;
+			productName = TabCountUITests;
+			productReference = 4E1648E3233FAE6C003A34B9 /* TabCountUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		4E1648ED233FAE6C003A34B9 /* TabCount Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E164905233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCount Extension" */;
+			buildPhases = (
+				4E1648EA233FAE6C003A34B9 /* Sources */,
+				4E1648EB233FAE6C003A34B9 /* Frameworks */,
+				4E1648EC233FAE6C003A34B9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "TabCount Extension";
+			productName = "TabCount Extension";
+			productReference = 4E1648EE233FAE6C003A34B9 /* TabCount Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4E1648BD233FAE6A003A34B9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1100;
+				LastUpgradeCheck = 1100;
+				ORGANIZATIONNAME = Sotenj;
+				TargetAttributes = {
+					4E1648C4233FAE6A003A34B9 = {
+						CreatedOnToolsVersion = 11.0;
+					};
+					4E1648D7233FAE6C003A34B9 = {
+						CreatedOnToolsVersion = 11.0;
+						TestTargetID = 4E1648C4233FAE6A003A34B9;
+					};
+					4E1648E2233FAE6C003A34B9 = {
+						CreatedOnToolsVersion = 11.0;
+						TestTargetID = 4E1648C4233FAE6A003A34B9;
+					};
+					4E1648ED233FAE6C003A34B9 = {
+						CreatedOnToolsVersion = 11.0;
+					};
+				};
+			};
+			buildConfigurationList = 4E1648C0233FAE6A003A34B9 /* Build configuration list for PBXProject "TabCount" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4E1648BC233FAE6A003A34B9;
+			productRefGroup = 4E1648C6233FAE6A003A34B9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4E1648C4233FAE6A003A34B9 /* TabCount */,
+				4E1648D7233FAE6C003A34B9 /* TabCountTests */,
+				4E1648E2233FAE6C003A34B9 /* TabCountUITests */,
+				4E1648ED233FAE6C003A34B9 /* TabCount Extension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4E1648C3233FAE6A003A34B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E1648C9233FAE6A003A34B9 /* TabCount.entitlements in Resources */,
+				4E1648D2233FAE6C003A34B9 /* Assets.xcassets in Resources */,
+				4E1648CE233FAE6A003A34B9 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648D6233FAE6C003A34B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648E1233FAE6C003A34B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648EC233FAE6C003A34B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E164901233FAE6C003A34B9 /* ToolbarItemIcon.pdf in Resources */,
+				4E1648FC233FAE6C003A34B9 /* SafariExtensionViewController.xib in Resources */,
+				4E1648FF233FAE6C003A34B9 /* script.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4E1648C1233FAE6A003A34B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E1648D0233FAE6A003A34B9 /* ViewController.swift in Sources */,
+				4E1648CB233FAE6A003A34B9 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648D4233FAE6C003A34B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E1648DD233FAE6C003A34B9 /* TabCountTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648DF233FAE6C003A34B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E1648E8233FAE6C003A34B9 /* TabCountUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1648EA233FAE6C003A34B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E1648F9233FAE6C003A34B9 /* SafariExtensionViewController.swift in Sources */,
+				4E1648F7233FAE6C003A34B9 /* SafariExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4E1648DA233FAE6C003A34B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4E1648C4233FAE6A003A34B9 /* TabCount */;
+			targetProxy = 4E1648D9233FAE6C003A34B9 /* PBXContainerItemProxy */;
+		};
+		4E1648E5233FAE6C003A34B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4E1648C4233FAE6A003A34B9 /* TabCount */;
+			targetProxy = 4E1648E4233FAE6C003A34B9 /* PBXContainerItemProxy */;
+		};
+		4E1648F1233FAE6C003A34B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4E1648ED233FAE6C003A34B9 /* TabCount Extension */;
+			targetProxy = 4E1648F0233FAE6C003A34B9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		4E1648CC233FAE6A003A34B9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				4E1648CD233FAE6A003A34B9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		4E1648FA233FAE6C003A34B9 /* SafariExtensionViewController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				4E1648FB233FAE6C003A34B9 /* Base */,
+			);
+			name = SafariExtensionViewController.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		4E164903233FAE6C003A34B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		4E164904233FAE6C003A34B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		4E164906233FAE6C003A34B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "TabCount Extension/TabCount_Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "TabCount Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sotenj.TabCount-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		4E164907233FAE6C003A34B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "TabCount Extension/TabCount_Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "TabCount Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sotenj.TabCount-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4E16490A233FAE6C003A34B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TabCount/TabCount.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = TabCount/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCount;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		4E16490B233FAE6C003A34B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TabCount/TabCount.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = TabCount/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCount;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4E16490D233FAE6C003A34B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				INFOPLIST_FILE = TabCountTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCountTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TabCount.app/Contents/MacOS/TabCount";
+			};
+			name = Debug;
+		};
+		4E16490E233FAE6C003A34B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				INFOPLIST_FILE = TabCountTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCountTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TabCount.app/Contents/MacOS/TabCount";
+			};
+			name = Release;
+		};
+		4E164910233FAE6C003A34B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				INFOPLIST_FILE = TabCountUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCountUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = TabCount;
+			};
+			name = Debug;
+		};
+		4E164911233FAE6C003A34B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
+				INFOPLIST_FILE = TabCountUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCountUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = TabCount;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4E1648C0233FAE6A003A34B9 /* Build configuration list for PBXProject "TabCount" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E164903233FAE6C003A34B9 /* Debug */,
+				4E164904233FAE6C003A34B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E164905233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCount Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E164906233FAE6C003A34B9 /* Debug */,
+				4E164907233FAE6C003A34B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E164909233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCount" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E16490A233FAE6C003A34B9 /* Debug */,
+				4E16490B233FAE6C003A34B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E16490C233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCountTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E16490D233FAE6C003A34B9 /* Debug */,
+				4E16490E233FAE6C003A34B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E16490F233FAE6C003A34B9 /* Build configuration list for PBXNativeTarget "TabCountUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E164910233FAE6C003A34B9 /* Debug */,
+				4E164911233FAE6C003A34B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4E1648BD233FAE6A003A34B9 /* Project object */;
+}
