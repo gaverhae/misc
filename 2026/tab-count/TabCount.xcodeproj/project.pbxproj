@@ -84,6 +84,7 @@
 		4E1648FE233FAE6C003A34B9 /* script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = script.js; sourceTree = "<group>"; };
 		4E164900233FAE6C003A34B9 /* ToolbarItemIcon.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = ToolbarItemIcon.pdf; sourceTree = "<group>"; };
 		4E164902233FAE6C003A34B9 /* TabCount_Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TabCount_Extension.entitlements; sourceTree = "<group>"; };
+		4E164912233FAE6C003A34B9 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +123,7 @@
 		4E1648BC233FAE6A003A34B9 = {
 			isa = PBXGroup;
 			children = (
+				4E164912233FAE6C003A34B9 /* Config.xcconfig */,
 				4E1648C7233FAE6A003A34B9 /* TabCount */,
 				4E1648DB233FAE6C003A34B9 /* TabCountTests */,
 				4E1648E6233FAE6C003A34B9 /* TabCountUITests */,
@@ -431,6 +433,7 @@
 /* Begin XCBuildConfiguration section */
 		4E164903233FAE6C003A34B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4E164912233FAE6C003A34B9 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -491,6 +494,7 @@
 		};
 		4E164904233FAE6C003A34B9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4E164912233FAE6C003A34B9 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -555,7 +559,6 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.sotenj.TabCount-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -576,7 +579,6 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.sotenj.TabCount-Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -599,7 +601,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCount;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -621,7 +622,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sotenj.TabCount;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
