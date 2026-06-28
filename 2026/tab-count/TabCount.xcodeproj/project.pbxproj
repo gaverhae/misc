@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,7 +14,7 @@
 		4E1648D2233FAE6C003A34B9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E1648D1233FAE6C003A34B9 /* Assets.xcassets */; };
 		4E1648DD233FAE6C003A34B9 /* TabCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648DC233FAE6C003A34B9 /* TabCountTests.swift */; };
 		4E1648E8233FAE6C003A34B9 /* TabCountUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648E7233FAE6C003A34B9 /* TabCountUITests.swift */; };
-		4E1648EF233FAE6C003A34B9 /* TabCount Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 4E1648EE233FAE6C003A34B9 /* TabCount Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4E1648EF233FAE6C003A34B9 /* TabCount Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E1648EE233FAE6C003A34B9 /* TabCount Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4E1648F4233FAE6C003A34B9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E1648F3233FAE6C003A34B9 /* Cocoa.framework */; };
 		4E1648F7233FAE6C003A34B9 /* SafariExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648F6233FAE6C003A34B9 /* SafariExtensionHandler.swift */; };
 		4E1648F9233FAE6C003A34B9 /* SafariExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1648F8233FAE6C003A34B9 /* SafariExtensionViewController.swift */; };
@@ -48,15 +48,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		4E164908233FAE6C003A34B9 /* Embed App Extensions */ = {
+		4E164908233FAE6C003A34B9 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				4E1648EF233FAE6C003A34B9 /* TabCount Extension.appex in Embed App Extensions */,
+				4E1648EF233FAE6C003A34B9 /* TabCount Extension.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -207,7 +207,7 @@
 				4E1648C1233FAE6A003A34B9 /* Sources */,
 				4E1648C2233FAE6A003A34B9 /* Frameworks */,
 				4E1648C3233FAE6A003A34B9 /* Resources */,
-				4E164908233FAE6C003A34B9 /* Embed App Extensions */,
+				4E164908233FAE6C003A34B9 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -278,8 +278,9 @@
 		4E1648BD233FAE6A003A34B9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1100;
-				LastUpgradeCheck = 1100;
+				LastUpgradeCheck = 2660;
 				ORGANIZATIONNAME = Sotenj;
 				TargetAttributes = {
 					4E1648C4233FAE6A003A34B9 = {
@@ -458,6 +459,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -465,9 +467,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = PFH9CGU82A;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -486,6 +491,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -518,6 +524,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -525,9 +532,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = PFH9CGU82A;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -539,6 +549,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -549,7 +560,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "TabCount Extension/TabCount_Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "TabCount Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -569,7 +580,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "TabCount Extension/TabCount_Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "TabCount Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -587,12 +598,11 @@
 		4E16490A233FAE6C003A34B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TabCount/TabCount.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = TabCount/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -608,12 +618,11 @@
 		4E16490B233FAE6C003A34B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TabCount/TabCount.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = TabCount/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -629,11 +638,10 @@
 		4E16490D233FAE6C003A34B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = TabCountTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -650,11 +658,10 @@
 		4E16490E233FAE6C003A34B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = TabCountTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -671,10 +678,9 @@
 		4E164910233FAE6C003A34B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = TabCountUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -691,10 +697,9 @@
 		4E164911233FAE6C003A34B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PFH9CGU82A;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = TabCountUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
